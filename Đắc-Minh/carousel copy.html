@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page ca nhan</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
+    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+    <style>
+        /* Phan nay mn import vo de mau sac vo phong chu minh giong nhau */
+        * {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box;
+        }
+
+        @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+        :root {
+            --background-color: #16161a;
+            --headline-color: #fffffe;
+            --p-color: #94a1b2;
+            --b-color: #7f5af0;
+            --b-text-color: #fffffe;
+            --border-color: #010101;
+            --main-color: #282828;
+            --highlight-color: #7f5af0;
+            --secondary-color: #d9d9d9;
+            --tertiary-color: #2cb67d;
+            --placeholder-color: #a0aec056;
+            --heading-1: bold 61.04px "Inter", sans-serif;
+            --heading-2: bold 48.83px "Inter", sans-serif;
+            --heading-3: bold 39.06px "Inter", sans-serif;
+            --heading-4: bold 31.25px "Inter", sans-serif;
+            --heading-5: 600 24px "Inter", sans-serif;
+            --heading-6: 600 20px "Inter", sans-serif;
+            --p: normal 16px "Inter", sans-serif;
+            --small-1: normal 12.8 "Inter", sans-serif;
+            --small-2: normal 10.24 "Inter", sans-serif;
+        }
+
+        /* Phan nay code cho container ne */
+        html,
+        body {
+            background-color: var(--background-color);
+            min-width: 100vh;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .mainbody {
+            background-color: var(--placeholder-color);
+        }
+
+        .nav {
+            width: 100%;
+            height: 96px;
+            background-color: black;
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column gap-5 justify-content-between align-items-center">
+    <div class="nav"></div>
+    <div class="container-fluid w-75 vh-100 mainbody">
+        <div id="carouselExampleCaptions" class="carousel slide">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active"
+                    aria-label="Slide 1" aria-current="true"></button>
+                <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1"
+                    aria-label="Slide 2" class=""></button>
+                <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2"
+                    aria-label="Slide 3" class=""></button>
+            </div>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <svg aria-label="Placeholder: First slide"
+                        class="bd-placeholder-img bd-placeholder-img-lg d-block w-100" height="400"
+                        preserveAspectRatio="xMidYMid slice" role="img" width="800" xmlns="http://www.w3.org/2000/svg">
+                        <title>Placeholder</title>
+                        <rect width="100%" height="100%" fill="#777"></rect>
+                        <text x="50%" y="50%" fill="#555" dy=".3em">First slide</text>
+                    </svg>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>First slide label</h5>
+                        <p>
+                            Some representative placeholder content for the first slide.
+                        </p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <svg aria-label="Placeholder: Second slide"
+                        class="bd-placeholder-img bd-placeholder-img-lg d-block w-100" height="400"
+                        preserveAspectRatio="xMidYMid slice" role="img" width="800" xmlns="http://www.w3.org/2000/svg">
+                        <title>Placeholder</title>
+                        <rect width="100%" height="100%" fill="#666"></rect>
+                        <text x="50%" y="50%" fill="#444" dy=".3em">Second slide</text>
+                    </svg>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Second slide label</h5>
+                        <p>
+                            Some representative placeholder content for the second slide.
+                        </p>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <svg aria-label="Placeholder: Third slide"
+                        class="bd-placeholder-img bd-placeholder-img-lg d-block w-100" height="400"
+                        preserveAspectRatio="xMidYMid slice" role="img" width="800" xmlns="http://www.w3.org/2000/svg">
+                        <title>Placeholder</title>
+                        <rect width="100%" height="100%" fill="#555"></rect>
+                        <text x="50%" y="50%" fill="#333" dy=".3em">Third slide</text>
+                    </svg>
+                    <div class="carousel-caption d-none d-md-block">
+                        <h5>Third slide label</h5>
+                        <p>
+                            Some representative placeholder content for the third slide.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions"
+                data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions"
+                data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </div>
+</body>
+
+<script></script>
+</html>
