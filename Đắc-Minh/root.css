@@ -1,0 +1,51 @@
+*{margin:0 !important; padding:0 !important; box-sizing:border-box} 
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+:root{ 
+    --background-color: #16161A;
+    --headline-color: #FFFFFE; 
+    --p-color:#94A1B2;
+    --b-color:#7F5AF0;
+    --b-text-color: #FFFFFE; 
+    --border-color: #010101;
+    --main-color: #282828;
+    --highlight-color:#7F5AF0;
+    --secondary-color: #D9D9D9;
+    --tertiary-color: #2CB67D;
+    --heading-1:bold 61.04px "Inter", sans-serif;
+    --heading-2: bold 48.83px "Inter", sans-serif;
+    --heading-3: bold 39.06px "Inter", sans-serif;
+    --heading-4: bold 31.25px "Inter", sans-serif;
+    --heading-5: 600 24px "Inter", sans-serif;
+    --heading-6: 600 20px "Inter", sans-serif;
+    --p: normal 16px "Inter", sans-serif;
+    --small-1: normal 12.8 "Inter", sans-serif;
+    --small-2: normal 10.24 "Inter", sans-serif;
+}
+.highlight{color:#FFFFFE}
+.interlude{color:#fffffe50}
+.background-color{background-color: var(--background-color)}
+.headerline-color{color: var(--headline-color)}
+.p-color{color: var(--p-color)}
+.b-color{color: var(--b-color)}
+.b-text-color{color: var(--b-text-color)}
+.border-color{border-color: var(--border-color)}
+.main-color{background-color: var(--main-color)}
+.highlight-color{background-color: var(--highlight-color)}
+.secondary-color{background-color: var(--secondary-color)}
+.tertiary-color{background-color: var(--tertiary-color)}
+.heading-1{font:var(--heading-1)}
+.heading-2{font:var(--heading-2)}
+.heading-3{font:var(--heading-3)}
+.heading-4{font:var(--heading-4)}
+.heading-5{font:var(--heading-5)}
+.heading-6{font:var(--heading-6)}
+.p{font:var(--p)}
+.small-1{font:var(--small-1)}
+.small-2{font:var(--small-2)}  
+html, body{
+    background-color: var(--background-color);
+    min-width: 100vh;
+    min-height: 100vh;
+    height:100vh;
+    position: relative;
+}
