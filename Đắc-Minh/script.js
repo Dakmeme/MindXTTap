@@ -1,20 +1,27 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js'
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { getMessaging } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyC-GR0nEyj6VFudhwJpISxicits-uLBJGw',
-  authDomain: 'ttcm-3ea96.firebaseapp.com',
-  projectId: 'ttcm-3ea96',
-  storageBucket: 'ttcm-3ea96.firebasestorage.app',
-  messagingSenderId: '196110779018',
-  appId: '1:196110779018:web:1d51451aaccbd244f2a373',
-}
+  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
+    authDomain: "ttmindx.firebaseapp.com",
+
+    projectId: "ttmindx",
+
+    storageBucket: "ttmindx.firebasestorage.app",
+
+    messagingSenderId: "499689288083",
+
+    appId: "1:499689288083:web:394be22db426aa48b93866",
+
+    measurementId: "G-Y0NCNLB337"
+};
+
+  
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
+
 
 import {
   getFirestore,
