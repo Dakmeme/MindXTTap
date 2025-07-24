@@ -1,0 +1,32 @@
+const openModalButton = document.querySelectorAll('[data-modal-target]');
+const closeModalButton = document.querySelectorAll('[data-close-button]');
+// const overlay = document.getElementById('overlay');
+const mainbody= document.getElementById('mainbody')
+
+openModalButton.forEach(button => {
+    button.addEventListener('click', () => {
+        const modal = document.querySelector(button.dataset.modalTarget);
+        openModal(modal);
+    });
+})
+closeModalButton.forEach(button => {
+    button.addEventListener('click', () => {
+        const modal = button.closest('.modal');
+        closeModal(modal);
+    });
+})
+
+function openModal(modal) {
+    if (modal == null) return;
+    modal.classList.add('active','d-flex justify-content-between align-items-starts container-fluid w-75 vh-100 gap-4 mainbody');
+    // overlay.classList.add('active');
+    mainbody.classList.add('disabled')
+
+
+}
+function closeModal(modal) {
+    if (modal == null) return;
+    modal.classList.remove('active');
+    // overlay.classList.remove('active');
+    mainbody.classList .remove('disabled')
+}

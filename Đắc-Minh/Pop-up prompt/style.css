@@ -1,0 +1,41 @@
+*, *::after, *::before {
+  box-sizing: border-box;
+}
+.modal{
+    position: fixed;
+    border: 1px solid black;
+    z-index: 1000;
+    background-color: white;
+    transition: 200ms ease-in-out'
+}
+.modal.active{
+    transform: scale(1);
+
+    background-color: rgba(0, 0, 0,);
+    display:block
+}
+.sidebar .close-button{
+  cursor:pointer;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 1.25rem
+
+}
+
+#overlay{
+  position: fixed;
+  opacity: 0;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  background-color: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+#overlay.active{
+  opacity: 1;
+}
+.mainbody.disabled{
+  display:none !important
+}
