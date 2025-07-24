@@ -1,241 +1,164 @@
-// This script dynamically renders 10 feed posts on page load.
-// Each post includes user info, content, a placeholder for media, and action buttons (like, comment, share).
-// Now, each post also includes a chat-style message input area below the action buttons.
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-document.addEventListener("DOMContentLoaded", function() {
-    // Locate the feed container element
-    const feedContainer = document.querySelector('.feed');
-    if (!feedContainer) return; // Exit if feed container is not found
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
+  authDomain: "ttmindx.firebaseapp.com",
+  projectId: "ttmindx",
+  storageBucket: "ttmindx.firebasestorage.app",
+  messagingSenderId: "499689288083",
+  appId: "1:499689288083:web:394be22db426aa48b93866",
+  measurementId: "G-Y0NCNLB337"
+};
 
-    /**
-     * Helper function to create a feed post card element.
-     * @param {Object} post - The post data (author, handle, content)
-     * @returns {HTMLElement} - The constructed post card element
-     */
-    function createFeedPost(post) {
-        // Create the main card container
-        const card = document.createElement('div');
-        card.className = "card mb-4";
-        card.style.backgroundColor = "var(--main-color)";
-        card.style.color = "var(--headline-color)";
-        card.style.borderColor = "var(--border-color)";
-        card.style.borderRadius = "20px";
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
-        // Card body section
-        const cardBody = document.createElement('div');
-        cardBody.className = "card-body mb-4";
+import {
+  getFirestore,
+  addDoc,
+  collection,
+  getDocs,
+} from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
 
-        // User info row (avatar + name + handle)
-        const userRow = document.createElement('div');
-        userRow.className = "d-flex align-items-center mb-2";
-        // User avatar placeholder
-        const userCircle = document.createElement('span');
-        userCircle.className = "rounded-circle d-inline-block me-3";
-        userCircle.style.width = "40px";
-        userCircle.style.height = "40px";
-        userCircle.style.backgroundColor = "#fff";
-        userCircle.style.display = "flex";
-        userCircle.style.alignItems = "center";
-        userCircle.style.justifyContent = "center";
-        userRow.appendChild(userCircle);
+const db = getFirestore(app)
 
-        // User name and handle
-        const userInfo = document.createElement('div');
-        const userName = document.createElement('h5');
-        userName.className = "mb-0";
-        userName.style.color = "var(--headline-color)";
-        userName.textContent = post.author;
-        const userHandle = document.createElement('div');
-        userHandle.className = "text-muted small";
-        userHandle.style.color = "var(--p-color)";
-        userHandle.textContent = post.handle;
-        userInfo.appendChild(userName);
-        userInfo.appendChild(userHandle);
-        userRow.appendChild(userInfo);
+const createFeedModal = document.getElementById('createFeedModal')
+const postButton = document.getElementById('postButton')
+console.log(postButton)
+// Check for null before adding event listener
+// Helper to render a single post (prepend if needed)
+function renderPost(data, prepend = false) {
+  let dateStr = '';
+  if (data.date) {
+    const dateObj = new Date(data.date);
+    dateStr = dateObj.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
 
-        // Post content section
-        const postContent = document.createElement('div');
-        postContent.className = "mb-2";
-        postContent.style.color = "var(--p-color)";
-        postContent.textContent = post.content;
+  const feed = document.createElement('div');
+  feed.innerHTML = `
+        <div class="card-body mb-4">
+            <div class="d-flex align-items-center mb-2">
+                <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
+                <div>
+                    <h5 class="mb-0" style="color: var(--headline-color);">${data.user ? data.user : 'Unknown User'}</h5>
+                    <div class="text-muted small" style="color: var(--p-color);">${dateStr}</div>
+                </div>
+            </div>
+            <div class="mb-2" style="color: var(--p-color);">${data.content ? data.content : ''}</div>
+            <div class="mb-2" style="height:200px; background: var(--secondary-color); border-radius: 20px;"></div>
+            <div class="d-flex align-items-center mb-2">
+                <button class="btn btn-outline-danger btn-sm me-2" style="color: var(--highlight-color); border-color: var(--highlight-color); border-radius: 20px;" aria-label="Like">
+                    <i class="bi bi-heart"></i>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm me-2" style="color: var(--p-color); border-color: var(--p-color); border-radius: 20px;" aria-label="Comment" data-bs-toggle="modal" data-bs-target="#commentModal">
+                    <i class="bi bi-chat-dots"></i>
+                </button>
+                <button class="btn btn-outline-primary btn-sm me-3" style="color: var(--b-color); border-color: var(--b-color); border-radius: 20px;">
+                    <i class="bi bi-share"></i>
+                </button>
+                <span class="text-muted small" style="color: var(--p-color);"></span>
+            </div>
+            <div class="d-flex align-items-center mt-3" style="padding: 0;">
+                <span class="rounded-circle d-inline-block" style="width:36px; height:36px; background-color:#fff; display:flex; align-items:center; justify-content:center; margin-right:12px;"></span>
+                <div style="flex:1; display:flex; align-items:center; background:var(--background-color); border-radius:20px; border:1px solid var(--border-color); padding:0 12px; margin-right:12px; min-height:44px;">
+                    <input type="text" class="form-control border-0 shadow-none" placeholder="Write a comment..." style="background:transparent; color:var(--headline-color); font-size:1rem; outline:none; box-shadow:none; height:40px; padding:0;" aria-label="Write a comment">
+                </div>
+                <button class="d-flex align-items-center justify-content-center" style="width:40px; height:40px; background:var(--highlight-color); border:none; border-radius:50%; color:var(--b-text-color); cursor:pointer;" aria-label="Send message">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
+  const feeds = document.getElementById('feed');
+  if (prepend && feeds.firstChild) {
+    feeds.insertBefore(feed, feeds.firstChild);
+  } else if (prepend) {
+    feeds.appendChild(feed);
+  } else {
+    feeds.appendChild(feed);
+  }
+}
 
-        // Placeholder for post media (image/video)
-        const postMedia = document.createElement('div');
-        postMedia.className = "mb-2";
-        postMedia.style.height = "200px";
-        postMedia.style.background = "var(--secondary-color)";
-        postMedia.style.borderRadius = "20px";
+// Initial load: render all posts
+async function loadAllPosts() {
+  const feeds = document.getElementById('feed');
+  feeds.innerHTML = '';
+  const querySnapshot = await getDocs(collection(db, 'posts'));
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    renderPost(data);
+  });
+}
+loadAllPosts();
 
-        // Actions row (like, comment, share)
-        const actionsRow = document.createElement('div');
-        actionsRow.className = "d-flex align-items-center mb-2";
+// Handle post creation, close modal, and show new post without reload
+postButton.addEventListener('click', async function (e) {
+  e.preventDefault();
+  const contentInput = document.getElementById('content');
+  if (!contentInput) {
+    console.error('Content input not found');
+    return;
+  }
+  const contentValue = contentInput.value.trim();
+  if (!contentValue) {
+    // Optionally show validation error
+    return;
+  }
+  try {
+    // Save to Firestore and get the server timestamp
+    const docRef = await addDoc(collection(db, 'posts'), {
+      user: 'name',
+      content: contentValue,
+      date: new Date().toISOString(),
+    });
 
-        // Like button
-        const likeBtn = document.createElement('button');
-        likeBtn.className = "btn btn-outline-danger btn-sm me-2";
-        likeBtn.style.color = "var(--highlight-color)";
-        likeBtn.style.borderColor = "var(--highlight-color)";
-        likeBtn.style.borderRadius = "20px";
-        likeBtn.setAttribute("aria-label", "Like");
-        likeBtn.innerHTML = '<i class="bi bi-heart"></i>';
+    // Show the new post at the top
+    renderPost({
+      user: 'name',
+      content: contentValue,
+      date: new Date().toISOString(),
+    }, true);
 
-        // Comment button
-        const commentBtn = document.createElement('button');
-        commentBtn.className = "btn btn-outline-secondary btn-sm me-2";
-        commentBtn.style.color = "var(--p-color)";
-        commentBtn.style.borderColor = "var(--p-color)";
-        commentBtn.style.borderRadius = "20px";
-        commentBtn.setAttribute("aria-label", "Comment");
-        commentBtn.setAttribute("data-bs-toggle", "modal");
-        commentBtn.setAttribute("data-bs-target", "#commentModal");
-        commentBtn.innerHTML = '<i class="bi bi-chat-dots"></i>';
+    // Clear textarea
+    contentInput.value = '';
 
-        // Share button
-        const shareBtn = document.createElement('button');
-        shareBtn.className = "btn btn-outline-secondary btn-sm";
-        shareBtn.style.color = "var(--p-color)";
-        shareBtn.style.borderColor = "var(--p-color)";
-        shareBtn.style.borderRadius = "20px";
-        shareBtn.setAttribute("aria-label", "Share");
-        shareBtn.innerHTML = '<i class="bi bi-share"></i>';
-
-        // Add action buttons to the actions row
-        actionsRow.appendChild(likeBtn);
-        actionsRow.appendChild(commentBtn);
-        actionsRow.appendChild(shareBtn);
-
-        // --- Chat-style message input area ---
-        const chatSection = document.createElement('div');
-        chatSection.className = "d-flex align-items-center mt-3";
-        chatSection.style.background = "transparent";
-        chatSection.style.padding = "0";
-
-        // Profile avatar/icon (left)
-        const chatAvatar = document.createElement('span');
-        chatAvatar.className = "rounded-circle d-inline-block";
-        chatAvatar.style.width = "36px";
-        chatAvatar.style.height = "36px";
-        chatAvatar.style.backgroundColor = "#fff";
-        chatAvatar.style.display = "flex";
-        chatAvatar.style.alignItems = "center";
-        chatAvatar.style.justifyContent = "center";
-        chatAvatar.style.marginRight = "12px";
-        chatSection.appendChild(chatAvatar);
-
-        // Central dark rounded rectangle input
-        const chatInputWrapper = document.createElement('div');
-        chatInputWrapper.style.flex = "1";
-        chatInputWrapper.style.display = "flex";
-        chatInputWrapper.style.alignItems = "center";
-        chatInputWrapper.style.background = "var(--background-color)";
-        chatInputWrapper.style.borderRadius = "20px";
-        chatInputWrapper.style.border = "1px solid var(--border-color)";
-        chatInputWrapper.style.padding = "0 12px";
-        chatInputWrapper.style.marginRight = "12px";
-        chatInputWrapper.style.minHeight = "44px";
-
-        const chatInput = document.createElement('input');
-        chatInput.type = "text";
-        chatInput.className = "form-control border-0 shadow-none";
-        chatInput.placeholder = "Write a comment...";
-        chatInput.style.background = "transparent";
-        // Use CSS for input color instead of inline style
-        chatInput.classList.add("chat-input-custom-color");
-        chatInput.style.fontSize = "1rem";
-        chatInput.style.outline = "none";
-        chatInput.style.boxShadow = "none";
-        chatInput.style.height = "40px";
-        chatInput.style.padding = "0";
-        chatInput.setAttribute("aria-label", "Write a comment");
-
-        chatInputWrapper.appendChild(chatInput);
-
-        // Send button (right)
-        const sendBtn = document.createElement('button');
-        sendBtn.className = "d-flex align-items-center justify-content-center";
-        sendBtn.style.width = "40px";
-        sendBtn.style.height = "40px";
-        sendBtn.style.background = "var(--highlight-color)";
-        sendBtn.style.border = "none";
-        sendBtn.style.borderRadius = "50%";
-        sendBtn.style.color = "var(--b-text-color)";
-        sendBtn.style.cursor = "pointer";
-        sendBtn.setAttribute("aria-label", "Send comment");
-        sendBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
-            </svg>
-        `;
-
-        // Simple event handler for demonstration
-        sendBtn.addEventListener('click', function() {
-            if (chatInput.value.trim() !== "") {
-                alert("Message sent: " + chatInput.value);
-                chatInput.value = "";
-            }
-        });
-
-        chatSection.appendChild(chatInputWrapper);
-        chatSection.appendChild(sendBtn);
-
-        // Assemble the card body
-        cardBody.appendChild(userRow);
-        cardBody.appendChild(postContent);
-        cardBody.appendChild(postMedia);
-        cardBody.appendChild(actionsRow);
-        cardBody.appendChild(chatSection); // Add chat-style input area
-
-        // Add card body to card
-        card.appendChild(cardBody);
-        return card;
+    // Close the modal
+    const modalEl = document.getElementById('createFeedModal');
+    if (modalEl) {
+      // Try Bootstrap 5 modal close
+      let modal;
+      try {
+        modal = bootstrap && bootstrap.Modal ? bootstrap.Modal.getOrCreateInstance(modalEl) : null;
+      } catch (err) {
+        modal = null;
+      }
+      if (modal && typeof modal.hide === 'function') {
+        modal.hide();
+      } else {
+        // fallback: manually hide
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) backdrop.remove();
+      }
     }
-
-    // Add a style block for the input color if not already present
-    if (!document.getElementById('chat-input-custom-color-style')) {
-        const style = document.createElement('style');
-        style.id = 'chat-input-custom-color-style';
-        style.textContent = `
-            .chat-input-custom-color {
-                color: var(--headline-color) !important;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    // Example data for 10 posts (authors and contents)
-    const authors = [
-        {name: "George Jose", handle: "@george"},
-        {name: "Alice Smith", handle: "@alice"},
-        {name: "Bob Lee", handle: "@bob"},
-        {name: "Charlie Kim", handle: "@charlie"},
-        {name: "Diana Prince", handle: "@diana"},
-        {name: "Eve Adams", handle: "@eve"},
-        {name: "Frank Wu", handle: "@frank"},
-        {name: "Grace Lin", handle: "@grace"},
-        {name: "Henry Ford", handle: "@henry"},
-        {name: "Ivy Chen", handle: "@ivy"}
-    ];
-    const contents = [
-        "Lorem ipsum dolor sit amet consectetur. Porttitor.",
-        "Had a great day at the park! 🌳",
-        "Just finished reading a fantastic book.",
-        "Anyone up for a movie night?",
-        "Excited to share my new project soon!",
-        "Coffee makes everything better ☕",
-        "Learning JavaScript is fun!",
-        "Check out this amazing sunset.",
-        "Feeling grateful for good friends.",
-        "Ready for the weekend adventures!"
-    ];
-
-    // Render 10 posts using the example data
-    for (let i = 0; i < 10; i++) {
-        const post = {
-            author: authors[i].name,
-            handle: authors[i].handle,
-            content: contents[i]
-        };
-        const postCard = createFeedPost(post);
-        feedContainer.appendChild(postCard);
-    }
+  } catch (e) {
+    console.error('Error adding document: ', e);
+  }
 });

@@ -65,6 +65,11 @@
                             </li>
                             <li>
                                 <a class="dropdown-item d-flex align-items-center" href="#" style="color: var(--headline-color);">
+                                    <i class="bi bi-bell me-2"></i> Notification
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#" style="color: var(--headline-color);">
                                     <i class="bi bi-question-circle me-2"></i> Help
                                 </a>
                             </li>
@@ -127,7 +132,7 @@
             <main class="feed col-md-6 mb-4">
                 <!-- Post Composer -->
                 <!-- Feed Composer Popup Trigger -->
-                <div class="card mb-4" style="background-color: var(--main-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px;">
+                <div class="card mb-4" id="feed-create" style="background-color: var(--main-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px;">
                     <div class="card-body d-flex align-items-center">
                         <!-- User circle (white fill, no icon) -->
                         <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
@@ -166,7 +171,7 @@
                       <div class="modal-body">
                         <div class="d-flex align-items-start mb-3">
                           <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
-                          <textarea class="form-control" rows="3" placeholder="What's on your mind?" style="background-color: var(--background-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px; resize: none;"></textarea>
+                          <textarea class="form-control" id="content" rows="3" placeholder="What's on your mind?" style="background-color: var(--background-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px; resize: none;"></textarea>
                         </div>
                         <div class="mb-3">
                           <button class="btn btn-light btn-sm me-2" style="background-color: var(--secondary-color); color: var(--main-color); border-color: var(--border-color); border-radius: 20px;">
@@ -182,7 +187,7 @@
                       </div>
                       <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 20px;">Cancel</button>
-                        <button type="button" class="btn btn-primary" style="background-color: var(--b-color); color: var(--b-text-color); border-radius: 20px; border: none;">Post</button>
+                        <button id="postButton" type="button" class="btn btn-primary" style="background-color: var(--b-color); color: var(--b-text-color); border-radius: 20px; border: none;">Post</button>
                       </div>
                     </div>
                   </div>
@@ -191,44 +196,44 @@
                 <!-- Post -->
                 <div class="card mb-4" style="background-color: var(--main-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px;">
                     <!-- Post 1 -->
-                    <div class="card-body mb-4">
-                        <div class="d-flex align-items-center mb-2">
-                            <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
-                            <div>
-                                <h5 class="mb-0" style="color: var(--headline-color);">George Jose</h5>
-                                <div class="text-muted small" style="color: var(--p-color);">@george</div>
+                    <div id="feed">
+                        <div class="card-body mb-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
+                                <div>
+                                    <h5 class="mb-0" style="color: var(--headline-color);"></h5>
+                                    <div class="text-muted small" style="color: var(--p-color);"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="mb-2" style="color: var(--p-color);">
-                            Lorem ipsum dolor sit amet consectetur. Porttitor.
-                        </div>
-                        <div class="mb-2" style="height:200px; background: var(--secondary-color); border-radius: 20px;"></div>
-                        <div class="d-flex align-items-center mb-2">
-                            <button class="btn btn-outline-danger btn-sm me-2" style="color: var(--highlight-color); border-color: var(--highlight-color); border-radius: 20px;" aria-label="Like">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm me-2" style="color: var(--p-color); border-color: var(--p-color); border-radius: 20px;" aria-label="Comment" data-bs-toggle="modal" data-bs-target="#commentModal">
-                                <i class="bi bi-chat-dots"></i>
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm me-3" style="color: var(--b-color); border-color: var(--b-color); border-radius: 20px;">
-                                <i class="bi bi-share"></i>
-                            </button>
-                            <span class="text-muted small" style="color: var(--p-color);">1 hour ago</span>
-                        </div>
-                        <div class="d-flex align-items-center mt-3" style="padding: 0;">
-                            <!-- Profile avatar/icon (left) -->
-                            <span class="rounded-circle d-inline-block" style="width:36px; height:36px; background-color:#fff; display:flex; align-items:center; justify-content:center; margin-right:12px;"></span>
-                            <!-- Central dark rounded rectangle input -->
-                            <!-- Comment input model: user can type a comment to post -->
-                            <div style="flex:1; display:flex; align-items:center; background:var(--background-color); border-radius:20px; border:1px solid var(--border-color); padding:0 12px; margin-right:12px; min-height:44px;">
-                                <input type="text" class="form-control border-0 shadow-none" placeholder="Write a comment..." style="background:transparent; color:var(--headline-color); font-size:1rem; outline:none; box-shadow:none; height:40px; padding:0;" aria-label="Write a comment">
+                            <div class="mb-2" style="color: var(--p-color);"></div>
+                            <div class="mb-2" style="height:200px; background: var(--secondary-color); border-radius: 20px;"></div>
+                            <div class="d-flex align-items-center mb-2">
+                                <button class="btn btn-outline-danger btn-sm me-2" style="color: var(--highlight-color); border-color: var(--highlight-color); border-radius: 20px;" aria-label="Like">
+                                    <i class="bi bi-heart"></i>
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm me-2" style="color: var(--p-color); border-color: var(--p-color); border-radius: 20px;" aria-label="Comment" data-bs-toggle="modal" data-bs-target="#commentModal">
+                                    <i class="bi bi-chat-dots"></i>
+                                </button>
+                                <button class="btn btn-outline-primary btn-sm me-3" style="color: var(--b-color); border-color: var(--b-color); border-radius: 20px;">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                                <span class="text-muted small" style="color: var(--p-color);"></span>
                             </div>
-                            <!-- Send button (right) -->
-                            <button class="d-flex align-items-center justify-content-center" style="width:40px; height:40px; background:var(--highlight-color); border:none; border-radius:50%; color:var(--b-text-color); cursor:pointer;" aria-label="Send message">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
-                                </svg>
-                            </button>
+                            <div class="d-flex align-items-center mt-3" style="padding: 0;">
+                                <!-- Profile avatar/icon (left) -->
+                                <span class="rounded-circle d-inline-block" style="width:36px; height:36px; background-color:#fff; display:flex; align-items:center; justify-content:center; margin-right:12px;"></span>
+                                <!-- Central dark rounded rectangle input -->
+                                <!-- Comment input model: user can type a comment to post -->
+                                <div style="flex:1; display:flex; align-items:center; background:var(--background-color); border-radius:20px; border:1px solid var(--border-color); padding:0 12px; margin-right:12px; min-height:44px;">
+                                    <input type="text" class="form-control border-0 shadow-none" placeholder="Write a comment..." style="background:transparent; color:var(--headline-color); font-size:1rem; outline:none; box-shadow:none; height:40px; padding:0;" aria-label="Write a comment">
+                                </div>
+                                <!-- Send button (right) -->
+                                <button class="d-flex align-items-center justify-content-center" style="width:40px; height:40px; background:var(--highlight-color); border:none; border-radius:50%; color:var(--b-text-color); cursor:pointer;" aria-label="Send message">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -394,5 +399,5 @@
         </footer>
     </div>
 </body>
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 </html>
