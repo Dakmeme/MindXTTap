@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page ca nhan</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">  
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="root.css">
+    <link rel="stylesheet" href="Pop-up prompt/style.css">
 </head>
 
 <body class=" d-flex flex-column gap-5 justify-content-between align-items-center">
@@ -16,16 +17,9 @@
 
     <nav class="d-flex flex-wrap navbar-expand-lg background-color headerline-color heading-5 w-75">
         <div class="container-fluid d-flex align-items-center justify-content-between pt-4  navitems">
-
-
-
-
             <div class="d-flex gap-4 seach-bar">
                 <a class="navbar-brand" href="#">Logo</a>
             </div>
-
-
-
             <button class="navbar-toggler collapse" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -51,7 +45,7 @@
 
 
 
-    <div class="d-flex justify-content-between align-items-starts container-fluid w-75 vh-100 gap-4 mainbody">
+    <!-- <div class="d-flex justify-content-between align-items-starts container-fluid w-75 vh-100 gap-4 mainbody" id="mainbody">
         <div class="position-relative d-flex flex-column justify-content-between leftsidebar">
             <div class="w-100 h-100 upperframe">
                 <div class="d-flex flex-column gap-4 elements">
@@ -80,38 +74,6 @@
             <div class=" d-flex flex-column align-items-center justify-content-between pt-4 underframe">
                 <p class="header">Communities</p>
                 <div class="container ">
-                    <!-- <div class="row">
-                 <div class="col d-flex groups">
-                    <div class="ava" style="height:100px; width:a"></div>
-                    <div class="des">
-                        <p> Idk what to say</p>
-                        <p> Lorem ipsum dolor sit amet</p>
-                    </div>
-                </div>
-                <div class="col groups">
-                    <div class="ava"></div>
-                    <div class="des">
-                        <p> Idk what to say</p>
-                        <p> Lorem ipsum dolor sit amet</p>
-                    </div>
-                </div>
-                </div> -->
-                    <!-- <div class="row">
-                 <div class="col groups">
-                    <div class="ava"></div>
-                    <div class="des">
-                        <p> Idk what to say</p>
-                        <p> Lorem ipsum dolor sit amet</p>
-                    </div>
-                </div>
-                <div class="col groups">
-                    <div class="ava"></div>
-                    <div class="des">
-                        <p> Idk what to say</p>
-                        <p> Lorem ipsum dolor sit amet</p>
-                    </div>
-                </div>
-                </div> -->
                     <div class="row gap-4 mb-4 justify-content-center">
                         <div class="col d-flex justify-content-center align-items-center">
                             <div class="miniava w-50 h-75"></div>
@@ -133,24 +95,24 @@
         </div>
 
 
-        <!-- Codesau -->
         <div class="main h-100 overflow-auto">
             <div class="container stories  ">
                 <div class="overflow-hidden w-100 h-100 position-relative">
                     <div class="carousel-track d-flex gap-2 h-100">
                         <div class="carousel-item-custom overflow-hidden h-100">
-                            <div class="  w-100 overflow-hidden d-flex align-items-center justify-content-center p-0"><img src="https://scontent.fsgn5-6.fna.fbcdn.net/v/t39.30808-6/497536069_1356713938989191_8730421017617115489_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeE6SviIKRncWSpL_OiZRT5i6liqNfcm9ynqWKo19yb3Kc6SzwgoRQrw8p6Y88TyliX2KgHe2z4sCu830lLn5jLS&_nc_ohc=yxSjb3cXrl8Q7kNvwHQ-RHg&_nc_oc=AdkoAD6tV_cGS7BZomU_wa9EGrQNYMANV8jYYKkJLAz4sJWJkMHCJfAp_-WzQe6AbcldXpyr9xkHJxUgjs7X9vM6&_nc_zt=23&_nc_ht=scontent.fsgn5-6.fna&_nc_gid=xP2_FxEXrcy7hNcppCGADg&oh=00_AfS-RKz1EBNien-eaW3yVFQPRKbBezKCQNsha5MbiN2Kyg&oe=68853E85"
-                                alt="">
+                            <div class="w-100 overflow-hidden d-flex align-items-center justify-content-center p-0"><img
+                                    src="https://scontent.fsgn5-6.fna.fbcdn.net/v/t39.30808-6/497536069_1356713938989191_8730421017617115489_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeE6SviIKRncWSpL_OiZRT5i6liqNfcm9ynqWKo19yb3Kc6SzwgoRQrw8p6Y88TyliX2KgHe2z4sCu830lLn5jLS&_nc_ohc=yxSjb3cXrl8Q7kNvwHQ-RHg&_nc_oc=AdkoAD6tV_cGS7BZomU_wa9EGrQNYMANV8jYYKkJLAz4sJWJkMHCJfAp_-WzQe6AbcldXpyr9xkHJxUgjs7X9vM6&_nc_zt=23&_nc_ht=scontent.fsgn5-6.fna&_nc_gid=xP2_FxEXrcy7hNcppCGADg&oh=00_AfS-RKz1EBNien-eaW3yVFQPRKbBezKCQNsha5MbiN2Kyg&oe=68853E85"
+                                    alt="">
                             </div>
-                            <!-- <div class="open-btn">
-                            </div> -->
-                            <i type="button" class="bi bi-plus-circle-fill h1 open-btn"></i>
-                            <div class=" d-flex flex-column align-items-center justify-content-end background-color pb-1"  style="height:100px">
+                            <i type="button" data-modal-target="#modal" class="bi bi-plus-circle-fill h1 open-btn"></i>
+
+                            <div class=" d-flex flex-column align-items-center justify-content-end background-color pb-1"
+                                style="height:100px">
                                 Create story
                             </div>
 
                         </div>
-                    
+
                         <div class="carousel-item-custom ">Item 2</div>
                         <div class="carousel-item-custom ">Item 3</div>
                         <div class="carousel-item-custom">Item 4</div>
@@ -170,7 +132,6 @@
             </div>
 
         </div>
-        <!-- Codesau -->
 
 
         <div class="rightsidebar d-flex flex-column gap-4 justify-content-start p-4">
@@ -195,10 +156,26 @@
 
             </div>
         </div>
+    </div> -->
+    <div class="d-flex justify-content-between align-items-starts container-fluid w-75 vh-100 gap-4 mainbody" id="mainbody"></div>
+<button data-modal-target="#modal">Open Model</button>
+    <div class="modal" id="modal">
+        <div class="container">
+            <div class="sidebar">
+                <button data-close-button class="close-button">&times;</button>
+            </div>
+            <div class="create-story">
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti impedit delectus, repudiandae consectetur ullam qui amet molestias esse dolorum earum minima facilis sequi non atque in, animi debitis. Omnis eius debitis aspernatur ullam architecto consectetur quia minima expedita? Quisquam, dignissimos?
+            </div>
+        </div>
     </div>
-
+    <div id="overlay" class=""></div>
 </body>
-<script>document.addEventListener('DOMContentLoaded', function () {
+<script src="Pop-up prompt/scripts.js">
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
         const track = document.querySelector('.carousel-track');
         const items = document.querySelectorAll('.carousel-item-custom');
         const prevBtn = document.querySelector('.story-pre');

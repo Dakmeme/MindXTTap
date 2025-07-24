@@ -1,6 +1,5 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js'
-import { getMessaging } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
@@ -20,7 +19,6 @@ const firebaseConfig = {
 
   
 const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
 
 
 import {
@@ -32,7 +30,7 @@ import {
 
 const db = getFirestore(app)
 
-const form = document.getElementById('form')
+const post = document.getElementById('post')
 
 form.addEventListener('submit', async function (event) {
   event.preventDefault()
