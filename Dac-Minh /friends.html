@@ -16,45 +16,34 @@
   </head>
   <body class="d-flex justify-content-center align-items-center vh-100 p-3">
     <div
-      class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container"
-    >
-      <div class="d-flex flex-column sidebar flex-shrink-0" style="min-width: 280px">
+      class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container" style="padding-left: 0 !important;">
+      <div class="d-flex flex-column align-items-center sidebar flex-shrink-0">
         <div class="profile-section">
-          <div class="d-flex align-items-center gap-3" id="profile">
+          <div class="d-flex align-items-center gap-3">
             <div class="profile-img"></div>
-            <div>
-              <div id="username" class="fw-bold text-white">Loading...</div>
-              <div id="useremail" class="small text-white-50">Loading...</div>
-            </div>
           </div>
         </div>
 
-        <div class="nav-items" >
+        <div class="nav-items">
           <div class="nav-item" id="feed">
-            <i class="bi bi-compass"></i>
-            <span>Feed</span>
+            <i class="bi bi-compass h3"></i>
           </div>
           <div class="nav-item" id="friends">
-            <i class="bi bi-people-fill"></i>
-            <span>Friends</span>
+            <i class="bi bi-people-fill h3"></i>
           </div>
           <div class="nav-item" id="messages">
-            <i class="bi bi-chat-fill"></i>
-            <span>Messages</span>
+            <i class="bi bi-chat-fill h3"></i>
           </div>
           <div class="nav-item" id="notif">
-            <i class="bi bi-bell-fill"></i>
-            <span>Notifications</span>
+            <i class="bi bi-bell-fill h3"></i>
           </div>
-          <div class="nav-item" if="settings">
-            <i class="bi bi-gear-fill"></i>
-            <span>Settings</span>
+          <div class="nav-item" id="settings">
+            <i class="bi bi-gear-fill h3"></i>
           </div>
         </div>
         <div class="pinned-section">
           <div class="nav-item" style="color: var(--p-color)">
-            <i class="bi bi-bookmark-fill"></i>
-            <span>Pinned</span>
+            <i class="bi bi-bookmark-fill h3"></i>
           </div>
         </div>
       </div>

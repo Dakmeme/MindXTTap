@@ -1,77 +1,88 @@
-// import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
-// import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
-// const firebaseConfig = {
-//   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
-//   authDomain: "ttmindx.firebaseapp.com",
-//   projectId: "ttmindx",
-//   storageBucket: "ttmindx.firebasestorage.app",
-//   messagingSenderId: "499689288083",
-//   appId: "1:499689288083:web:394be22db426aa48b93866",
-//   measurementId: "G-Y0NCNLB337",
-// }
-// const app = initializeApp(firebaseConfig)
-// export const db = getFirestore(app)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+const firebaseConfig = {
+  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
+  authDomain: "ttmindx.firebaseapp.com",
+  projectId: "ttmindx",
+  storageBucket: "ttmindx.firebasestorage.app",
+  messagingSenderId: "499689288083",
+  appId: "1:499689288083:web:394be22db426aa48b93866",
+  measurementId: "G-Y0NCNLB337",
+}
+const app = initializeApp(firebaseConfig)
+export const db = getFirestore(app)
 
-// console.log("Firebase đã được khởi tạo thành công!")
+console.log("Firebase đã được khởi tạo thành công!")
 
-// import {
-//   doc,
-//   setDoc,
-//   getDoc,
-//   getDocs,
-//   addDoc,
-//   updateDoc,
-//   deleteDoc,
-//   collection,
-//   query,
-//   orderBy,
-//   serverTimestamp,
-// } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+import {
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  query,
+  orderBy,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 
-// export const getUserInfo = async (userId) => {
-//   try {
-//     const userRef = doc(db, "users", userId);
-//     const userSnap = await getDoc(userRef);
-//     if (userSnap.exists()) {
-//       return {
-//         id: userSnap.id,
-//         ...userSnap.data(),
-//       };
-//     } else {
-//       return null;
-//     }
-//   } catch (error) {
-//     console.error("Lỗi khi lấy thông tin người dùng:", error);
-//     return null;
-//   }
-// };
+export const getUserInfo = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      return {
+        id: userSnap.id,
+        ...userSnap.data(),
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin người dùng:", error);
+    return null;
+  }
+};
 
-// getUserInfo("user_7n1pcr3ef")
-//   .then(user => {
-//     console.log(user);
+getUserInfo("admin_created_1753352335301_j3ics")
+  .then(user => {
+    console.log(user);
 
-//     if (!user) {
-//       console.log("Sai userID r ba");
-//       return;
-//     }
+    if (!user) {
+      console.log("Sai userID r ba");
+      return;
+    }
 
-//     const userAvatarPath = user.avatar;
-//     const bgValue = `url("${userAvatarPath}")`;
+    const usernameEls = document.querySelectorAll(
+    "#username, #main-username, #header-username"
+  );
+    const emailEls = document.querySelectorAll(
+    "#useremail, #main-useremail, #header-useremail"
+  );
+    const avatarEls = document.querySelectorAll(
+    ".profile-img, .avatar, .small-avatar"
+  );
 
-//     const usernameEl = document.getElementById('username');
-//     const emailEl = document.getElementById('useremail');
-
-//     if (usernameEl) usernameEl.innerText = user.username || "HOANG MINH THIEU KIAAA";
-//     if (emailEl) emailEl.innerText = user.email || "HOANG MINH THIEU KIAAA";
-
-//     const coverImg = document.querySelectorAll('.cover-img');
-//     coverImg.forEach(el => {
-//       el.style.backgroundImage = bgValue;
-//     });
-//   })
-//   .catch(err => {
-//     console.error('Failed to get user info:', err);
-//   });
+ const coverEls = document.querySelectorAll(".cover-img");
+  usernameEls.forEach((el) => (el.textContent = user.username));
+  emailEls.forEach((el) => (el.textContent = user.email));
+  avatarEls.forEach((el) => {
+    el.style.backgroundImage = `url("${user.avatar}")`;
+    el.style.backgroundSize = "cover";
+    el.style.backgroundPosition = "center";
+  });
+  coverEls.forEach((el) => {
+    if (el.classList.contains("cover-section")) {
+      el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
+    }
+  });
+  loadPosts();
+  loadFriends();
+  loadPhotos();
+  initScrollEffects();
+  })
 
 const mockUserData = {
   username: "John Doe",
@@ -151,34 +162,34 @@ const mockPhotos = [
 ];
 
 
-setTimeout(() => {
-  const usernameEls = document.querySelectorAll(
-    "#username, #main-username, #header-username"
-  );
-  const emailEls = document.querySelectorAll(
-    "#useremail, #main-useremail, #header-useremail"
-  );
-    const avatarEls = document.querySelectorAll(
-    ".profile-img, .avatar, .small-avatar"
-  );
-  const coverEls = document.querySelectorAll(".cover-img");
-  usernameEls.forEach((el) => (el.textContent = mockUserData.username));
-  emailEls.forEach((el) => (el.textContent = mockUserData.email));
-  avatarEls.forEach((el) => {
-    el.style.backgroundImage = `url("${mockUserData.avatar}")`;
-    el.style.backgroundSize = "cover";
-    el.style.backgroundPosition = "center";
-  });
-  coverEls.forEach((el) => {
-    if (el.classList.contains("cover-section")) {
-      el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-    }
-  });
-  loadPosts();
-  loadFriends();
-  loadPhotos();
-  initScrollEffects();
-}, 500);
+// setTimeout(() => {
+//   const usernameEls = document.querySelectorAll(
+//     "#username, #main-username, #header-username"
+//   );
+//   const emailEls = document.querySelectorAll(
+//     "#useremail, #main-useremail, #header-useremail"
+//   );
+//     const avatarEls = document.querySelectorAll(
+//     ".profile-img, .avatar, .small-avatar"
+//   );
+//   const coverEls = document.querySelectorAll(".cover-img");
+//   usernameEls.forEach((el) => (el.textContent = mockUserData.username));
+//   emailEls.forEach((el) => (el.textContent = mockUserData.email));
+//   avatarEls.forEach((el) => {
+//     el.style.backgroundImage = `url("${mockUserData.avatar}")`;
+//     el.style.backgroundSize = "cover";
+//     el.style.backgroundPosition = "center";
+//   });
+//   coverEls.forEach((el) => {
+//     if (el.classList.contains("cover-section")) {
+//       el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
+//     }
+//   });
+//   loadPosts();
+//   loadFriends();
+//   loadPhotos();
+//   initScrollEffects();
+// }, 500);
 
 
 
@@ -196,7 +207,7 @@ function initScrollEffects() {
   const actionButtons = document.getElementById("action-buttons");
   tabContent.addEventListener("scroll", () => {
     const scrollTop = tabContent.scrollTop;
-    const threshold = 80;
+    const threshold = 0;
     if (scrollTop > threshold) {
       coverSection.classList.add("scrolled");
       avatarContainer.classList.add("scrolled");
@@ -335,38 +346,29 @@ function openPhoto(photoUrl) {
 
 document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
-    const itemText = item.querySelector("span").textContent.trim();
-    document
-      .querySelectorAll(".nav-item")
-      .forEach((i) => (i.style.background = ""));
-    item.style.background = "var(--hover-bg)";
-    switch (itemText) {
-      case "Feed":
-        console.log("Navigating to Feed...");
-        // window.location.href = 'feed.html';
-        break;
-      case "Friends":
-        console.log("Navigating to Friends page...");
-        // window.location.href = 'friends.html';
-        break;
-      case "Messages":
-        console.log("Opening Messages...");
-        // window.location.href = 'messages.html';
-        break;
-      case "Notifications":
-        console.log("Opening Notifications...");
-        // window.location.href = 'notifications.html';
-        break;
-      case "Settings":
-        console.log("Opening Settings...");
-        // window.location.href = 'settings.html';
-        break;
-      case "Pinned":
-        console.log("Showing Pinned items...");
-        break;
+    const id = item.id;
+    if (id === "feed") {
+      console.log("Navigating to Feed...");
+      // window.location.href = 'feed.html';
+    } else if (id === "friends") {
+      console.log("Navigating to Friends page...");
+      window.location.href = 'friends.html';
+    } else if (id === "messages") {
+      console.log("Opening Messages...");
+      // window.location.href = 'messages.html';
+    } else if (id === "notif") {
+      console.log("Opening Notifications...");
+      // window.location.href = 'notifications.html';
+    } else if (id === "settings") {
+      console.log("Opening Settings...");
+      // window.location.href = 'settings.html';
+    } else if (id === "pinned") {
+      console.log("Showing Pinned items...");
     }
   });
 });
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
