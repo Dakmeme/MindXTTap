@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="user-page.css">
 </head>
 
-<body class="d-flex justify-content-center align-items-center gap-5 pt-4 pb-5">
+<body class="d-flex justify-content-center align-items-center gap-5 pt-4 pb-4">
     <div class="container w-75 h-100 main-color p-4 d-flex flex-column gap-4">
         <nav class="w-100 d-flex justify-content-center">
             <div
@@ -66,14 +66,14 @@
                                 </div>
                             </div>
                             <div class="status">
-                                <p> <span class="highlight">1002</span> <span class="interlude">following</span> </p>
+                                <p> <span class="highlight" id="friends"></span> <span >friends</span> </p>
                             </div>
                         </div>
                         <div class="name">
-                            <p class="highlight">Nguyen Dac Minh</p>
-                            <p class="interlude">@dak123</p>
+                            <p class="highlight" id="username"></p>
+                            <p class="interlude"id="userId"></p>
                         </div>
-                        <p class="highlight"> Lorem ipsum dolor sit amet, consectetur adipiscing elit. </p>
+                        <p class="highlight" id="bio"> Lorem ipsum dolor sit amet, consectetur adipiscing elit. </p>
                         </p>
                     </div>
                     <div class="position-absolute lsb-background"></div>
@@ -99,43 +99,42 @@
             <div>
 
                 <!-- <template> -->
-                    <div class="container w-100 h-100 feed"></div>
+                    <div class="w-100 h-100 feed">
 
-                        <div class=" post-container p-4 ">
-                            <div class="d-flex align-items-center mb-2">
-                                <span class="rounded-circle d-inline-block me-3"
-                                    style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
+                        <div class=" container post-container p-4 " style="height:60%">
+                            <div class="d-flex align-items-center gap-2">
+                                <img class="rounded-circle d-inline-block" style="width:40px;height:40px; background-color: #fff;" src="" alt="">
                                 <div>
-                                    <h5 class="mb-0" style="color: var(--headline-color);">George Jose</h5>
-                                    <div class="text-muted small" style="color: var(--p-color);">@george</div>
+                                    <h5 class="" style="color: var(--headline-color);">George Jose</h5>
+                                    <div class=" small" style="color: var(--headline-color);">@george</div>
                                 </div>
                             </div>
                             <div class="mb-2" style="color: var(--p-color);">
                                 Lorem ipsum dolor sit amet consectetur. Porttitor.
                             </div>
                             <div class="mb-2"
-                                style="height:200px; background: var(--secondary-color); border-radius: 20px;"></div>
+                                style="height:200px; background: var(--secondary-color); border-radius: 20px;">
+                            </div>
                             <div class="d-flex align-items-center mb-2">
-                                <button class="btn btn-outline-danger btn-sm me-2"
-                                    style="color: var(--highlight-color); border-color: var(--highlight-color); border-radius: 20px;"
+                                <button class="btn me-2"
+                                    style="color: var(--highlight-color)"
                                     aria-label="Like">
                                     <i class="bi bi-heart"></i>
                                 </button>
-                                <button class="btn btn-outline-secondary btn-sm me-2"
-                                    style="color: var(--p-color); border-color: var(--p-color); border-radius: 20px;"
+                                <button class="btn me-2"
+                                    style="color: var(--p-color);"
                                     aria-label="Comment" data-bs-toggle="modal" data-bs-target="#commentModal">
                                     <i class="bi bi-chat-dots"></i>
                                 </button>
-                                <button class="btn btn-outline-primary btn-sm me-3"
-                                    style="color: var(--b-color); border-color: var(--b-color); border-radius: 20px;">
+                                <button class="btn me-3"
+                                    style="color: var(--b-color)">
                                     <i class="bi bi-share"></i>
                                 </button>
-                                <span class="text-muted small" style="color: var(--p-color);">1 hour ago</span>
+                                <span class="small" style="color: var(--p-color);">1 hour ago</span>
                             </div>
                             <div class="d-flex align-items-center mt-3" style="padding: 0;">
                                 <!-- Profile avatar/icon (left) -->
-                                <span class="rounded-circle d-inline-block"
-                                    style="width:36px; height:36px; background-color:#fff; display:flex; align-items:center; justify-content:center; margin-right:12px;"></span>
+                                 <img class="rounded-circle d-inline-block" style="width:40px;height:40px; background-color: #fff;" src="" alt="">
                                 <div
                                     style="flex:1; display:flex; align-items:center; background:var(--background-color); border-radius:20px; border:1px solid var(--border-color); padding:0 12px; margin-right:12px; min-height:44px;">
                                     <input type="text" class="form-control border-0 shadow-none"
@@ -163,7 +162,9 @@
             </div>
         </div>
         </div> 
-        <script type="module" defer src="search-bar.js"></script>
+        <!-- <script type="module" defer src="search-bar.js"></script>
+        <script type="module" src="user-page.js"></script> -->
+        <script type="module" src="/Hoang-Minh-sort-code/basic-ahh.js"></script>
 </body>
 
 </html>
