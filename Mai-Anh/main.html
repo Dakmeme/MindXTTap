@@ -64,7 +64,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item d-flex align-items-center" href="#" style="color: var(--headline-color);">
+                                <a class="dropdown-item d-flex align-items-center" id="notification-dropdown" href="#" style="color: var(--headline-color);">
                                     <i class="bi bi-bell me-2"></i> Notification
                                 </a>
                             </li>
@@ -89,6 +89,7 @@
                 </div>
             </div>
         </nav>
+
 
         <!-- Main Content -->
         <div class="row">
@@ -269,9 +270,9 @@
                                 <!-- User circle (white fill, no icon) -->
                                 <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                                 <div>
-                                    <div class="fw-bold" style="color: var(--b-color);">Alice</div>
-                                    <div style="color: var(--p-color);">Great post, George!</div>
-                                    <div class="text-muted small" style="color: var(--p-color);">45 min ago</div>
+                                    <div class="fw-bold" style="color: var(--b-color);"></div>
+                                    <div style="color: var(--p-color);"></div>
+                                    <div class="text-muted small" style="color: var(--p-color);"></div>
                                 </div>
                             </div>
                             <!-- Friend Comment 2 -->
@@ -279,9 +280,9 @@
                                 <!-- User circle (white fill, no icon) -->
                                 <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                                 <div>
-                                    <div class="fw-bold" style="color: var(--b-color);">Bob</div>
-                                    <div style="color: var(--p-color);">I agree with Alice, well said!</div>
-                                    <div class="text-muted small" style="color: var(--p-color);">30 min ago</div>
+                                    <div class="fw-bold" style="color: var(--b-color);"></div>
+                                    <div style="color: var(--p-color);"></div>
+                                    <div class="text-muted small" style="color: var(--p-color);"></div>
                                 </div>
                             </div>
                             <!-- Friend Comment 3 -->
@@ -289,9 +290,9 @@
                                 <!-- User circle (white fill, no icon) -->
                                 <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                                 <div>
-                                    <div class="fw-bold" style="color: var(--b-color);">Charlie</div>
-                                    <div style="color: var(--p-color);">Looking forward to your next post!</div>
-                                    <div class="text-muted small" style="color: var(--p-color);">10 min ago</div>
+                                    <div class="fw-bold" style="color: var(--b-color);"></div>
+                                    <div style="color: var(--p-color);"></div>
+                                    <div class="text-muted small" style="color: var(--p-color);"></div>
                                 </div>
                             </div>
                         <!-- Friend Comment 4 -->
@@ -299,9 +300,9 @@
                             <!-- User circle (white fill, no icon) -->
                             <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                             <div>
-                                <div class="fw-bold" style="color: var(--b-color);">Diana</div>
-                                <div style="color: var(--p-color);">This inspired me, thanks for sharing!</div>
-                                <div class="text-muted small" style="color: var(--p-color);">2 min ago</div>
+                                <div class="fw-bold" style="color: var(--b-color);"></div>
+                                <div style="color: var(--p-color);"></div>
+                                <div class="text-muted small" style="color: var(--p-color);"></div>
                             </div>
                         </div>
                         <!-- Friend Comment 5 -->
@@ -309,9 +310,9 @@
                             <!-- User circle (white fill, no icon) -->
                             <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                             <div>
-                                <div class="fw-bold" style="color: var(--b-color);">Eve</div>
-                                <div style="color: var(--p-color);">Nice thoughts, George. Keep it up!</div>
-                                <div class="text-muted small" style="color: var(--p-color);">Just now</div>
+                                <div class="fw-bold" style="color: var(--b-color);"></div>
+                                <div style="color: var(--p-color);"></div>
+                                <div class="text-muted small" style="color: var(--p-color);"></div>
                             </div>
                         </div>
                         <!-- Friend Comment 6 -->
@@ -319,9 +320,9 @@
                             <!-- User circle (white fill, no icon) -->
                             <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                             <div>
-                                <div class="fw-bold" style="color: var(--b-color);">Frank</div>
-                                <div style="color: var(--p-color);">Well written! Looking forward to more posts.</div>
-                                <div class="text-muted small" style="color: var(--p-color);">Just now</div>
+                                <div class="fw-bold" style="color: var(--b-color);"></div>
+                                <div style="color: var(--p-color);"></div>
+                                <div class="text-muted small" style="color: var(--p-color);"></div>
                             </div>
                         </div>
                         <!-- Friend Comment 7 -->
@@ -329,11 +330,10 @@
                             <!-- User circle (white fill, no icon) -->
                             <span class="rounded-circle d-inline-block me-2" style="width:28px;height:28px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                             <div>
-                                <div class="fw-bold" style="color: var(--b-color);">Grace</div>
-                                <div style="color: var(--p-color);">Absolutely agree with everyone here!</div>
-                                <div class="text-muted small" style="color: var(--p-color);">Just now</div>
+                                <div class="fw-bold" style="color: var(--b-color);"></div>
+                                <div style="color: var(--p-color);"></div>
+                                <div class="text-muted small" style="color: var(--p-color);"></div>
                             </div>
-                        </div>
                         </div>
                         <!-- Add a new comment (chat-style input area) -->
                         <div class="d-flex align-items-center mt-3" style="padding: 0;">
@@ -353,7 +353,6 @@
                       </div>
                       <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 20px;">Close</button>
-                        <button type="button" class="btn btn-primary" style="background-color: var(--b-color); color: var(--b-text-color); border-radius: 20px;">Post Comment</button>
                       </div>
                     </div>
                   </div>
