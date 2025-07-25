@@ -1,0 +1,60 @@
+/* Additional styling for a cleaner profile page */
+body {
+  font-family: "Inter", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+nav {
+  background-color: var(--main-color);
+  border-radius: 10px;
+  padding: 1rem 2rem;
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 2rem;
+}
+nav .nav-link {
+  color: var(--headline-color);
+}
+.leftsidebar,
+.rightsidebar {
+  background-color: var(--secondary-color);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.leftsidebar {
+  width: 300px;
+}
+.rightsidebar {
+  width: 220px;
+}
+.main {
+  flex: 1;
+  background-color: var(--main-color);
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 300px;
+}
+.profile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.profile .ava {
+  background-color: var(--border-color);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+}
+header, .header {
+  font: var(--heading-5);
+  color: var(--headline-color);
+}
+.ac-com {
+  background-color: var(--secondary-color);
+  height: 2rem;
+  border-radius: 6px;
+}

@@ -1,0 +1,27 @@
+/* Custom root overrides for improved theme */
+:root {
+  --background-color: #fafafa;
+  --headline-color: #222222;
+  --p-color: #555555;
+  --b-color: #2563eb;
+  --b-text-color: #ffffff;
+  --border-color: #cccccc;
+  --main-color: #ffffff;
+  --highlight-color: #2563eb;
+  --secondary-color: #f0f0f0;
+  --tertiary-color: #2cb67d;
+  --heading-1: 700 61.04px "Inter", sans-serif;
+  --heading-2: 700 48.83px "Inter", sans-serif;
+  --heading-3: 700 39.06px "Inter", sans-serif;
+  --heading-4: 700 31.25px "Inter", sans-serif;
+  --heading-5: 600 24px "Inter", sans-serif;
+  --heading-6: 600 20px "Inter", sans-serif;
+  --p: normal 16px "Inter", sans-serif;
+  --small-1: normal 12.8px "Inter", sans-serif;
+  --small-2: normal 10.24px "Inter", sans-serif;
+}
+html, body {
+  background-color: var(--background-color);
+  color: var(--p-color);
+  min-height: 100vh;
+}

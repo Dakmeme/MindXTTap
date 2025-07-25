@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile Pretty</title>
+  <link rel="stylesheet" href="../root.css">
+  <link rel="stylesheet" href="root-pretty.css">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style-pretty.css">
+</head>
+<body>
+  <nav class="navbar navbar-expand">
+    <div class="container-fluid d-flex justify-content-between navitems">
+      <a class="navbar-brand" href="#">Logo</a>
+      <div class="navbar-nav gap-4">
+        <a class="nav-link" href="#">Home</a>
+        <a class="nav-link" href="#">Friends</a>
+        <a class="nav-link" href="#">Messages</a>
+      </div>
+    </div>
+  </nav>
+  <div class="d-flex gap-4 w-100" style="max-width: 1200px;">
+    <div class="leftsidebar">
+      <div class="profile">
+        <div class="status">
+          <p class="highlight">1984 <span class="interlude">followers</span></p>
+        </div>
+        <div class="ava"></div>
+        <div class="status">
+          <p class="highlight">1002 <span class="interlude">following</span></p>
+        </div>
+      </div>
+      <div class="name">
+        <p class="highlight">Nguyen Dac Minh</p>
+        <p class="interlude">@dak123</p>
+      </div>
+    </div>
+    <div class="main">
+      <p class="p">Main content area</p>
+    </div>
+    <div class="rightsidebar d-flex flex-column gap-2">
+      <p class="header">Activities</p>
+      <div class="ac-com"></div>
+      <div class="ac-com"></div>
+      <div class="ac-com"></div>
+    </div>
+  </div>
+</body>
+</html>
