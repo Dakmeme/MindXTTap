@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends - Brand</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="friends.css">
+</head>
+<body class="d-flex justify-content-center align-items-center vh-100 p-3">
+    <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
+        <div class="sidebar-collapsed">
+            <div class="profile-section-collapsed">
+                <div class="profile-img-collapsed" id="collapsed-avatar"></div>
+            </div>
+            <div class="nav-items-collapsed">
+                <div class="nav-item-collapsed" data-tooltip="Feed" onclick="navigateTo('feed')">
+                    <i class="bi bi-compass"></i>
+                </div>
+                <div class="nav-item-collapsed active" data-tooltip="Friends" onclick="navigateTo('friends')">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="nav-item-collapsed" data-tooltip="Messages" onclick="navigateTo('messages')">
+                    <i class="bi bi-chat-fill"></i>
+                </div>
+                <div class="nav-item-collapsed" data-tooltip="Notifications" onclick="navigateTo('notifications')">
+                    <i class="bi bi-bell-fill"></i>
+                </div>
+                <div class="nav-item-collapsed" data-tooltip="Settings" onclick="navigateTo('settings')">
+                    <i class="bi bi-gear-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="friends-content w-100" >
+            <div class="friends-header" >
+                <div class="friends-header-content">
+                    <h1><i class="bi bi-people-fill me-3"></i>Friends</h1>
+                    <p>Connect with your friends and discover new connections</p>
+                </div>
+                <div class="friend-requests-toggle">
+                    <button class="requests-toggle-btn" onclick="toggleRequests()">
+                        <i class="bi bi-person-plus"></i>
+                        Requests
+                        <span class="requests-count">3</span>
+                    </button>
+                    
+                    <div class="requests-dropdown" style="z-index: 10000;" id="requests-dropdown">
+                        <div class="requests-header">
+                            <h4>Friend Requests</h4>
+                            <button class="close-requests" onclick="toggleRequests()">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="request-item">
+                            <div class="request-content">
+                                <div class="request-avatar" style="background-image: url('https://images.unsplash.com/photo-1527980965255-d3b25b0236e3?w=150&h=150&fit=crop&crop=face')"></div>
+                                <div class="request-info">
+                                    <div class="request-name">Sarah Williams</div>
+                                    <div class="request-time">2 hours ago</div>
+                                </div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="request-btn accept-btn" onclick="acceptRequest(1)">Accept</button>
+                                <button class="request-btn decline-btn" onclick="declineRequest(1)">Decline</button>
+                            </div>
+                        </div>
+                        
+                        <div class="request-item">
+                            <div class="request-content">
+                                <div class="request-avatar" style="background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&h=150&fit=crop&crop=face')"></div>
+                                <div class="request-info">
+                                    <div class="request-name">Michael Chen</div>
+                                    <div class="request-time">1 day ago</div>
+                                </div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="request-btn accept-btn" onclick="acceptRequest(2)">Accept</button>
+                                <button class="request-btn decline-btn" onclick="declineRequest(2)">Decline</button>
+                            </div>
+                        </div>
+                        
+                        <div class="request-item">
+                            <div class="request-content">
+                                <div class="request-avatar" style="background-image: url('https://images.unsplash.com/photo-1614289371518-722f2615943d?w=150&h=150&fit=crop&crop=face')"></div>
+                                <div class="request-info">
+                                    <div class="request-name">Jessica Lee</div>
+                                    <div class="request-time">3 days ago</div>
+                                </div>
+                            </div>
+                            <div class="request-actions">
+                                <button class="request-btn accept-btn" onclick="acceptRequest(3)">Accept</button>
+                                <button class="request-btn decline-btn" onclick="declineRequest(3)">Decline</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="friends-filters">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search friends..." id="friends-search">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="online">Online</button>
+                    <button class="filter-btn" data-filter="groups">Groups</button>
+                    <button class="filter-btn" data-filter="recent">Recent</button>
+                    <button class="filter-btn" data-filter="mutual">Mutual</button>
+                </div>
+            </div>
+
+            <div class="friends-list">
+                <div class="content-section" id="friends-section">
+                    <div class="section-header">
+                        <h3><i class="bi bi-people-fill me-2"></i>Friends <span class="count-badge">127</span></h3>
+                        <div class="section-actions">
+                            <button class="action-btn" onclick="addFriend()">
+                                <i class="bi bi-person-plus"></i>
+                                Add Friend
+                            </button>
+                        </div>
+                    </div>
+                    <div class="friends-grid" id="friends-grid">
+                    </div>
+                </div>
+
+                <div class="content-section" id="groups-section" style="display: none;">
+                    <div class="section-header">
+                        <h3><i class="bi bi-collection me-2"></i>Your Groups <span class="count-badge">8</span></h3>
+                        <div class="section-actions">
+                            <button class="action-btn" onclick="createGroup()">
+                                <i class="bi bi-plus-circle"></i>
+                                Create Group
+                            </button>
+                        </div>
+                    </div>
+                    <div class="groups-grid" id="groups-grid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script defer src="friends.js"> </script>
+</body>
+</html>
