@@ -1,8 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
@@ -37,6 +35,18 @@ const db = getFirestore(app);
 const createFeedModal = document.getElementById('createFeedModal');
 const postButton = document.getElementById('postButton');
 
+// --- Scrollable Feed Container Setup ---
+let feedContainer = document.getElementById('feed');
+if (!feedContainer) {
+  feedContainer = document.createElement('div');
+  feedContainer.id = 'feed';
+  document.body.appendChild(feedContainer);
+}
+feedContainer.style.overflowY = 'auto';
+feedContainer.style.maxHeight = '80vh';
+feedContainer.style.minHeight = '200px';
+feedContainer.style.paddingRight = '8px';
+
 // Helper to render a single post (prepend if needed)
 function renderPost(data, prepend = false) {
   let dateStr = '';
@@ -61,7 +71,6 @@ function renderPost(data, prepend = false) {
   const isLiked = likedPosts.includes(data.id);
 
   // Three-dot menu for edit/delete
-  // CHANGED: Added background color to three-dot menu button
   const menuHtml = `
     <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
       <button class="btn btn-sm post-menu-btn" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background: var(--secondary-color); border: none;" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
@@ -82,10 +91,28 @@ function renderPost(data, prepend = false) {
     </div>
   `;
 
+  // --- FILE, IMAGE, VIDEO RENDER LOGIC with media-btn-* classes ---
+  let mediaHtml = '';
+  if (data.file) {
+    // Render file attachment with media-btn-file class (matches modal style)
+    mediaHtml += `<div class="mb-2 media-btn-file" style="background-color: var(--secondary-color); color: var(--main-color); border-color: var(--border-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
+      <i class="bi bi-paperclip me-1" style="font-size:1.5rem; color:var(--b-color);"></i>
+      <a href="${data.file}" target="_blank" style="color: var(--main-color); word-break:break-all; text-decoration: underline;">${data.fileName || 'Download file'}</a>
+    </div>`;
+  }
+  if (data.image) {
+    // Render image with media-btn-image class
+    mediaHtml += `<div class="mb-2 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
+  }
+  if (data.video) {
+    // Render video with media-btn-video class
+    mediaHtml += `<div class="mb-2 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
+  }
+
   const feed = document.createElement('div');
-  feed.className = 'feed-post';
+  feed.className = 'feed';
   feed.innerHTML = `
-    <div class="card-body mb-4" data-post-id="${data.id || ''}">
+    <div class="card-body mb-4 post-card" style="background: var(--main-color); border-radius: 20px; padding: 1.5rem;" data-post-id="${data.id || ''}">
       <div class="d-flex align-items-center mb-2">
         <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
         <div>
@@ -95,7 +122,7 @@ function renderPost(data, prepend = false) {
         ${menuHtml}
       </div>
       <div class="mb-2 post-content" style="color: var(--p-color);">${data.content ? data.content : ''}</div>
-      <div class="mb-2" style="height:200px; background: var(--secondary-color); border-radius: 20px;"></div>
+      ${mediaHtml}
       <div class="d-flex align-items-center mb-2">
         <button class="btn btn-outline-danger btn-sm me-2 like-btn" 
           style="color: var(--highlight-color); border-color: var(--highlight-color); border-radius: 20px; position:relative;"
@@ -128,13 +155,12 @@ function renderPost(data, prepend = false) {
       </div>
     </div>
   `;
-  const feeds = document.getElementById('feed');
-  if (prepend && feeds.firstChild) {
-    feeds.insertBefore(feed, feeds.firstChild);
+  if (prepend && feedContainer.firstChild) {
+    feedContainer.insertBefore(feed, feedContainer.firstChild);
   } else if (prepend) {
-    feeds.appendChild(feed);
+    feedContainer.appendChild(feed);
   } else {
-    feeds.appendChild(feed);
+    feedContainer.appendChild(feed);
   }
 }
 
@@ -152,7 +178,6 @@ function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}
       if (icon) {
         icon.className = 'bi bi-heart' + (isLiked ? '-fill' : '');
       }
-      // Update hover text
       const hover = likeBtn.querySelector('.like-hover');
       if (hover) hover.textContent = `${likeCount} like${likeCount===1?'':'s'}`;
     }
@@ -179,16 +204,13 @@ function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}
 
 // Initial load: render all posts with counts
 async function loadAllPosts() {
-  const feeds = document.getElementById('feed');
-  feeds.innerHTML = '';
+  feedContainer.innerHTML = '';
   const querySnapshot = await getDocs(collection(db, 'posts'));
   for (const docSnap of querySnapshot.docs) {
     const data = docSnap.data();
     data.id = docSnap.id;
-    // Get likeCount, shareCount, commentCount
     data.likeCount = typeof data.likeCount === 'number' ? data.likeCount : 0;
     data.shareCount = typeof data.shareCount === 'number' ? data.shareCount : 0;
-    // For commentCount, count subcollection
     const commentsCol = collection(db, 'posts', data.id, 'comments');
     const commentsSnap = await getDocs(commentsCol);
     data.commentCount = commentsSnap.size;
@@ -203,15 +225,35 @@ loadAllPosts();
 postButton.addEventListener('click', async function (e) {
   e.preventDefault();
   const contentInput = document.getElementById('content');
+  const imageInput = document.getElementById('image');
+  const videoInput = document.getElementById('video');
+  const fileInput = document.getElementById('file');
+  let imageUrl = '';
+  let videoUrl = '';
+  let fileUrl = '';
+  let fileName = '';
+
   if (!contentInput) {
     console.error('Content input not found');
     return;
   }
   const contentValue = contentInput.value.trim();
   if (!contentValue) {
-    // Optionally show validation error
     return;
   }
+
+  // Get file, image, video values (assume they are URLs for this rewrite)
+  if (fileInput && fileInput.value.trim()) {
+    fileUrl = fileInput.value.trim();
+    fileName = fileInput.getAttribute('data-filename') || '';
+  }
+  if (imageInput && imageInput.value.trim()) {
+    imageUrl = imageInput.value.trim();
+  }
+  if (videoInput && videoInput.value.trim()) {
+    videoUrl = videoInput.value.trim();
+  }
+
   try {
     // Save to Firestore and get the server timestamp
     const docRef = await addDoc(collection(db, 'posts'), {
@@ -219,7 +261,10 @@ postButton.addEventListener('click', async function (e) {
       content: contentValue,
       date: new Date().toISOString(),
       likeCount: 0,
-      shareCount: 0
+      shareCount: 0,
+      ...(fileUrl && { file: fileUrl, fileName: fileName }),
+      ...(imageUrl && { image: imageUrl }),
+      ...(videoUrl && { video: videoUrl })
     });
 
     // Show the new post at the top
@@ -230,11 +275,20 @@ postButton.addEventListener('click', async function (e) {
       id: docRef.id,
       likeCount: 0,
       commentCount: 0,
-      shareCount: 0
+      shareCount: 0,
+      ...(fileUrl && { file: fileUrl, fileName: fileName }),
+      ...(imageUrl && { image: imageUrl }),
+      ...(videoUrl && { video: videoUrl })
     }, true);
 
-    // Clear textarea
+    // Clear textarea and media inputs
     contentInput.value = '';
+    if (fileInput) {
+      fileInput.value = '';
+      fileInput.removeAttribute('data-filename');
+    }
+    if (imageInput) imageInput.value = '';
+    if (videoInput) videoInput.value = '';
 
     // Close the modal
     const modalEl = document.getElementById('createFeedModal');
@@ -255,6 +309,7 @@ postButton.addEventListener('click', async function (e) {
         if (backdrop) backdrop.remove();
       }
     }
+    window.scrollTo(0, document.body.scrollHeight);
   } catch (e) {
     console.error('Error adding document: ', e);
   }
@@ -262,25 +317,17 @@ postButton.addEventListener('click', async function (e) {
 
 // --- Like, Comment, Share, Edit, Delete Button Logic ---
 
-// Like/unlike toggle: first click +1, second click -1 (per localStorage, not secure!)
-// Hover: show count on hover
-// Counting: update count in Firestore and UI
-
-// Event delegation for like, comment, share, edit, delete buttons
 document.addEventListener('mouseover', function(e) {
-  // Like hover
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
     const hover = likeBtn.querySelector('.like-hover');
     if (hover) hover.style.display = 'block';
   }
-  // Comment hover
   const commentBtn = e.target.closest('.comment-btn');
   if (commentBtn) {
     const hover = commentBtn.querySelector('.comment-hover');
     if (hover) hover.style.display = 'block';
   }
-  // Share hover
   const shareBtn = e.target.closest('.share-btn');
   if (shareBtn) {
     const hover = shareBtn.querySelector('.share-hover');
@@ -288,19 +335,16 @@ document.addEventListener('mouseover', function(e) {
   }
 });
 document.addEventListener('mouseout', function(e) {
-  // Like hover
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
     const hover = likeBtn.querySelector('.like-hover');
     if (hover) hover.style.display = 'none';
   }
-  // Comment hover
   const commentBtn = e.target.closest('.comment-btn');
   if (commentBtn) {
     const hover = commentBtn.querySelector('.comment-hover');
     if (hover) hover.style.display = 'none';
   }
-  // Share hover
   const shareBtn = e.target.closest('.share-btn');
   if (shareBtn) {
     const hover = shareBtn.querySelector('.share-hover');
@@ -309,33 +353,27 @@ document.addEventListener('mouseout', function(e) {
 });
 
 document.addEventListener('click', async function(e) {
-  // Like button
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
     const postCard = likeBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
-    // Check if already liked (localStorage)
     let likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
     const isLiked = likedPosts.includes(postId);
     try {
       if (!isLiked) {
-        // Like: increment
         await updateDoc(doc(db, 'posts', postId), { likeCount: increment(1) });
         likedPosts.push(postId);
         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
-        // Get new likeCount
         const postDoc = await getDoc(doc(db, 'posts', postId));
         const likeCount = postDoc.data().likeCount || 1;
         updatePostCounts(postId, { likeCount, isLiked: true });
         showNotification('You liked this post!', 'success', 1200);
       } else {
-        // Unlike: decrement
         await updateDoc(doc(db, 'posts', postId), { likeCount: increment(-1) });
         likedPosts = likedPosts.filter(id => id !== postId);
         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
-        // Get new likeCount
         const postDoc = await getDoc(doc(db, 'posts', postId));
         const likeCount = postDoc.data().likeCount || 0;
         updatePostCounts(postId, { likeCount, isLiked: false });
@@ -347,25 +385,21 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
-  // Share button
   const shareBtn = e.target.closest('.share-btn');
   if (shareBtn) {
     const postCard = shareBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
-    // Remove second click: allow only one share per user (localStorage)
     let sharedPosts = JSON.parse(localStorage.getItem('sharedPosts') || '[]');
     if (sharedPosts.includes(postId)) {
       showNotification('You already shared this post.', 'info', 1500);
       return;
     }
-    // Update Firestore shareCount
     try {
       await updateDoc(doc(db, 'posts', postId), { shareCount: increment(1) });
       sharedPosts.push(postId);
       localStorage.setItem('sharedPosts', JSON.stringify(sharedPosts));
-      // Get new shareCount
       const postDoc = await getDoc(doc(db, 'posts', postId));
       const shareCount = postDoc.data().shareCount || 1;
       updatePostCounts(postId, { shareCount });
@@ -376,20 +410,16 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
-  // Edit post button
   const editBtn = e.target.closest('.edit-post-btn');
   if (editBtn) {
     const postCard = editBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
-    // Find the content div
     const contentDiv = postCard.querySelector('.post-content');
     if (!contentDiv) return;
-    // If already editing, do nothing
     if (contentDiv.querySelector('textarea')) return;
     const oldContent = contentDiv.textContent;
-    // Replace with textarea and save/cancel buttons
     contentDiv.innerHTML = `
       <textarea class="form-control edit-post-textarea" style="width:100%; min-height:60px; border-radius:12px; margin-bottom:8px;">${oldContent.replace(/"/g, '&quot;')}</textarea>
       <div>
@@ -397,13 +427,11 @@ document.addEventListener('click', async function(e) {
         <button class="btn btn-sm btn-secondary cancel-edit-post-btn" style="border-radius:20px;">Cancel</button>
       </div>
     `;
-    // Focus textarea
     const textarea = contentDiv.querySelector('textarea');
     if (textarea) textarea.focus();
     return;
   }
 
-  // Save edit post
   const saveEditBtn = e.target.closest('.save-edit-post-btn');
   if (saveEditBtn) {
     const postCard = saveEditBtn.closest('.card-body');
@@ -418,7 +446,6 @@ document.addEventListener('click', async function(e) {
       showNotification('Post content cannot be empty.', 'warning', 1500);
       return;
     }
-    // Update Firestore
     updateDoc(doc(db, 'posts', postId), { content: newContent })
       .then(() => {
         contentDiv.innerHTML = newContent;
@@ -430,14 +457,12 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
-  // Cancel edit post
   const cancelEditBtn = e.target.closest('.cancel-edit-post-btn');
   if (cancelEditBtn) {
     const postCard = cancelEditBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
-    // Get original content from Firestore
     getDoc(doc(db, 'posts', postId)).then(postDoc => {
       const contentDiv = postCard.querySelector('.post-content');
       if (contentDiv) {
@@ -447,19 +472,15 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
-  // Delete post button
   const deleteBtn = e.target.closest('.delete-post-btn');
   if (deleteBtn) {
     const postCard = deleteBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
-    // Confirm delete
     if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
-    // Delete from Firestore
     deleteDoc(doc(db, 'posts', postId))
       .then(() => {
-        // Remove from DOM
         const feedPost = postCard.closest('.feed-post');
         if (feedPost) feedPost.remove();
         showNotification('Post deleted.', 'success', 1200);
@@ -494,7 +515,7 @@ function createCommentPopup() {
 
   commentPopup.innerHTML = `
     <div class="comment-popup-content" style="
-      background: #fff; 
+      background: var(--main-color); 
       border-radius: 16px; 
       width: ${getPopupWidth()};
       max-width: 98vw;
@@ -545,6 +566,22 @@ function renderPopupPost(postData) {
       minute: '2-digit'
     });
   }
+
+  // --- FILE, IMAGE, VIDEO RENDER LOGIC FOR POPUP ---
+  let mediaHtml = '';
+  if (postData.file) {
+    mediaHtml += `<div class="mb-2" style="background: var(--secondary-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
+      <i class="bi bi-paperclip" style="font-size:1.5rem; color:var(--b-color);"></i>
+      <a href="${postData.file}" target="_blank" style="color:var(--b-color); word-break:break-all;">${postData.fileName || 'Download file'}</a>
+    </div>`;
+  }
+  if (postData.image) {
+    mediaHtml += `<div class="mb-2"><img src="${postData.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
+  }
+  if (postData.video) {
+    mediaHtml += `<div class="mb-2"><video src="${postData.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
+  }
+
   postDiv.innerHTML = `
     <div class="d-flex align-items-center mb-2">
       <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
@@ -554,7 +591,7 @@ function renderPopupPost(postData) {
       </div>
     </div>
     <div class="mb-2" style="color: var(--p-color);">${postData.content ? postData.content : ''}</div>
-    <div class="mb-2" style="height:120px; background: var(--secondary-color); border-radius: 20px;"></div>
+    ${mediaHtml}
   `;
 }
 
@@ -567,7 +604,6 @@ async function renderPopupComments(postId) {
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
       commentsDiv.innerHTML = '<div style="color:#aaa;font-size:0.95em;">No comments yet.</div>';
-      // Update comment count in feed
       updatePostCounts(postId, { commentCount: 0 });
       return;
     }
@@ -601,7 +637,6 @@ async function renderPopupComments(postId) {
       `;
       commentsDiv.appendChild(commentEl);
     });
-    // Update comment count in feed
     updatePostCounts(postId, { commentCount: count });
     commentsDiv.scrollTop = commentsDiv.scrollHeight;
   } catch (err) {
@@ -645,16 +680,13 @@ function hideCommentPopup() {
   }
 }
 
-// Event delegation for comment button on posts
 document.addEventListener('click', async function(e) {
-  // Open comment popup
   const commentBtn = e.target.closest('.open-comment-popup');
   if (commentBtn) {
     const postCard = commentBtn.closest('.card-body');
     if (postCard) {
       const postId = postCard.getAttribute('data-post-id');
       if (!postId) return;
-      // Fetch post data from Firestore for up-to-date info
       const postDoc = await getDoc(doc(db, 'posts', postId));
       if (!postDoc.exists()) return;
       const postData = postDoc.data();
@@ -662,28 +694,24 @@ document.addEventListener('click', async function(e) {
       showCommentPopup(postData);
     }
   }
-  // Close popup
   if (e.target.classList.contains('close-comment-popup')) {
     hideCommentPopup();
   }
-  // Click outside popup content closes popup
   if (commentPopup && e.target === commentPopup) {
     hideCommentPopup();
   }
 });
 
-// Add comment from popup
 if (!window._commentPopupListenerAdded) {
   window._commentPopupListenerAdded = true;
   document.addEventListener('click', async function(e) {
     if (!commentPopup || commentPopup.style.display !== 'flex') return;
-    // Send button
     if (e.target.closest('.send-comment-btn')) {
       const postId = commentPopup.dataset.postId;
       const input = commentPopup.querySelector('input[type="text"]');
       const commentText = input ? input.value.trim() : '';
       if (!postId || !commentText) return;
-      const userName = 'Current User'; // Replace with actual user name if available
+      const userName = 'Current User';
       try {
         await addDoc(collection(db, 'posts', postId, 'comments'), {
           user: userName,
@@ -692,14 +720,12 @@ if (!window._commentPopupListenerAdded) {
         });
         input.value = '';
         await renderPopupComments(postId);
-        // Optionally update commentCount in Firestore (not needed, we count subcollection)
       } catch (err) {
         alert('Failed to add comment.');
       }
     }
   });
 
-  // Enter key to send comment
   document.addEventListener('keydown', async function(e) {
     if (!commentPopup || commentPopup.style.display !== 'flex') return;
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -723,14 +749,11 @@ if (!window._commentPopupListenerAdded) {
         }
       }
     }
-    // Escape closes popup
     if (e.key === 'Escape' && commentPopup && commentPopup.style.display === 'flex') {
       hideCommentPopup();
     }
   });
 }
-
-// Simple notification system with notification popup list
 
 function showNotification(message, type = 'info', duration = 3000) {
   let existing = document.getElementById('custom-notification');
@@ -898,5 +921,39 @@ notifPopup.addEventListener('click', function(e) {
 document.addEventListener('mousedown', function(e) {
   if (notifPopup.style.display === 'block' && !notifPopup.contains(e.target) && e.target !== notifBtn) {
     notifPopup.style.display = 'none';
+  }
+});
+
+let scrollTopBtn = document.getElementById('feed-scroll-top-btn');
+if (!scrollTopBtn) {
+  scrollTopBtn = document.createElement('button');
+  scrollTopBtn.id = 'feed-scroll-top-btn';
+  scrollTopBtn.textContent = '↑';
+  scrollTopBtn.style.position = 'fixed';
+  scrollTopBtn.style.bottom = '40px';
+  scrollTopBtn.style.right = '40px';
+  scrollTopBtn.style.zIndex = 100002;
+  scrollTopBtn.style.display = 'none';
+  scrollTopBtn.style.background = 'var(--main-color)';
+  scrollTopBtn.style.color = 'var(--headline-color)';
+  scrollTopBtn.style.border = '1px solid var(--border-color)';
+  scrollTopBtn.style.borderRadius = '50%';
+  scrollTopBtn.style.width = '44px';
+  scrollTopBtn.style.height = '44px';
+  scrollTopBtn.style.fontSize = '1.5rem';
+  scrollTopBtn.style.cursor = 'pointer';
+  scrollTopBtn.style.boxShadow = '0 4px 24px rgba(0,0,0,0.18)';
+  document.body.appendChild(scrollTopBtn);
+
+  scrollTopBtn.addEventListener('click', function() {
+    if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+feedContainer.addEventListener('scroll', function() {
+  if (feedContainer.scrollTop > 200) {
+    scrollTopBtn.style.display = 'block';
+  } else {
+    scrollTopBtn.style.display = 'none';
   }
 });
