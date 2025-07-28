@@ -59,6 +59,7 @@ body {
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow-softer);
   border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
 }
 .profile-img {
   width: 48px;

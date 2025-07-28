@@ -29,7 +29,6 @@ export const db = getFirestore(app)
 
 console.log("Firebase đã được khởi tạo thành công!")
 
-// Global variables for search functionality
 let allUsers = []
 const userCardTemplate = document.querySelector("[data-user-template]")
 const userCardContainer = document.querySelector("[data-user-cards-container]")
@@ -53,7 +52,6 @@ export const getUserInfo = async (userId) => {
   }
 };
 
-// Function to get all users for search
 const getAllUsers = async () => {
   try {
     const usersRef = collection(db, "users");
@@ -71,18 +69,14 @@ const getAllUsers = async () => {
     return [];
   }
 };
-
-// Initialize search functionality
 const initializeSearch = async () => {
   if (!userCardTemplate || !userCardContainer || !searchInput) {
     console.warn("Search elements not found");
     return;
   }
 
-  // Load all users for search
   allUsers = await getAllUsers();
   
-  // Create user cards
   allUsers.forEach(user => {
     const card = userCardTemplate.content.cloneNode(true).children[0];
     const header = card.querySelector("[data-header]");
@@ -104,7 +98,7 @@ const initializeSearch = async () => {
     user.element = card;
   });
 
-  // Search input event handlers
+
   searchInput.addEventListener("input", (e) => {
     const value = e.target.value.toLowerCase();
     allUsers.forEach(user => {
@@ -120,14 +114,12 @@ const initializeSearch = async () => {
   });
 
   searchInput.addEventListener('blur', (e) => {
-    // Delay hiding to allow clicks on search results
     setTimeout(() => {
       userCardContainer.classList.add('hide');
     }, 200);
   });
 };
 
-// Mock data (keeping your existing mock data)
 const mockUserData = {
   username: "John Doe",
   email: "john.doe@example.com",
@@ -199,7 +191,7 @@ const mockPhotos = [
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
 ];
 
-// Initialize user profile
+
 getUserInfo("admin_created_1753352335301_j3ics")
   .then(user => {
     console.log(user);
@@ -231,15 +223,13 @@ getUserInfo("admin_created_1753352335301_j3ics")
     loadFriends();
     loadPhotos();
     initScrollEffects();
-    initializeSearch(); // Initialize search after loading user data
+    initializeSearch();
   })
   .catch(error => {
     console.error("Error loading user:", error);
-    // Fallback to mock data if Firebase fails
     initializeFallback();
   });
 
-// Fallback initialization with mock data
 const initializeFallback = () => {
   const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
   const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
@@ -315,7 +305,6 @@ function initScrollEffects() {
   });
 }
 
-// Tab functionality
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".tab-btn").forEach((t) => t.classList.remove("active"));
@@ -394,7 +383,6 @@ function loadPhotos() {
     .join("");
 }
 
-// Global functions for onclick handlers
 window.toggleLike = function(postId) {
   const postAction = event.target.closest(".post-action");
   const icon = postAction.querySelector("i");
@@ -421,7 +409,6 @@ window.navigateToFriend = function(friendName) {
   alert(`Would navigate to ${friendName}'s profile`);
 };
 
-// Navigation handlers
 document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
@@ -433,8 +420,7 @@ document.querySelectorAll(".nav-item").forEach((item) => {
         break;
       case "friends":
         console.log("Navigating to Friends page...");
-        // window.location.href = 'friends.html';
-        alert("Would navigate to Friends page");
+        window.location.href = 'friends.html';
         break;
       case "messages":
         console.log("Opening Messages...");
@@ -457,8 +443,10 @@ document.querySelectorAll(".nav-item").forEach((item) => {
     }
   });
 });
+document.getElementById('profile').addEventListener('click', () => {
+  window.location.href = 'profile.html';
+});
 
-// Profile action buttons
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     const editBtn = document.querySelector(".btn-primary-custom");

@@ -1039,11 +1039,9 @@ function exitAdminPage() {
       console.log("Cannot close window, redirecting instead...")
     }
 
-    window.location.href = "/"
+    window.location.href = "profile.html"
   }
 }
-
-// Make functions globally available
 window.showTab = showTab
 window.addPost = addPost
 window.editUser = editUser
