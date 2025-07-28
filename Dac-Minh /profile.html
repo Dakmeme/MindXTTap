@@ -1,211 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brand</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="profile.css" />
-  </head>
-  <body class="d-flex justify-content-center align-items-center vh-100 p-3">
-    <div
-      class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container"
-    >
-      <div class="d-flex flex-column sidebar flex-shrink-0" style="min-width: 280px">
-        <div class="profile-section">
-          <div class="d-flex align-items-center gap-3" id="profile">
-            <div class="profile-img"></div>
-            <div>
-              <div id="username" class="fw-bold text-white">Loading...</div>
-              <div id="useremail" class="small text-white-50">Loading...</div>
-            </div>
-          </div>
-        </div>
 
-        <div class="nav-items" >
-          <div class="nav-item" id="feed">
-            <i class="bi bi-compass"></i>
-            <span>Feed</span>
-          </div>
-          <div class="nav-item" id="friends">
-            <i class="bi bi-people-fill"></i>
-            <span>Friends</span>
-          </div>
-          <div class="nav-item" id="messages">
-            <i class="bi bi-chat-fill"></i>
-            <span>Messages</span>
-          </div>
-          <div class="nav-item" id="notif">
-            <i class="bi bi-bell-fill"></i>
-            <span>Notifications</span>
-          </div>
-          <div class="nav-item" if="settings">
-            <i class="bi bi-gear-fill"></i>
-            <span>Settings</span>
-          </div>
-        </div>
-        <div class="pinned-section">
-          <div class="nav-item" style="color: var(--p-color)">
-            <i class="bi bi-bookmark-fill"></i>
-            <span>Pinned</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="profile.css" />
+</head>
+
+<body class="d-flex justify-content-center align-items-center vh-100 p-3">
+  <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
+    <div class="d-flex flex-column sidebar flex-shrink-0" style="min-width: 280px">
+      <div class="profile-section">
+        <div class="d-flex align-items-center gap-3" id="profile">
+          <div class="profile-img"></div>
+          <div>
+            <div id="username" class="fw-bold text-white">Loading...</div>
+            <div id="useremail" class="small text-white-50">Loading...</div>
           </div>
         </div>
       </div>
 
-      <div class="w-100 d-flex flex-column gap-4">
-        <div class="indicator">
-          <div class="d-flex w-50 align-items-center search-wrapper p-2">
-            <i class="bi bi-search"></i>
-            <input type="search" id="search" placeholder="Search" data-search style="color: #94a1b2; background-color: rgba(240, 248, 255, 0); border:none"/>
-          </div>
-          <div class="search-cards position-absolute hide" data-user-cards-container></div>
-          <template data-user-template>
-            <div class="search-container-card">
-              <div class="header" data-header></div>
-              <div class="body" data-body></div>
-            </div>
-          </template>
+      <div class="nav-items">
+        <div class="nav-item" id="feed">
+          <i class="bi bi-compass"></i>
+          <span>Feed</span>
         </div>
-        <div class="main-content flex-grow-1">
-          <div
-            class="cover-section cover-img d-flex flex-column align-items-end"
-            id="cover-section"
-          >
-            <div class="cover-overlay" id="cover-overlay"></div>
-            <div class="avatar-container" id="avatar-container">
-              <div class="avatar cover-img" id="avatar"></div>
-            </div>
-            <div
-              class="profile-header-info d-flex flex-column align-items-end mt-3 me-3"
-              id="profile-header-info"
-            >
-              <div class="username" id="header-username">Loading...</div>
-              <div class="user-email" id="header-useremail">Loading...</div>
-            </div>
-            <div class="header-stats me-3" id="header-stats">
-              <div class="header-stat-item">
-                <span class="header-stat-number">142</span>
-                <span class="header-stat-label">Posts</span>
-              </div>
-              <div class="header-stat-item">
-                <span class="header-stat-number">1.2k</span>
-                <span class="header-stat-label">Followers</span>
-              </div>
-              <div class="header-stat-item">
-                <span class="header-stat-number">98</span>
-                <span class="header-stat-label">Following</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="profile-info" id="profile-info">
-            <div class="main-profile-info" id="main-profile-info">
-              <div class="username" id="main-username">Loading...</div>
-              <div class="user-email" id="main-useremail">Loading...</div>
-              <div class="stats-container" id="stats-container">
-                <div class="stat-item">
-                  <span class="stat-number">142</span>
-                  <span class="stat-label">Posts</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-number">1.2k</span>
-                  <span class="stat-label">Followers</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-number">98</span>
-                  <span class="stat-label">Following</span>
-                </div>
-              </div>
-              <div class="action-buttons" id="action-buttons">
-                <button class="btn btn-primary-custom">
-                  <i class="bi bi-pencil-square me-2"></i>Edit Profile
-                </button>
-                <button class="btn btn-secondary-custom">
-                  <i class="bi bi-gear me-2"></i>Settings
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="activity-tabs">
-            <div class="tab-nav">
-              <button class="tab-btn active" data-tab="posts">
-                <i class="bi bi-grid-3x3-gap me-2"></i>Posts
-              </button>
-              <button class="tab-btn" data-tab="about">
-                <i class="bi bi-person me-2"></i>About
-              </button>
-              <button class="tab-btn" data-tab="friends">
-                <i class="bi bi-people me-2"></i>Friends
-              </button>
-              <button class="tab-btn" data-tab="photos">
-                <i class="bi bi-images me-2"></i>Photos
-              </button>
-            </div>
-          </div>
-
-          <div class="tab-content">
-            <div class="tab-pane active" id="posts">
-              <div class="posts-container" id="posts-container"></div>
-            </div>
-
-            <div class="tab-pane" id="about">
-              <div class="about-section">
-                <div class="about-card">
-                  <h5 class="section-title">
-                    <i class="bi bi-info-circle me-2"></i>About
-                  </h5>
-                  <p class="about-text">
-                    Digital creator passionate about technology and design. Love
-                    to share insights about web development and user experience.
-                  </p>
-                </div>
-
-                <div class="about-card">
-                  <h5 class="section-title">
-                    <i class="bi bi-briefcase me-2"></i>Work
-                  </h5>
-                  <div class="info-item">
-                    <strong>Software Engineer</strong> at Tech Company
-                  </div>
-                  <div class="info-item text-muted">2022 - Present</div>
-                </div>
-
-                <div class="about-card">
-                  <h5 class="section-title">
-                    <i class="bi bi-geo-alt me-2"></i>Location
-                  </h5>
-                  <div class="info-item">Ho Chi Minh City, Vietnam</div>
-                </div>
-
-                <div class="about-card">
-                  <h5 class="section-title">
-                    <i class="bi bi-calendar3 me-2"></i>Joined
-                  </h5>
-                  <div class="info-item">January 2023</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="tab-pane" id="friends">
-              <div class="friends-grid" id="friends-grid"></div>
-            </div>
-            <div class="tab-pane" id="photos">
-              <div class="photos-grid" id="photos-grid"></div>
-            </div>
-          </div>
+        <div class="nav-item" id="friends">
+          <i class="bi bi-people-fill"></i>
+          <span>Friends</span>
+        </div>
+        <div class="nav-item" id="messages">
+          <i class="bi bi-chat-fill"></i>
+          <span>Messages</span>
+        </div>
+        <div class="nav-item" id="notif">
+          <i class="bi bi-bell-fill"></i>
+          <span>Notifications</span>
+        </div>
+        <div class="nav-item" if="settings">
+          <i class="bi bi-gear-fill"></i>
+          <span>Settings</span>
+        </div>
+      </div>
+      <div class="pinned-section">
+        <div class="nav-item" style="color: var(--p-color)">
+          <i class="bi bi-bookmark-fill"></i>
+          <span>Pinned</span>
         </div>
       </div>
     </div>
 
-    <script defer type="module" src="profile.js"></script>
-    <!-- <script defer src="search-bar.js"></script> -->
-  </body>
+    <div class="w-100 d-flex flex-column gap-4">
+      <div class="indicator">
+        <div class="d-flex w-50 align-items-center search-wrapper p-2">
+          <i class="bi bi-search"></i>
+          <input type="search" id="search" placeholder="Search" data-search style="
+                color: #94a1b2;
+                background-color: rgba(240, 248, 255, 0);
+                border: none;
+              " />
+        </div>
+        <div class="search-cards position-absolute hide" data-user-cards-container></div>
+        <template data-user-template>
+          <div class="search-container-card">
+            <div class="header" data-header></div>
+            <div class="body" data-body></div>
+          </div>
+        </template>
+      </div>
+      <div class="main-content flex-grow-1">
+        <div class="cover-section cover-img d-flex flex-column align-items-end" id="cover-section">
+          <div class="cover-overlay" id="cover-overlay"></div>
+          <div class="avatar-container" id="avatar-container">
+            <div class="avatar cover-img" id="avatar"></div>
+          </div>
+          <div class="profile-header-info d-flex flex-column align-items-end mt-3 me-3" id="profile-header-info">
+            <div class="username" id="header-username">Loading...</div>
+            <div class="user-email" id="header-useremail">Loading...</div>
+          </div>
+          <div class="header-stats me-3" id="header-stats">
+            <div class="header-stat-item">
+              <span class="header-stat-number">142</span>
+              <span class="header-stat-label">Posts</span>
+            </div>
+            <div class="header-stat-item">
+              <span class="header-stat-number">1.2k</span>
+              <span class="header-stat-label">Followers</span>
+            </div>
+            <div class="header-stat-item">
+              <span class="header-stat-number">98</span>
+              <span class="header-stat-label">Following</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-info" id="profile-info">
+          <div class="main-profile-info" id="main-profile-info">
+            <div class="username" id="main-username">Loading...</div>
+            <div class="user-email" id="main-useremail">Loading...</div>
+            <div class="stats-container" id="stats-container">
+              <div class="stat-item">
+                <span class="stat-number">142</span>
+                <span class="stat-label">Posts</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">1.2k</span>
+                <span class="stat-label">Followers</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">98</span>
+                <span class="stat-label">Following</span>
+              </div>
+            </div>
+            <div class="action-buttons" id="action-buttons">
+              <button class="btn btn-primary-custom">
+                <i class="bi bi-pencil-square me-2"></i>Edit Profile
+              </button>
+              <button class="btn btn-secondary-custom">
+                <i class="bi bi-gear me-2"></i>Settings
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="activity-tabs">
+          <div class="tab-nav">
+            <button class="tab-btn active" data-tab="posts">
+              <i class="bi bi-grid-3x3-gap me-2"></i>Posts
+            </button>
+            <button class="tab-btn" data-tab="about">
+              <i class="bi bi-person me-2"></i>About
+            </button>
+            <button class="tab-btn" data-tab="friends">
+              <i class="bi bi-people me-2"></i>Friends
+            </button>
+            <button class="tab-btn" data-tab="photos">
+              <i class="bi bi-images me-2"></i>Photos
+            </button>
+          </div>
+        </div>
+
+        <div class="tab-content">
+          <div class="tab-pane active" id="posts">
+            <div class="posts-container" id="posts-container"></div>
+          </div>
+
+          <div class="tab-pane" id="about">
+            <div class="about-section">
+              <div class="about-card">
+                <h5 class="section-title">
+                  <i class="bi bi-info-circle me-2"></i>About
+                </h5>
+                <p class="about-text">
+                  Digital creator passionate about technology and design. Love
+                  to share insights about web development and user experience.
+                </p>
+              </div>
+
+              <div class="about-card">
+                <h5 class="section-title">
+                  <i class="bi bi-briefcase me-2"></i>Work
+                </h5>
+                <div class="info-item">
+                  <strong>Software Engineer</strong> at Tech Company
+                </div>
+                <div class="info-item text-muted">2022 - Present</div>
+              </div>
+
+              <div class="about-card">
+                <h5 class="section-title">
+                  <i class="bi bi-geo-alt me-2"></i>Location
+                </h5>
+                <div class="info-item">Ho Chi Minh City, Vietnam</div>
+              </div>
+
+              <div class="about-card">
+                <h5 class="section-title">
+                  <i class="bi bi-calendar3 me-2"></i>Joined
+                </h5>
+                <div class="info-item">January 2023</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-pane" id="friends">
+            <div class="friends-grid" id="friends-grid"></div>
+          </div>
+          <div class="tab-pane" id="photos">
+            <div class="photos-grid" id="photos-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script defer type="module" src="profile.js"></script>
+  <!-- <script defer src="search-bar.js"></script> -->
+</body>
+
 </html>

@@ -62,16 +62,12 @@
             avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
         };
 
-        // Initialize profile avatar
         document.getElementById('collapsed-avatar').style.backgroundImage = `url("${mockUserData.avatar}")`;
 
-        // Friend requests toggle functionality
         function toggleRequests() {
             const dropdown = document.getElementById('requests-dropdown');
             dropdown.classList.toggle('active');
         }
-
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const toggle = document.querySelector('.friend-requests-toggle');
             const dropdown = document.getElementById('requests-dropdown');
@@ -81,26 +77,20 @@
             }
         });
 
-        // Friend request actions
+
         function acceptRequest(id) {
             console.log(`Accepting friend request ${id}`);
-            // Update count
             const countElement = document.querySelector('.requests-count');
             let currentCount = parseInt(countElement.textContent);
             countElement.textContent = Math.max(0, currentCount - 1);
-            
-            // Remove the request item
             event.target.closest('.request-item').remove();
         }
 
         function declineRequest(id) {
             console.log(`Declining friend request ${id}`);
-            // Update count
             const countElement = document.querySelector('.requests-count');
             let currentCount = parseInt(countElement.textContent);
             countElement.textContent = Math.max(0, currentCount - 1);
-            
-            // Remove the request item
             event.target.closest('.request-item').remove();
         }
 
@@ -170,7 +160,7 @@
             `).join('');
         }
 
-        // Filter button functionality
+
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -192,7 +182,6 @@
             });
         });
 
-        // Search functionality
         document.getElementById('friends-search').addEventListener('input', e => {
             const term = e.target.value.toLowerCase();
             document.querySelectorAll('.friend-card, .group-card').forEach(card => {

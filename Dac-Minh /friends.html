@@ -10,11 +10,7 @@
 </head>
 <body class="d-flex justify-content-center align-items-center vh-100 p-3">
     <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
-        <!-- Collapsed Sidebar -->
         <div class="sidebar-collapsed">
-            <div class="brand-logo">
-                <h3>Brand</h3>
-            </div>
             <div class="profile-section-collapsed">
                 <div class="profile-img-collapsed" id="collapsed-avatar"></div>
             </div>
@@ -37,15 +33,12 @@
             </div>
         </div>
 
-        <!-- Main Friends Content -->
-        <div class="friends-content w-100">
-            <div class="friends-header">
+        <div class="friends-content w-100" >
+            <div class="friends-header" >
                 <div class="friends-header-content">
                     <h1><i class="bi bi-people-fill me-3"></i>Friends</h1>
                     <p>Connect with your friends and discover new connections</p>
                 </div>
-                
-                <!-- Friend Requests Toggle -->
                 <div class="friend-requests-toggle">
                     <button class="requests-toggle-btn" onclick="toggleRequests()">
                         <i class="bi bi-person-plus"></i>
@@ -53,7 +46,7 @@
                         <span class="requests-count">3</span>
                     </button>
                     
-                    <div class="requests-dropdown" id="requests-dropdown">
+                    <div class="requests-dropdown" style="z-index: 10000;" id="requests-dropdown">
                         <div class="requests-header">
                             <h4>Friend Requests</h4>
                             <button class="close-requests" onclick="toggleRequests()">
@@ -131,7 +124,6 @@
                         </div>
                     </div>
                     <div class="friends-grid" id="friends-grid">
-                        <!-- Friends will be loaded here -->
                     </div>
                 </div>
 
@@ -146,13 +138,12 @@
                         </div>
                     </div>
                     <div class="groups-grid" id="groups-grid">
-                        <!-- Groups will be loaded here -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-<script defer type="module" src="friends.js"></script>
+<script defer src="friends.js"> </script>
 </body>
 </html>
