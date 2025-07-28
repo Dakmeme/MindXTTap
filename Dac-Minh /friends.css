@@ -47,12 +47,9 @@ body {
   background: rgba(30, 30, 30, 0.8);
   border-radius: 20px;
   padding: 1rem 0.5rem;
-  height: 100%;
   border: 1px solid var(--card-border);
   width: 80px;
   transition: all 0.3s ease;
-  position: relative;
-  overflow: visible;
 }
 
 .profile-section-collapsed {
@@ -60,9 +57,6 @@ body {
   position: relative;
   width: 60px;
   height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .profile-img-collapsed {
@@ -72,7 +66,6 @@ body {
   border-radius: 50%;
   background-size: cover;
   background-position: center;
-  position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.3),
@@ -83,26 +76,8 @@ body {
 .profile-img-collapsed:hover {
   transform: translateY(-4px);
   box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.3),
-    0 0 0 6px rgba(127, 90, 240, 0.1), 0 12px 20px rgba(0, 0, 0, 0.5),
-    0 4px 8px rgba(127, 90, 240, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2);
 }
 
-.profile-img-collapsed::before {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--b-color), #9d6bff);
-  opacity: 0.6;
-  z-index: -1;
-  filter: blur(8px);
-  transition: all 0.3s ease;
-}
-
-.profile-img-collapsed:hover::before {
-  opacity: 0.6;
-  filter: blur(8px);
-}
 
 .nav-items-collapsed {
   display: flex;
@@ -112,16 +87,15 @@ body {
 }
 
 .nav-item-collapsed {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 48px;
   height: 48px;
   border-radius: 12px;
   transition: all 0.3s ease;
   cursor: pointer;
-  position: relative;
   color: var(--p-color);
+  display:flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .nav-item-collapsed:hover {
@@ -169,10 +143,7 @@ body {
   border-radius: 20px;
   box-shadow: var(--shadow-soft);
   border: 1px solid var(--card-border);
-  height: 100%;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
 .friends-header {
@@ -186,7 +157,6 @@ body {
   border-radius: 20px 20px 0 0;
   color: white;
   position: relative;
-  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -342,6 +312,7 @@ body {
   display: flex;
   align-items: center;
   gap: 1rem;
+  position: absolute;
 }
 
 .request-avatar {

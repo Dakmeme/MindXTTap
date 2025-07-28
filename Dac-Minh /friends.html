@@ -10,11 +10,11 @@
 </head>
 <body class="d-flex justify-content-center align-items-center vh-100 p-3">
     <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
-        <div class="sidebar-collapsed">
-            <div class="profile-section-collapsed">
+        <div class="h-100 position-relative sidebar-collapsed">
+            <div class="d-flex align-items-center justify-content-center profile-section-collapsed">
                 <div class="profile-img-collapsed" id="collapsed-avatar"></div>
             </div>
-            <div class="nav-items-collapsed">
+            <div class="d-flex justify-content-center align-items-center nav-items-collapsed">
                 <div class="nav-item-collapsed" data-tooltip="Feed" onclick="navigateTo('feed')">
                     <i class="bi bi-compass"></i>
                 </div>
@@ -33,7 +33,7 @@
             </div>
         </div>
 
-        <div class="friends-content w-100" >
+        <div class="h-100 w-100 d-flex flex-column friends-content" >
             <div class="friends-header" >
                 <div class="friends-header-content">
                     <h1><i class="bi bi-people-fill me-3"></i>Friends</h1>
