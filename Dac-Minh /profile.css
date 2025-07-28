@@ -191,7 +191,6 @@ body {
   display: none !important;
 }
 
-/* Scrollbar styling for search results */
 .search-cards::-webkit-scrollbar {
   width: 6px;
 }
@@ -209,8 +208,6 @@ body {
 .search-cards::-webkit-scrollbar-thumb:hover {
   background: #9d6bff;
 }
-
-/* Make sure the search wrapper is properly positioned */
 .indicator {
   display: flex;
   align-items: center;
@@ -218,7 +215,6 @@ body {
   margin-bottom: 1rem;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .search-wrapper {
     width: 100%;
