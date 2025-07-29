@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+import { getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js" // Import getAuth
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
@@ -11,7 +12,8 @@ const firebaseConfig = {
   measurementId: "G-Y0NCNLB337",
 }
 
-const app = initializeApp(firebaseConfig)
+export const app = initializeApp(firebaseConfig) // Export app
 export const db = getFirestore(app)
+export const auth = getAuth(app) // Export auth
 
 console.log("Firebase initialized successfully!")
