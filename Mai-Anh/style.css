@@ -45,33 +45,21 @@ body {
 
 
 .sidebar {
-  background: var(--main-color);
-  border-radius: 20px;
-  padding: 2rem 1rem 1rem 1rem;
+  background: rgba(30, 30, 30, 0.8);
+  border-radius: 0px 20px 20px 0;
+  padding: 1rem;
   height: 100%;
   border: 1px solid var(--card-border);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 80px;
-  box-shadow: var(--shadow-softer);
 }
 
-/* Profile section at the top of the sidebar */
-.profile-section,
-.sidebar .profile-section {
+.profile-section {
   background: linear-gradient(135deg, var(--b-color), #9d6bff);
   border-radius: 18px;
   padding: 1.2rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   box-shadow: var(--shadow-softer);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
-
 .profile-img {
   width: 48px;
   height: 48px;
@@ -79,100 +67,41 @@ body {
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.2);
-  margin-bottom: 0.5rem;
 }
-
-/* Navigation items */
 .nav-item {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 0 8px 0;
+  gap: 12px;
+  padding: 12px 16px;
   border-radius: 16px;
   margin-bottom: 8px;
-  transition: all 0.2s cubic-bezier(.4,0,.2,1);
+  transition: all 0.3s ease;
   cursor: pointer;
   font-weight: 500;
-  color: var(--headline-color);
-  width: 100%;
-  text-align: center;
-  background: transparent;
-  border: none;
 }
-
-.nav-item:hover,
-.nav-link.active,
-.nav-link:focus {
+.nav-item:hover {
   background: var(--hover-bg);
-  color: var(--b-color);
+  transform: translateX(4px);
   box-shadow: var(--shadow-softer);
-  transform: translateY(-2px) scale(1.03);
 }
-
-.nav-item i,
-.nav-link i {
-  width: 24px;
-  height: 24px;
+.nav-item i {
+  width: 20px;
   display: flex;
   justify-content: center;
-  align-items: center;
   color: var(--p-color);
-  font-size: 1.5rem;
-  transition: color 0.3s;
+  transition: color 0.3s ease;
 }
-
-.nav-item:hover i,
-.nav-link.active i {
+.nav-item:hover i {
   color: var(--b-color);
 }
-
-.nav-item span,
-.nav-link span {
-  font-size: 0.85rem;
-  color: inherit;
-  margin-top: 2px;
-}
-
-/* Pinned section at the bottom of the sidebar */
 .pinned-section {
-  margin-top: auto;
+  margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--card-border);
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
-.pinned-section .nav-item,
-.pinned-section .nav-link {
-  color: var(--p-color);
-  background: none;
-  box-shadow: none;
-  font-weight: 400;
-}
 
-.pinned-section .nav-item:hover,
-.pinned-section .nav-link:hover {
-  color: var(--b-color);
-  background: var(--hover-bg);
-}
 
-.sidebar-link {
-  color: var(--b-color);
-  text-decoration: none;
-  font-size: 0.9rem;
-  margin-bottom: 2px;
-  transition: color 0.2s;
-}
-
-.sidebar-link:hover {
-  color: var(--highlight-color);
-  text-decoration: underline;
-}
-
-/* Responsive: collapse sidebar on small screens */
 @media (max-width: 768px) {
   .sidebar {
     flex-direction: row;
