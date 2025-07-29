@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Page</title>
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container auth-section">
+    <div class="form-container">
+      <div class="form-content">
+        <h1 class="web-name">Web Name</h1>
+        <p>Welcome back! Please login to your account.</p>
+
+        <form id="login-form">
+          <label for="email">Email</label>
+          <div class="input-group">
+            <input type="email" id="email" placeholder="you@example.com" required />
+            <i class="bi bi-envelope icon"></i>
+          </div>
+
+          <label for="password">Password</label>
+          <div class="input-group">
+            <input type="password" id="password" placeholder="Your password" required />
+            <i class="bi bi-lock icon"></i>
+          </div>
+
+          <div class="options">
+            <label><input type="checkbox" /> Remember me</label>
+            <a href="#">Forgot Password?</a>
+          </div>
+
+          <button class="signin-btn" type="submit">Sign in</button>
+          <button class="google-btn" type="button">
+            <img src="/placeholder.svg?height=22&width=22" alt="Google logo" />
+            Sign in with Google
+          </button>
+        </form>
+
+        <p class="signup-link">Don't have an account? <a href="register.html">Sign up</a></p>
+      </div>
+    </div>
+    <div class="image-box d-none d-md-block" style="background-image: url('/placeholder.svg?height=800&width=800');">
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { auth, db } from "./firebase.js"; // Import auth and db from firebase.js
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+    document.getElementById("login-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Fetch user data from Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        let userData = { uid: user.uid, email: user.email };
+        if (userDocSnap.exists()) {
+          userData = { ...userDocSnap.data(), uid: user.uid, email: user.email };
+        } else {
+          console.warn("User data not found in Firestore, using basic auth data.");
+        }
+
+        localStorage.setItem("currentUser", JSON.stringify(userData));
+        alert(`Đăng nhập thành công! User ID: ${user.uid}`);
+        window.location.href = "admin.html"; // Redirect to your main admin page
+      } catch (error) {
+        alert("Lỗi đăng nhập: " + error.message);
+        console.error("Login error:", error);
+      }
+    });
+  </script>
+</body>
+</html>
