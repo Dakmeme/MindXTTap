@@ -100,7 +100,124 @@ body {
   border-top: 1px solid var(--card-border);
 }
 
+.search-wrapper{
+  background-color: var(--main-color) ;
+  width:100%;
+  border-radius:10px;
+  border: 1px  solid  #94a1b2;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
 
+.indicator {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+.search-wrapper:focus-within {
+  border-color: var(--b-color);
+  box-shadow: 0 0 0 0.2rem rgba(127, 90, 240, 0.25);
+}
+
+.search-wrapper i {
+  color: var(--p-color);
+  margin-left: 0.5rem;
+}
+
+#search {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--headline-color);
+  padding: 0.5rem;
+}
+
+#search::placeholder {
+  color: var(--p-color);
+}
+
+.search-cards {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(10px);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-top: 0.5rem;
+}
+
+.search-container-card {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-container-card:last-child {
+  border-bottom: none;
+}
+
+.search-container-card:hover {
+  background: rgba(127, 90, 240, 0.1);
+}
+
+.search-container-card .header {
+  font-weight: 600;
+  color: var(--headline-color);
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.search-container-card .body {
+  color: var(--p-color);
+  font-size: 0.8rem;
+}
+
+.hide {
+  display: none !important;
+}
+
+.search-cards::-webkit-scrollbar {
+  width: 6px;
+}
+
+.search-cards::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.search-cards::-webkit-scrollbar-thumb {
+  background: var(--b-color);
+  border-radius: 3px;
+}
+
+.search-cards::-webkit-scrollbar-thumb:hover {
+  background: #9d6bff;
+}
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .search-wrapper {
+    width: 100%;
+  }
+  
+  .indicator {
+    max-width: 100%;
+  }
+}
 
 @media (max-width: 768px) {
   .sidebar {
