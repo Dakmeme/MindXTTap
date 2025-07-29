@@ -1,20 +1,14 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
-  authDomain: "ttmindx.firebaseapp.com",
-  projectId: "ttmindx",
-  storageBucket: "ttmindx.firebasestorage.app",
-  messagingSenderId: "499689288083",
-  appId: "1:499689288083:web:394be22db426aa48b93866",
-  measurementId: "G-Y0NCNLB337"
-};
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  createUserWithEmailAndPassword,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
   getFirestore,
   addDoc,
@@ -30,10 +24,111 @@ import {
   deleteDoc
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
 
+const firebaseConfig = {
+  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
+  authDomain: "ttmindx.firebaseapp.com",
+  projectId: "ttmindx",
+  storageBucket: "ttmindx.firebasestorage.app",
+  messagingSenderId: "499689288083",
+  appId: "1:499689288083:web:394be22db426aa48b93866",
+  measurementId: "G-Y0NCNLB337"
+};
+
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 const createFeedModal = document.getElementById('createFeedModal');
 const postButton = document.getElementById('postButton');
+
+// --- Auth UI Elements ---
+const signInSection = document.getElementById('signInSection');
+const signUpSection = document.getElementById('signUpSection');
+const userInfoSection = document.getElementById('userInfoSection');
+const userNameDisplay = document.getElementById('userNameDisplay');
+const userEmailDisplay = document.getElementById('userEmailDisplay');
+const signOutBtn = document.getElementById('signOutBtn');
+
+// --- User State ---
+let currentUser = null;
+
+// --- Auth UI Logic ---
+function showAuthUI(user) {
+  if (user) {
+    // Hide sign in/up, show user info
+    if (signInSection) signInSection.style.display = 'none';
+    if (signUpSection) signUpSection.style.display = 'none';
+    if (userInfoSection) userInfoSection.style.display = '';
+    if (userNameDisplay) userNameDisplay.textContent = user.displayName || user.email || 'User';
+    if (userEmailDisplay) userEmailDisplay.textContent = user.email || '';
+  } else {
+    // Show sign in/up, hide user info
+    if (signInSection) signInSection.style.display = '';
+    if (signUpSection) signUpSection.style.display = '';
+    if (userInfoSection) userInfoSection.style.display = 'none';
+    if (userNameDisplay) userNameDisplay.textContent = '';
+    if (userEmailDisplay) userEmailDisplay.textContent = '';
+  }
+}
+
+// --- Listen for Auth State Changes ---
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  showAuthUI(user);
+});
+
+// --- Sign Up Logic ---
+if (signUpSection) {
+  const signUpForm = signUpSection.querySelector('form');
+  if (signUpForm) {
+    signUpForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = signUpForm.querySelector('input[type="email"]').value.trim();
+      const password = signUpForm.querySelector('input[type="password"]').value;
+      const displayName = signUpForm.querySelector('input[name="displayName"]')?.value.trim() || '';
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (displayName) {
+          await updateProfile(userCredential.user, { displayName });
+        }
+        showNotification('Account created! Welcome, ' + (displayName || email), 'success', 1500);
+      } catch (err) {
+        showNotification('Sign up failed: ' + (err.message || err), 'error');
+      }
+    });
+  }
+}
+
+// --- Sign In Logic ---
+if (signInSection) {
+  const signInForm = signInSection.querySelector('form');
+  if (signInForm) {
+    signInForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = signInForm.querySelector('input[type="email"]').value.trim();
+      const password = signInForm.querySelector('input[type="password"]').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        showNotification('Signed in as ' + email, 'success', 1200);
+      } catch (err) {
+        showNotification('Sign in failed: ' + (err.message || err), 'error');
+      }
+    });
+  }
+}
+
+// --- Sign Out Logic ---
+if (signOutBtn) {
+  signOutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+      showNotification('Signed out.', 'info', 1200);
+    } catch (err) {
+      showNotification('Sign out failed: ' + (err.message || err), 'error');
+    }
+  });
+}
 
 // --- Scrollable Feed Container Setup ---
 let feedContainer = document.getElementById('feed');
@@ -91,22 +186,19 @@ function renderPost(data, prepend = false) {
     </div>
   `;
 
-  // --- FILE, IMAGE, VIDEO RENDER LOGIC with media-btn-* classes ---
+  // --- IMAGE, VIDEO, FILE RENDER LOGIC with media-btn-* classes ---
   let mediaHtml = '';
+  if (data.image) {
+    mediaHtml += `<div class="mb-2 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
+  }
+  if (data.video) {
+    mediaHtml += `<div class="mb-2 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
+  }
   if (data.file) {
-    // Render file attachment with media-btn-file class (matches modal style)
     mediaHtml += `<div class="mb-2 media-btn-file" style="background-color: var(--secondary-color); color: var(--main-color); border-color: var(--border-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
       <i class="bi bi-paperclip me-1" style="font-size:1.5rem; color:var(--b-color);"></i>
       <a href="${data.file}" target="_blank" style="color: var(--main-color); word-break:break-all; text-decoration: underline;">${data.fileName || 'Download file'}</a>
     </div>`;
-  }
-  if (data.image) {
-    // Render image with media-btn-image class
-    mediaHtml += `<div class="mb-2 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
-  }
-  if (data.video) {
-    // Render video with media-btn-video class
-    mediaHtml += `<div class="mb-2 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
   }
 
   const feed = document.createElement('div');
@@ -221,8 +313,20 @@ loadAllPosts();
 
 // Listen for comment added to update comment count in real time (optional, not implemented here)
 
+// --- Restrict actions for unauthenticated users ---
+function requireAuthAction(e, actionName = "this action") {
+  if (!currentUser) {
+    showNotification("You must sign in to " + actionName + ".", "warning", 2000);
+    e.preventDefault && e.preventDefault();
+    e.stopPropagation && e.stopPropagation();
+    return false;
+  }
+  return true;
+}
+
 // Handle post creation, close modal, and show new post without reload
 postButton.addEventListener('click', async function (e) {
+  if (!requireAuthAction(e, "create a post")) return;
   e.preventDefault();
   const contentInput = document.getElementById('content');
   const imageInput = document.getElementById('image');
@@ -242,53 +346,59 @@ postButton.addEventListener('click', async function (e) {
     return;
   }
 
-  // Get file, image, video values (assume they are URLs for this rewrite)
-  if (fileInput && fileInput.value.trim()) {
-    fileUrl = fileInput.value.trim();
-    fileName = fileInput.getAttribute('data-filename') || '';
-  }
+  // Get image, video, file values (assume they are URLs for this rewrite)
   if (imageInput && imageInput.value.trim()) {
     imageUrl = imageInput.value.trim();
   }
   if (videoInput && videoInput.value.trim()) {
     videoUrl = videoInput.value.trim();
   }
+  if (fileInput && fileInput.value.trim()) {
+    fileUrl = fileInput.value.trim();
+    fileName = fileInput.getAttribute('data-filename') || '';
+  }
+
+  // Use current user's displayName or email for post
+  let userName = 'Anonymous';
+  if (currentUser) {
+    userName = currentUser.displayName || currentUser.email || 'User';
+  }
 
   try {
     // Save to Firestore and get the server timestamp
     const docRef = await addDoc(collection(db, 'posts'), {
-      user: 'name',
+      user: userName,
       content: contentValue,
       date: new Date().toISOString(),
       likeCount: 0,
       shareCount: 0,
-      ...(fileUrl && { file: fileUrl, fileName: fileName }),
       ...(imageUrl && { image: imageUrl }),
-      ...(videoUrl && { video: videoUrl })
+      ...(videoUrl && { video: videoUrl }),
+      ...(fileUrl && { file: fileUrl, fileName: fileName })
     });
 
     // Show the new post at the top
     renderPost({
-      user: 'name',
+      user: userName,
       content: contentValue,
       date: new Date().toISOString(),
       id: docRef.id,
       likeCount: 0,
       commentCount: 0,
       shareCount: 0,
-      ...(fileUrl && { file: fileUrl, fileName: fileName }),
       ...(imageUrl && { image: imageUrl }),
-      ...(videoUrl && { video: videoUrl })
+      ...(videoUrl && { video: videoUrl }),
+      ...(fileUrl && { file: fileUrl, fileName: fileName })
     }, true);
 
     // Clear textarea and media inputs
     contentInput.value = '';
+    if (imageInput) imageInput.value = '';
+    if (videoInput) videoInput.value = '';
     if (fileInput) {
       fileInput.value = '';
       fileInput.removeAttribute('data-filename');
     }
-    if (imageInput) imageInput.value = '';
-    if (videoInput) videoInput.value = '';
 
     // Close the modal
     const modalEl = document.getElementById('createFeedModal');
@@ -353,8 +463,10 @@ document.addEventListener('mouseout', function(e) {
 });
 
 document.addEventListener('click', async function(e) {
+  // Restrict all actions except viewing for unauthenticated users
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
+    if (!requireAuthAction(e, "like posts")) return;
     const postCard = likeBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -387,6 +499,7 @@ document.addEventListener('click', async function(e) {
 
   const shareBtn = e.target.closest('.share-btn');
   if (shareBtn) {
+    if (!requireAuthAction(e, "share posts")) return;
     const postCard = shareBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -412,6 +525,7 @@ document.addEventListener('click', async function(e) {
 
   const editBtn = e.target.closest('.edit-post-btn');
   if (editBtn) {
+    if (!requireAuthAction(e, "edit posts")) return;
     const postCard = editBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -434,6 +548,7 @@ document.addEventListener('click', async function(e) {
 
   const saveEditBtn = e.target.closest('.save-edit-post-btn');
   if (saveEditBtn) {
+    if (!requireAuthAction(e, "edit posts")) return;
     const postCard = saveEditBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -459,6 +574,7 @@ document.addEventListener('click', async function(e) {
 
   const cancelEditBtn = e.target.closest('.cancel-edit-post-btn');
   if (cancelEditBtn) {
+    if (!requireAuthAction(e, "edit posts")) return;
     const postCard = cancelEditBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -474,6 +590,7 @@ document.addEventListener('click', async function(e) {
 
   const deleteBtn = e.target.closest('.delete-post-btn');
   if (deleteBtn) {
+    if (!requireAuthAction(e, "delete posts")) return;
     const postCard = deleteBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -567,19 +684,17 @@ function renderPopupPost(postData) {
     });
   }
 
-  // --- FILE, IMAGE, VIDEO RENDER LOGIC FOR POPUP ---
+  // --- IMAGE, VIDEO, FILE RENDER LOGIC FOR POPUP ---
   let mediaHtml = '';
-  if (postData.file) {
-    mediaHtml += `<div class="mb-2" style="background: var(--secondary-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
+  if (postData.image) {
+    mediaHtml = `<div class="mb-2"><img src="${postData.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
+  } else if (postData.video) {
+    mediaHtml = `<div class="mb-2"><video src="${postData.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
+  } else if (postData.file) {
+    mediaHtml = `<div class="mb-2" style="background: var(--secondary-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
       <i class="bi bi-paperclip" style="font-size:1.5rem; color:var(--b-color);"></i>
       <a href="${postData.file}" target="_blank" style="color:var(--b-color); word-break:break-all;">${postData.fileName || 'Download file'}</a>
     </div>`;
-  }
-  if (postData.image) {
-    mediaHtml += `<div class="mb-2"><img src="${postData.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
-  }
-  if (postData.video) {
-    mediaHtml += `<div class="mb-2"><video src="${postData.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
   }
 
   postDiv.innerHTML = `
@@ -683,6 +798,8 @@ function hideCommentPopup() {
 document.addEventListener('click', async function(e) {
   const commentBtn = e.target.closest('.open-comment-popup');
   if (commentBtn) {
+    // Only allow opening comment popup if signed in
+    if (!requireAuthAction(e, "comment on posts")) return;
     const postCard = commentBtn.closest('.card-body');
     if (postCard) {
       const postId = postCard.getAttribute('data-post-id');
@@ -707,11 +824,16 @@ if (!window._commentPopupListenerAdded) {
   document.addEventListener('click', async function(e) {
     if (!commentPopup || commentPopup.style.display !== 'flex') return;
     if (e.target.closest('.send-comment-btn')) {
+      if (!requireAuthAction(e, "comment on posts")) return;
       const postId = commentPopup.dataset.postId;
       const input = commentPopup.querySelector('input[type="text"]');
       const commentText = input ? input.value.trim() : '';
       if (!postId || !commentText) return;
-      const userName = 'Current User';
+      // Use current user's displayName or email for comment
+      let userName = 'Current User';
+      if (currentUser) {
+        userName = currentUser.displayName || currentUser.email || 'User';
+      }
       try {
         await addDoc(collection(db, 'posts', postId, 'comments'), {
           user: userName,
@@ -731,11 +853,16 @@ if (!window._commentPopupListenerAdded) {
     if (e.key === 'Enter' && !e.shiftKey) {
       const input = commentPopup.querySelector('input[type="text"]');
       if (document.activeElement === input) {
+        if (!requireAuthAction(e, "comment on posts")) return;
         e.preventDefault();
         const postId = commentPopup.dataset.postId;
         const commentText = input ? input.value.trim() : '';
         if (!postId || !commentText) return;
-        const userName = 'Current User';
+        // Use current user's displayName or email for comment
+        let userName = 'Current User';
+        if (currentUser) {
+          userName = currentUser.displayName || currentUser.email || 'User';
+        }
         try {
           await addDoc(collection(db, 'posts', postId, 'comments'), {
             user: userName,
