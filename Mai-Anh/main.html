@@ -9,11 +9,9 @@
     <link rel="stylesheet" href="style.css">
     <title>Main Page</title>
 </head>
-<body class="d-flex justify-content-center align-items-center vh-100 p-3" style="background: var(--background-color);">
+<body class="d-flex justify-content-center align-items-center vh-100 p-3">
   <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
-    <!-- Vertical Navigation Bar -->
     <nav class="sidebar d-flex flex-column flex-shrink-0" style="min-width: 80px;">
-      <!-- Profile Section -->
       <div class="profile-section">
         <div class="d-flex flex-column align-items-center" id="profile">
           <div class="profile-img mb-2"></div>
@@ -23,9 +21,8 @@
           </div>
         </div>
       </div>
-      <!-- Navigation Items -->
       <div class="nav-items w-100 mt-2">
-        <button class="nav-item" id="feed">
+        <button class="nav-item" id="feed-nav">
           <i class="bi bi-compass"></i>
           <span>Feed</span>
         </button>
@@ -46,16 +43,14 @@
           <span>Settings</span>
         </button>
       </div>
-      <!-- Pinned Section at Bottom -->
       <div class="pinned-section w-100">
         <button class="nav-item" style="color: var(--p-color)">
           <i class="bi bi-bookmark-fill"></i>
           <span>Pinned</span>
         </button>
       </div>
-      <!-- Sidebar Footer Links -->
       <div class="w-100 mt-4">
-        <div class="d-flex flex-column align-items-center">
+        <div class="d-flex flex-column align-items-center flex-wrap">
           <a href="#" class="sidebar-link mb-1">About Us</a>
           <a href="#" class="sidebar-link mb-1">Contact</a>
           <a href="#" class="sidebar-link mb-1">Privacy Policy</a>
@@ -64,7 +59,8 @@
         </div>
       </div>
     </nav>
-    <!-- Main Content Area -->
+
+
     <div class="w-100 d-flex flex-column gap-4">
       <div class="indicator">
         <div class="d-flex w-50 align-items-center search-wrapper p-2">
@@ -85,9 +81,7 @@
       </div>
     </div>
 
-    <!-- Main Feed Area -->
     <main class="feed-container flex-grow-1 d-flex flex-column align-items-center" style="min-width:0;">
-      <!-- Post Composer (from original, slightly modernized) -->
       <div class="card mb-4 w-100" id="feed-create" style="max-width:600px; background-color: var(--main-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px;">
         <div class="card-body d-flex align-items-center feed-create-container">
           <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
@@ -114,7 +108,6 @@
         </div>
       </div>
 
-      <!-- Create Feed Modal (from original) -->
       <div class="modal fade" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content" style="background-color: var(--main-color); color: var(--headline-color); border-radius: 20px;">
@@ -148,7 +141,6 @@
         </div>
       </div>
 
-      <!-- Feed Posts UI (copied from original, only the feed container) -->
       <div class="w-100" style="max-width: 600px; height: auto; overflow-y: auto; margin-bottom: 30px;">
         <div id="feed">
             <div class="card-body mb-4">
@@ -174,14 +166,10 @@
                     <span class="text-muted small" style="color: var(--p-color);"></span>
                 </div>
                 <div class="d-flex align-items-center mt-3" style="padding: 0;">
-                    <!-- Profile avatar/icon (left) -->
                     <span class="rounded-circle d-inline-block" style="width:36px; height:36px; background-color:#fff; display:flex; align-items:center; justify-content:center; margin-right:12px;"></span>
-                    <!-- Central dark rounded rectangle input -->
-                    <!-- Comment input model: user can type a comment to post -->
                     <div style="flex:1; display:flex; align-items:center; background:var(--background-color); border-radius:20px; border:1px solid var(--border-color); padding:0 12px; margin-right:12px; min-height:44px;">
                         <input type="text" class="form-control border-0 shadow-none" placeholder="Write a comment..." style="background:transparent; color:var(--headline-color); font-size:1rem; outline:none; box-shadow:none; height:40px; padding:0;" aria-label="Write a comment">
                     </div>
-                    <!-- Send button (right) -->
                     <button class="d-flex align-items-center justify-content-center" style="width:40px; height:40px; background:var(--highlight-color); border:none; border-radius:50%; color:var(--b-text-color); cursor:pointer;" aria-label="Send message">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
@@ -193,19 +181,6 @@
       </div>
     </main>
   </div>
-
-  <!-- Sidebar Footer (for mobile or bottom, from original) -->
-  <footer class="position-fixed bottom-0 start-0 mb-3 ms-3 d-md-none" style="z-index: 1050; min-width: 250px; background-color: var(--main-color); color: var(--p-color); border: 1px solid var(--border-color); border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
-    <div class="p-3">
-      <div class="mb-2">
-        <a href="#" class="me-2 sidebar-link" style="color: var(--b-color);">About Us</a>
-        <a href="#" class="me-2 sidebar-link" style="color: var(--b-color);">Contact</a>
-        <a href="#" class="me-2 sidebar-link" style="color: var(--b-color);">Privacy Policy</a>
-        <a href="#" class="sidebar-link" style="color: var(--b-color);">Terms of Service</a>
-      </div>
-      <div class="text-muted small" style="color: var(--p-color);">© 2010 — 2020</div>
-    </div>
-  </footer>
 </body>
 <script type="module" src="script.js"></script>
 </html>

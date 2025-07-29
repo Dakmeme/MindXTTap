@@ -63,12 +63,8 @@ function showAuthUI(user) {
   if (userEmailDisplay) userEmailDisplay.textContent = currentUser.email || '';
 }
 
-// --- Listen for Auth State Changes ---
-// Simulate always signed in as demo user
 showAuthUI(currentUser);
 
-// --- Sign Up Logic ---
-// Disabled: Remove sign up form and listeners
 if (signUpSection) {
   signUpSection.style.display = 'none';
 }
@@ -85,7 +81,7 @@ if (signOutBtn) {
   signOutBtn.style.display = 'none';
 }
 
-// --- Scrollable Feed Container Setup ---
+
 let feedContainer = document.getElementById('feed');
 if (!feedContainer) {
   feedContainer = document.createElement('div');
@@ -97,7 +93,6 @@ feedContainer.style.maxHeight = '80vh';
 feedContainer.style.minHeight = '200px';
 feedContainer.style.paddingRight = '8px';
 
-// Helper to render a single post (prepend if needed)
 function renderPost(data, prepend = false) {
   let dateStr = '';
   if (data.date) {
@@ -111,16 +106,11 @@ function renderPost(data, prepend = false) {
     });
   }
 
-  // Default counts
   const likeCount = data.likeCount || 0;
   const commentCount = data.commentCount || 0;
   const shareCount = data.shareCount || 0;
-
-  // For demo, use localStorage to track liked posts by this user
   const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
   const isLiked = likedPosts.includes(data.id);
-
-  // Three-dot menu for edit/delete
   const menuHtml = `
     <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
       <button class="btn btn-sm post-menu-btn" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background: var(--secondary-color); border: none;" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
@@ -211,7 +201,7 @@ function renderPost(data, prepend = false) {
   }
 }
 
-// Helper to update a single post's counts in the DOM
+
 function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}) {
   const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`);
   if (!postEl) return;
@@ -249,7 +239,6 @@ function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}
   }
 }
 
-// Initial load: render all posts with counts
 async function loadAllPosts() {
   feedContainer.innerHTML = '';
   const querySnapshot = await getDocs(collection(db, 'posts'));
@@ -266,17 +255,11 @@ async function loadAllPosts() {
 }
 loadAllPosts();
 
-// Listen for comment added to update comment count in real time (optional, not implemented here)
 
-// --- Restrict actions for unauthenticated users ---
-// Always allow actions, since sign in/up is disabled and user is always "signed in"
 function requireAuthAction(e, actionName = "this action") {
   return true;
 }
-
-// Handle post creation, close modal, and show new post without reload
-postButton.addEventListener('click', async function (e) {
-  // No need to check requireAuthAction
+  postButton.addEventListener('click', async function (e) {
   e.preventDefault();
   const contentInput = document.getElementById('content');
   const imageInput = document.getElementById('image');
@@ -296,7 +279,7 @@ postButton.addEventListener('click', async function (e) {
     return;
   }
 
-  // Get image, video, file values (assume they are URLs for this rewrite)
+
   if (imageInput && imageInput.value.trim()) {
     imageUrl = imageInput.value.trim();
   }
@@ -308,11 +291,11 @@ postButton.addEventListener('click', async function (e) {
     fileName = fileInput.getAttribute('data-filename') || '';
   }
 
-  // Use demo user's displayName or email for post
+
   let userName = currentUser.displayName || currentUser.email || 'User';
 
   try {
-    // Save to Firestore and get the server timestamp
+
     const docRef = await addDoc(collection(db, 'posts'), {
       user: userName,
       content: contentValue,

@@ -1,4 +1,3 @@
-/* Vertical Navigation Bar Styles */
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
 
 :root {
@@ -34,7 +33,6 @@ body {
   color: var(--headline-color);
 }
 
-/* Main container for layout */
 .main-container {
   background: var(--card-bg);
   border-radius: 24px;
@@ -43,10 +41,9 @@ body {
   backdrop-filter: blur(10px);
   height: calc(100vh - 2rem);
   max-width: 1400px;
-  display: flex;
 }
 
-/* Vertical Sidebar Navigation */
+
 .sidebar {
   background: var(--main-color);
   border-radius: 20px;
