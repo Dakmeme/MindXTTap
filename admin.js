@@ -7,6 +7,11 @@ import {
   updateUser,
   addUserToGroup,
   deletePost,
+  getUserFollowers,
+  getUserFollowing,
+  createRandomUsers,
+  addRandomFollowersToUser,
+  addRandomFollowingToUser,
 } from "./firebase-config.js"
 
 let filteredUsers = []
@@ -15,16 +20,55 @@ let allUsers = []
 let allPosts = []
 let currentUsersSort = { field: null, direction: "asc" }
 let currentPostsSort = { field: null, direction: "asc" }
+let currentUser = null // Declare currentUser globally
 
 const bootstrap = window.bootstrap
 
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("DOM Content Loaded - Starting app...")
+
+  // Check authentication
+  if (!checkAuthentication()) {
+    return // Stop execution if not authenticated
+  }
+
   showLoadingState()
   await initializeApp()
   setupEventListeners()
   showTab("posts")
 })
+
+function checkAuthentication() {
+  const userData = localStorage.getItem("currentUser")
+
+  if (!userData) {
+    console.log("No user data found, redirecting to login...")
+    window.location.href = "login.html"
+    return false
+  }
+
+  try {
+    currentUser = JSON.parse(userData)
+    console.log("Current user authenticated:", currentUser.uid || currentUser.email)
+    updateUserHeader()
+    return true
+  } catch (error) {
+    console.error("Error parsing user data:", error)
+    localStorage.removeItem("currentUser")
+    window.location.href = "login.html"
+    return false
+  }
+}
+
+function updateUserHeader() {
+  const brandText = document.querySelector(".brand-text")
+  if (brandText && currentUser) {
+    brandText.innerHTML = `
+      <h5>Firebase Admin</h5>
+      <small>Xin chào, ${currentUser.username || currentUser.email}</small>
+    `
+  }
+}
 
 async function initializeApp() {
   try {
@@ -32,7 +76,7 @@ async function initializeApp() {
     await loadInitialData()
     await updateDashboardStats()
     hideLoadingState()
-    showNotification("Tải dữ liệu thành công!", "success")
+    showNotification(`Chào mừng ${currentUser.username || currentUser.email}! User ID: ${currentUser.uid}`, "success")
     console.log("App initialized successfully!")
   } catch (error) {
     console.error("Error initializing app:", error)
@@ -71,26 +115,25 @@ async function updateDashboardStats() {
   try {
     const stats = await getDashboardStats()
 
-    const dashboardElements = {
-      totalUsers: document.querySelector("#dashboard-tab .stats-number"),
-      totalPosts: document.getElementById("totalPosts"),
-      publishedPosts: document.getElementById("publishedPosts"),
-      draftPosts: document.getElementById("draftPosts"),
-      totalViews: document.getElementById("totalViews"),
-    }
+    const dashboardTotalUsers = document.getElementById("dashboardTotalUsers")
+    const dashboardTotalPosts = document.getElementById("dashboardTotalPosts")
+    const dashboardTotalComments = document.getElementById("dashboardTotalComments")
+    const dashboardTotalViews = document.getElementById("dashboardTotalViews")
 
-    if (dashboardElements.totalPosts) {
-      dashboardElements.totalPosts.textContent = stats.totalPosts
-    }
-    if (dashboardElements.publishedPosts) {
-      dashboardElements.publishedPosts.textContent = stats.publishedPosts
-    }
-    if (dashboardElements.draftPosts) {
-      dashboardElements.draftPosts.textContent = stats.draftPosts
-    }
-    if (dashboardElements.totalViews) {
-      dashboardElements.totalViews.textContent = stats.totalViews.toLocaleString()
-    }
+    if (dashboardTotalUsers) dashboardTotalUsers.textContent = stats.totalUsers
+    if (dashboardTotalPosts) dashboardTotalPosts.textContent = stats.totalPosts
+    if (dashboardTotalComments) dashboardTotalComments.textContent = stats.totalComments
+    if (dashboardTotalViews) dashboardTotalViews.textContent = stats.totalViews.toLocaleString()
+
+    const totalPostsEl = document.getElementById("totalPosts")
+    const publishedPostsEl = document.getElementById("publishedPosts")
+    const draftPostsEl = document.getElementById("draftPosts")
+    const totalViewsEl = document.getElementById("totalViews")
+
+    if (totalPostsEl) totalPostsEl.textContent = stats.totalPosts
+    if (publishedPostsEl) publishedPostsEl.textContent = stats.publishedPosts
+    if (draftPostsEl) draftPostsEl.textContent = stats.draftPosts
+    if (totalViewsEl) totalViewsEl.textContent = stats.totalViews.toLocaleString()
   } catch (error) {
     console.error("Error updating dashboard stats:", error)
   }
@@ -150,8 +193,12 @@ function showTab(tabName) {
     selectedTab.style.display = "block"
   }
 
+  // Check if event is defined before accessing event.target
   if (event && event.target) {
-    event.target.closest(".nav-link").classList.add("active")
+    const navLink = event.target.closest(".nav-link")
+    if (navLink) {
+      navLink.classList.add("active")
+    }
   }
 
   if (tabName === "users") {
@@ -289,6 +336,12 @@ function renderUsersTable() {
           <div class="btn-group btn-group-sm">
             <button class="btn btn-outline-primary" onclick="editUser('${user.id}')" title="Chỉnh sửa">
               <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-outline-success" onclick="viewUserFollowers('${user.id}')" title="Xem Followers">
+              <i class="bi bi-people"></i>
+            </button>
+            <button class="btn btn-outline-info" onclick="viewUserFollowing('${user.id}')" title="Xem Following">
+              <i class="bi bi-person-check"></i>
             </button>
             <button class="btn btn-outline-danger" onclick="deleteUserConfirm('${user.id}')" title="Xóa">
               <i class="bi bi-trash"></i>
@@ -1039,9 +1092,320 @@ function exitAdminPage() {
       console.log("Cannot close window, redirecting instead...")
     }
 
-    window.location.href = "profile.html"
+    window.location.href = "/"
   }
 }
+
+// ===== FOLLOWERS & FOLLOWING MANAGEMENT =====
+async function viewUserFollowers(userId) {
+  try {
+    showLoadingState()
+    const followers = await getUserFollowers(userId)
+
+    let modalHtml = `
+      <div class="modal fade" id="followersModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="bi bi-people me-2"></i>Followers của User: ${userId}
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <h6>Tổng số followers: <span class="badge bg-primary">${followers.length}</span></h6>
+                </div>
+                <div class="col-md-6 text-end">
+                  <button class="btn btn-success btn-sm" onclick="addRandomFollowersAction('${userId}')">
+                    <i class="bi bi-plus-circle me-1"></i>Thêm Random Followers
+                  </button>
+                </div>
+              </div>
+              
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Mutual</th>
+                      <th>Source</th>
+                      <th>Followed At</th>
+                      <th>Interactions</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+    `
+
+    followers.forEach((follower) => {
+      modalHtml += `
+        <tr>
+          <td>
+            <div class="d-flex align-items-center">
+              <img src="${follower.avatar || getPlaceholderAvatar(35, 35, follower.username)}" 
+                   class="avatar me-2" alt="Avatar">
+              <div>
+                <div class="fw-bold">${follower.username || "N/A"}</div>
+                <small class="text-muted">${follower.userId}</small>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge bg-${follower.mutualFollows ? "success" : "secondary"}">
+              ${follower.mutualFollows ? "Mutual" : "One-way"}
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-info">${follower.source || "direct"}</span>
+          </td>
+          <td>${follower.followedAt || "N/A"}</td>
+          <td>
+            <span class="badge bg-warning">${follower.interactionCount || 0}</span>
+          </td>
+          <td>
+            <span class="badge bg-${follower.status === "active" ? "success" : "secondary"}">
+              ${follower.status || "active"}
+            </span>
+          </td>
+        </tr>
+      `
+    })
+
+    modalHtml += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById("followersModal")
+    if (existingModal) {
+      existingModal.remove()
+    }
+
+    // Add new modal to body
+    document.body.insertAdjacentHTML("beforeend", modalHtml)
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById("followersModal"))
+    modal.show()
+  } catch (error) {
+    console.error("Error viewing followers:", error)
+    showNotification("Lỗi khi xem followers: " + error.message, "danger")
+  } finally {
+    hideLoadingState()
+  }
+}
+
+async function viewUserFollowing(userId) {
+  try {
+    showLoadingState()
+    const following = await getUserFollowing(userId)
+
+    let modalHtml = `
+      <div class="modal fade" id="followingModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">
+                <i class="bi bi-person-check me-2"></i>Following của User: ${userId}
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <h6>Tổng số following: <span class="badge bg-success">${following.length}</span></h6>
+                </div>
+                <div class="col-md-6 text-end">
+                  <button class="btn btn-primary btn-sm" onclick="addRandomFollowingAction('${userId}')">
+                    <i class="bi bi-plus-circle me-1"></i>Thêm Random Following
+                  </button>
+                </div>
+              </div>
+              
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Category</th>
+                      <th>Priority</th>
+                      <th>Notifications</th>
+                      <th>Followed At</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+    `
+
+    following.forEach((follow) => {
+      modalHtml += `
+        <tr>
+          <td>
+            <div class="d-flex align-items-center">
+              <img src="${follow.avatar || getPlaceholderAvatar(35, 35, follow.username)}" 
+                   class="avatar me-2" alt="Avatar">
+              <div>
+                <div class="fw-bold">${follow.username || "N/A"}</div>
+                <small class="text-muted">${follow.userId}</small>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge bg-${getCategoryColor(follow.category)}">${follow.category || "general"}</span>
+          </td>
+          <td>
+            <span class="badge bg-${getPriorityColor(follow.priority)}">${follow.priority || "normal"}</span>
+          </td>
+          <td>
+            <span class="badge bg-${follow.notifications ? "success" : "secondary"}">
+              ${follow.notifications ? "ON" : "OFF"}
+            </span>
+          </td>
+          <td>${follow.followedAt || "N/A"}</td>
+          <td>
+            <span class="badge bg-${follow.status === "active" ? "success" : "secondary"}">
+              ${follow.status || "active"}
+            </span>
+          </td>
+        </tr>
+      `
+    })
+
+    modalHtml += `
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById("followingModal")
+    if (existingModal) {
+      existingModal.remove()
+    }
+
+    // Add new modal to body
+    document.body.insertAdjacentHTML("beforeend", modalHtml)
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById("followingModal"))
+    modal.show()
+  } catch (error) {
+    console.error("Error viewing following:", error)
+    showNotification("Lỗi khi xem following: " + error.message, "danger")
+  } finally {
+    hideLoadingState()
+  }
+}
+
+async function addRandomFollowersAction(userId) {
+  const count = prompt("Nhập số lượng followers random muốn thêm:", "5")
+  if (!count || isNaN(count)) return
+
+  try {
+    showLoadingState()
+    const result = await addRandomFollowersToUser(userId, Number.parseInt(count))
+
+    if (result.success) {
+      showNotification(result.message, "success")
+      // Refresh the modal
+      setTimeout(() => viewUserFollowers(userId), 1000)
+    } else {
+      showNotification(result.message, "danger")
+    }
+  } catch (error) {
+    showNotification("Lỗi: " + error.message, "danger")
+  } finally {
+    hideLoadingState()
+  }
+}
+
+async function addRandomFollowingAction(userId) {
+  const count = prompt("Nhập số lượng following random muốn thêm:", "5")
+  if (!count || isNaN(count)) return
+
+  try {
+    showLoadingState()
+    const result = await addRandomFollowingToUser(userId, Number.parseInt(count))
+
+    if (result.success) {
+      showNotification(result.message, "success")
+      // Refresh the modal
+      setTimeout(() => viewUserFollowing(userId), 1000)
+    } else {
+      showNotification(result.message, "danger")
+    }
+  } catch (error) {
+    showNotification("Lỗi: " + error.message, "danger")
+  } finally {
+    hideLoadingState()
+  }
+}
+
+async function createRandomUsersAction() {
+  const count = prompt("Nhập số lượng users random muốn tạo:", "10")
+  if (!count || isNaN(count)) return
+
+  try {
+    showLoadingState()
+    const result = await createRandomUsers(Number.parseInt(count))
+
+    if (result.success) {
+      showNotification(result.message, "success")
+
+      // Refresh users table
+      const users = await getAllUsers()
+      allUsers = users
+      filteredUsers = [...users]
+      renderUsersTable()
+    } else {
+      showNotification(result.message, "danger")
+    }
+  } catch (error) {
+    showNotification("Lỗi: " + error.message, "danger")
+  } finally {
+    hideLoadingState()
+  }
+}
+
+function getCategoryColor(category) {
+  const colors = {
+    friend: "success",
+    celebrity: "warning",
+    business: "info",
+    interest: "primary",
+    general: "secondary",
+  }
+  return colors[category] || "secondary"
+}
+
+function getPriorityColor(priority) {
+  const colors = {
+    high: "danger",
+    normal: "primary",
+    low: "secondary",
+  }
+  return colors[priority] || "primary"
+}
+
+// Make functions globally available
 window.showTab = showTab
 window.addPost = addPost
 window.editUser = editUser
@@ -1058,3 +1422,8 @@ window.updateUserInfo = updateUserInfo
 window.createNewUser = createNewUser
 window.addUserToGroupAction = addUserToGroupAction
 window.exitAdminPage = exitAdminPage
+window.viewUserFollowers = viewUserFollowers
+window.viewUserFollowing = viewUserFollowing
+window.addRandomFollowersAction = addRandomFollowersAction
+window.addRandomFollowingAction = addRandomFollowingAction
+window.createRandomUsersAction = createRandomUsersAction
