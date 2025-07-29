@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Firebase Forum</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <div class="main-wrapper">
+        <div class="dashboard-container">
+            <!-- Sidebar -->
+            <div class="sidebar slide-in" id="sidebar">
+                <div class="sidebar-header">
+                    <a href="#" class="sidebar-brand">
+                        <div class="sidebar-brand-icon">
+                            <i class="bi bi-fire"></i>
+                        </div>
+                        <div class="brand-text">
+                            <h5>Firebase Admin</h5>
+                            <small>Quản lý hệ thống</small>
+                        </div>
+                    </a>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <div class="nav-section-title">Tổng quan</div>
+                    <a href="#" class="nav-link" onclick="showTab('dashboard')">
+                        <i class="bi bi-speedometer2 nav-icon"></i>
+                        <span>Dashboard</span>
+                    </a>
+
+                    <div class="nav-section-title">Quản lý nội dung</div>
+                    <a href="#" class="nav-link" onclick="showTab('users')">
+                        <i class="bi bi-people nav-icon"></i>
+                        <span>Người dùng</span>
+                    </a>
+                    <a href="#" class="nav-link active" onclick="showTab('posts')">
+                        <i class="bi bi-file-text nav-icon"></i>
+                        <span>Bài viết</span>
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('categories')">
+                        <i class="bi bi-tags nav-icon"></i>
+                        <span>Danh mục</span>
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('comments')">
+                        <i class="bi bi-chat-dots nav-icon"></i>
+                        <span>Bình luận</span>
+                    </a>
+
+                    <div class="nav-section-title">Hệ thống</div>
+                    <a href="#" class="nav-link" onclick="showTab('settings')">
+                        <i class="bi bi-gear nav-icon"></i>
+                        <span>Cài đặt</span>
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('reports')">
+                        <i class="bi bi-bar-chart nav-icon"></i>
+                        <span>Báo cáo</span>
+                    </a>
+                    <a href="#" class="nav-link" onclick="showTab('groups')">
+                        <i class="bi bi-collection nav-icon"></i>
+                        <span>Nhóm</span>
+                    </a>
+
+                    <div class="nav-section-title">Test Functions</div>
+                    <a href="#" class="nav-link" onclick="showTab('test')">
+                        <i class="bi bi-bug nav-icon"></i>
+                        <span>Test CreateUser</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Dashboard Firebase</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="content-area">
+                        <div class="row g-4 mb-4">
+                            <div class="col-xl-3 col-md-6">
+                                <div class="stats-card hover-lift fade-in">
+                                    <div class="stats-icon bg-primary bg-opacity-20 text-primary">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+                                    <h3 class="stats-number text-primary" id="dashboardTotalUsers">0</h3>
+                                    <p class="stats-label">Tổng người dùng</p>
+                                    <small class="stats-change text-success">
+                                        <i class="bi bi-arrow-up"></i> Từ Firebase
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="stats-card hover-lift fade-in">
+                                    <div class="stats-icon bg-success bg-opacity-20 text-success">
+                                        <i class="bi bi-file-text"></i>
+                                    </div>
+                                    <h3 class="stats-number text-success" id="dashboardTotalPosts">0</h3>
+                                    <p class="stats-label">Tổng bài viết</p>
+                                    <small class="stats-change text-success">
+                                        <i class="bi bi-arrow-up"></i> Từ Firebase
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="stats-card hover-lift fade-in">
+                                    <div class="stats-icon bg-warning bg-opacity-20 text-warning">
+                                        <i class="bi bi-chat-dots"></i>
+                                    </div>
+                                    <h3 class="stats-number text-warning" id="dashboardTotalComments">0</h3>
+                                    <p class="stats-label">Tổng bình luận</p>
+                                    <small class="stats-change text-success">
+                                        <i class="bi bi-arrow-up"></i> Từ Firebase
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="stats-card hover-lift fade-in">
+                                    <div class="stats-icon bg-info bg-opacity-20 text-info">
+                                        <i class="bi bi-eye"></i>
+                                    </div>
+                                    <h3 class="stats-number text-info" id="dashboardTotalViews">0</h3>
+                                    <p class="stats-label">Lượt xem</p>
+                                    <small class="stats-change text-success">
+                                        <i class="bi bi-arrow-up"></i> Từ Firebase
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info fade-in">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Kết nối Firebase thành công!</strong> Dữ liệu được tải từ Firestore.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="users-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Quản lý người dùng</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="content-area">
+                        <div class="table-container fade-in">
+                            <div class="table-header">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <h5 class="mb-1">Danh sách người dùng</h5>
+                                        <small class="text-muted">Quản lý tất cả người dùng từ Firebase</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row g-3">
+                                            <div class="col-md-3">
+                                                <div class="search-container">
+                                                    <i class="bi bi-search search-icon"></i>
+                                                    <input type="text" class="form-control" id="userSearch"
+                                                        placeholder="Tìm kiếm người dùng...">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select class="form-select" id="userRoleFilter">
+                                                    <option value="">Tất cả vai trò</option>
+                                                    <option value="admin">Admin</option>
+                                                    <option value="user">User</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-outline-danger w-100"
+                                                    onclick="clearUserFilters()">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-warning w-100"
+                                                    onclick="createRandomUsersAction()" title="Tạo Users Random">
+                                                    <i class="bi bi-shuffle me-1"></i>Random
+                                                </button>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button class="btn btn-primary w-100" data-bs-toggle="modal"
+                                                    data-bs-target="#createUserModal">
+                                                    <i class="bi bi-person-plus me-1"></i>Tạo User
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive-custom">
+                                <table class="table table-hover mb-0" id="usersTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="sortable col-id" data-sort="id">ID</th>
+                                            <th class="sortable col-user" data-sort="username">Người dùng</th>
+                                            <th class="sortable col-email" data-sort="email">Email</th>
+                                            <th class="sortable col-role" data-sort="role">Vai trò</th>
+                                            <th class="sortable col-date" data-sort="joinDate">Ngày tham gia</th>
+                                            <th class="sortable col-status" data-sort="status">Trạng thái</th>
+                                            <th class="col-actions"
+                                                style="width: 200px; min-width: 200px; max-width: 200px;">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center py-5">
+                                                <div class="spinner-border text-primary mb-3" role="status">
+                                                    <span class="visually-hidden">Đang tải...</span>
+                                                </div>
+                                                <h5 class="text-muted">Đang tải dữ liệu từ Firebase...</h5>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="p-3 border-top">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <small class="text-muted" id="usersPagination">Đang tải...</small>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-outline-secondary btn-sm" id="usersPrevBtn" disabled>
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm" id="usersNextBtn">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Posts Tab -->
+                <div id="posts-tab" class="tab-pane">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h1 class="page-title">Quản lý bài viết</h1>
+                            </div>
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="alert alert-info mb-0 py-2 px-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Tạo bài viết:</strong> UI sẽ được tích hợp với phần của Mai Anh
+                                </div>
+                                <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Thoát</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-area">
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-3">
+                                <div class="card border-0 hover-lift fade-in"
+                                    style="background: rgba(127, 90, 240, 0.1);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-file-text fa-3x text-primary mb-3"></i>
+                                        <h3 class="text-primary mb-1" id="totalPosts">0</h3>
+                                        <small class="text-muted">Tổng bài viết</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 hover-lift fade-in"
+                                    style="background: rgba(44, 182, 125, 0.1);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-check-circle fa-3x text-success mb-3"></i>
+                                        <h3 class="text-success mb-1" id="publishedPosts">0</h3>
+                                        <small class="text-muted">Đã xuất bản</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 hover-lift fade-in"
+                                    style="background: rgba(245, 158, 11, 0.1);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-clock fa-3x text-warning mb-3"></i>
+                                        <h3 class="text-warning mb-1" id="draftPosts">0</h3>
+                                        <small class="text-muted">Bản nháp</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 hover-lift fade-in"
+                                    style="background: rgba(6, 182, 212, 0.1);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-eye fa-3x text-info mb-3"></i>
+                                        <h3 class="text-info mb-1" id="totalViews">0</h3>
+                                        <small class="text-muted">Lượt xem</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-container fade-in">
+                            <div class="table-header">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <h5 class="mb-1">Danh sách bài viết</h5>
+                                        <small class="text-muted">Quản lý tất cả bài viết từ Firebase Firestore</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row g-2">
+                                            <div class="col-md-5">
+                                                <div class="search-container">
+                                                    <i class="bi bi-search search-icon"></i>
+                                                    <input type="text" class="form-control" id="postSearch"
+                                                        placeholder="Tìm kiếm bài viết...">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <select class="form-select" id="postStatusFilter">
+                                                    <option value="">Tất cả trạng thái</option>
+                                                    <option value="published">Đã xuất bản</option>
+                                                    <option value="draft">Bản nháp</option>
+                                                    <option value="pending">Chờ duyệt</option>
+                                                    <option value="archived">Lưu trữ</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <select class="form-select" id="postCategoryFilter">
+                                                    <option value="">Danh mục</option>
+                                                    <option value="technology">Công nghệ</option>
+                                                    <option value="lifestyle">Đời sống</option>
+                                                    <option value="business">Kinh doanh</option>
+                                                    <option value="education">Giáo dục</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button class="btn btn-outline-danger w-100"
+                                                    onclick="clearPostFilters()">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive-custom">
+                                <table class="table table-hover mb-0" id="postsTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="sortable col-id" data-sort="id">ID</th>
+                                            <th class="sortable col-title" data-sort="title">Tiêu đề</th>
+                                            <th class="sortable col-author" data-sort="author">Tác giả</th>
+                                            <th class="sortable col-category" data-sort="category">Danh mục</th>
+                                            <th class="sortable col-status" data-sort="status">Trạng thái</th>
+                                            <th class="sortable col-views" data-sort="views">Lượt xem</th>
+                                            <th class="sortable col-date" data-sort="createdAt">Ngày tạo</th>
+                                            <th class="col-actions">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="postsTableBody">
+                                        <tr>
+                                            <td colspan="8" class="text-center py-5">
+                                                <div class="spinner-border text-primary mb-3" role="status">
+                                                    <span class="visually-hidden">Đang tải...</span>
+                                                </div>
+                                                <h5 class="text-muted">Đang tải dữ liệu từ Firebase...</h5>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="p-3 border-top">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <small class="text-muted" id="postsPagination">Đang tải...</small>
+                                    </div>
+                                    <div class="col-md-6 text-end">
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-outline-secondary btn-sm" id="postsPrevBtn" disabled>
+                                                <i class="bi bi-chevron-left"></i>
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm" id="postsNextBtn">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other Tabs (Categories, Comments, Settings, Reports) -->
+                <div id="categories-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Quản lý danh mục</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <div class="alert alert-info fade-in">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Tính năng quản lý danh mục đang được phát triển...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="comments-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Quản lý bình luận</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <div class="alert alert-info fade-in">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Tính năng quản lý bình luận đang được phát triển...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Cài đặt hệ thống</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <div class="alert alert-info fade-in">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Tính năng cài đặt hệ thống đang được phát triển...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reports-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Báo cáo thống kê</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <div class="alert alert-info fade-in">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Tính năng báo cáo thống kê đang được phát triển...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groups Tab -->
+                <div id="groups-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Quản lý nhóm</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="content-area">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="bi bi-people me-2"></i>Thêm User vào Nhóm</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="addUserToGroupForm">
+                                            <div class="mb-3">
+                                                <label class="form-label">User ID</label>
+                                                <input type="text" class="form-control" id="groupUserId"
+                                                    placeholder="user123" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Group ID</label>
+                                                <input type="text" class="form-control" id="groupId"
+                                                    placeholder="group_abc123" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Group Name</label>
+                                                <input type="text" class="form-control" id="groupName"
+                                                    placeholder="Nhóm Công nghệ" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Role trong nhóm</label>
+                                                <select class="form-select" id="groupRole">
+                                                    <option value="member">Member</option>
+                                                    <option value="moderator">Moderator</option>
+                                                    <option value="admin">Admin</option>
+                                                </select>
+                                            </div>
+                                            <button type="button" class="btn btn-primary"
+                                                onclick="addUserToGroupAction()">
+                                                <i class="bi bi-plus-circle me-2"></i>Thêm vào Nhóm
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6><i class="bi bi-info-circle me-2"></i>Cấu trúc Groups</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <strong>Sub-collection Groups:</strong>
+                                            <pre class="mt-2 mb-0"><code>users/{userId}/groups/{groupDoc} {
+  groupId: string,
+  groupName: string,
+  role: "member"|"moderator"|"admin",
+  joinedAt: timestamp,
+  status: "active"|"inactive"
+}</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Tab -->
+                <div id="test-tab" class="tab-pane" style="display: none;">
+                    <div class="content-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="page-title">Test CreateUser Function</h1>
+                            <button class="btn-exit-content" onclick="exitAdminPage()" title="Thoát Admin">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Thoát</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="content-area">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5><i class="bi bi-person-plus me-2"></i>Test Tạo User Mới</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="testCreateUserForm">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">User ID</label>
+                                                        <input type="text" class="form-control" id="testUserId"
+                                                            placeholder="user123" required>
+                                                        <small class="text-muted">ID duy nhất cho user</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Username</label>
+                                                        <input type="text" class="form-control" id="testUsername"
+                                                            placeholder="john_doe" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Email</label>
+                                                        <input type="email" class="form-control" id="testEmail"
+                                                            placeholder="john@example.com" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Role</label>
+                                                        <select class="form-select" id="testRole">
+                                                            <option value="user">User</option>
+                                                            <option value="moderator">Moderator</option>
+                                                            <option value="admin">Admin</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Avatar URL</label>
+                                                        <input type="url" class="form-control" id="testAvatar"
+                                                            placeholder="https://example.com/avatar.jpg">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Status</label>
+                                                        <select class="form-select" id="testStatus">
+                                                            <option value="active">Active</option>
+                                                            <option value="inactive">Inactive</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label">Bio</label>
+                                                <textarea class="form-control" id="testBio" rows="3"
+                                                    placeholder="Mô tả về user..."></textarea>
+                                            </div>
+
+                                            <button type="button" class="btn btn-primary" onclick="testCreateUser()">
+                                                <i class="bi bi-plus-circle me-2"></i>Tạo User Test
+                                            </button>
+                                            <button type="button" class="btn btn-secondary ms-2"
+                                                onclick="fillSampleData()">
+                                                <i class="bi bi-lightning me-2"></i>Điền dữ liệu mẫu
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6><i class="bi bi-info-circle me-2"></i>Hướng dẫn cho Khôi</h6>   
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="alert alert-info">
+                                            <strong>Cấu trúc User Collection:</strong>
+                                            <pre class="mt-2 mb-0"><code>{
+  username: string,
+  email: string,
+  avatar: string,
+  coverImage: string,
+  bio: string,
+  role: "user"|"moderator"|"admin",
+  status: "active"|"inactive",
+  followers: number,
+  following: number,
+  createdAt: timestamp,
+  lastActive: timestamp
+}</code></pre>
+                                        </div>
+
+                                        <div class="alert alert-warning">
+                                            <strong>Lưu ý cho Khôi:</strong>
+                                            <ul class="mb-0">
+                                                <li>Sử dụng Firebase Auth UID làm document ID</li>
+                                                <li>Gọi createUser() sau khi đăng ký thành công</li>
+                                                <li>Role mặc định là "user"</li>
+                                                <li>Status mặc định là "active"</li>
+                                                <li>Chỉ dùng followers & following (không friends)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus me-2"></i>Tạo người dùng mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createUserForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person me-2"></i>Username *
+                                    </label>
+                                    <input type="text" class="form-control" id="newUsername" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-envelope me-2"></i>Email *
+                                    </label>
+                                    <input type="email" class="form-control" id="newEmail" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-shield me-2"></i>Role
+                                    </label>
+                                    <select class="form-select" id="newRole">
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-toggle-on me-2"></i>Status
+                                    </label>
+                                    <select class="form-select" id="newStatus">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-image me-2"></i>Avatar URL
+                            </label>
+                            <input type="url" class="form-control" id="newAvatar"
+                                placeholder="https://example.com/avatar.jpg">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-image me-2"></i>Cover Image URL
+                            </label>
+                            <input type="url" class="form-control" id="newCoverImage"
+                                placeholder="https://example.com/cover.jpg">
+                            <small class="text-muted">Ảnh nền profile</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-card-text me-2"></i>Bio
+                            </label>
+                            <textarea class="form-control" id="newBio" rows="3"
+                                placeholder="Mô tả về user..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person-plus me-2"></i>Followers
+                                    </label>
+                                    <input type="number" class="form-control" id="newFollowers" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person-check me-2"></i>Following
+                                    </label>
+                                    <input type="number" class="form-control" id="newFollowing" value="0" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="createNewUser()">
+                        <i class="bi bi-save me-2"></i>Tạo User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil me-2"></i>Chỉnh sửa người dùng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person me-2"></i>Username *
+                                    </label>
+                                    <input type="text" class="form-control" id="editUsername" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-envelope me-2"></i>Email *
+                                    </label>
+                                    <input type="email" class="form-control" id="editEmail" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-shield me-2"></i>Role
+                                    </label>
+                                    <select class="form-select" id="editRole">
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-toggle-on me-2"></i>Status
+                                    </label>
+                                    <select class="form-select" id="editStatus">
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-image me-2"></i>Avatar URL
+                            </label>
+                            <input type="url" class="form-control" id="editAvatar"
+                                placeholder="https://example.com/avatar.jpg">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-image me-2"></i>Cover Image URL
+                            </label>
+                            <input type="url" class="form-control" id="editCoverImage"
+                                placeholder="https://example.com/cover.jpg">
+                            <small class="text-muted">Ảnh nền profile</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="bi bi-card-text me-2"></i>Bio
+                            </label>
+                            <textarea class="form-control" id="editBio" rows="3"
+                                placeholder="Mô tả về user..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person-plus me-2"></i>Followers
+                                    </label>
+                                    <input type="number" class="form-control" id="editFollowers" value="0" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person-check me-2"></i>Following
+                                    </label>
+                                    <input type="number" class="form-control" id="editFollowing" value="0" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>Hủy
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="updateUserInfo()">
+                        <i class="bi bi-save me-2"></i>Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="firebase-config.js"></script>
+    <script type="module" src="admin.js"></script>
+</body>
+
+</html>
