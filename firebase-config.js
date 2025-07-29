@@ -278,6 +278,241 @@ function formatLastActive(date) {
   return `${Math.floor(days / 7)} tuần trước`
 }
 
+// ===== FOLLOWERS & FOLLOWING MANAGEMENT =====
+export const addFollowerToUser = async (userId, followerData) => {
+  try {
+    const followersRef = collection(db, "users", userId, "followers")
+    await addDoc(followersRef, {
+      userId: followerData.userId,
+      username: followerData.username,
+      avatar: followerData.avatar || "",
+      followedAt: serverTimestamp(),
+      status: "active",
+      mutualFollows: followerData.mutualFollows || false,
+      source: followerData.source || "direct", // direct, suggested, imported
+      notes: followerData.notes || "",
+      lastInteraction: serverTimestamp(),
+      interactionCount: 0,
+    })
+
+    // Update follower count
+    const userRef = doc(db, "users", userId)
+    const currentUser = await getDoc(userRef)
+    const currentCount = currentUser.data()?.followers || 0
+    await updateDoc(userRef, {
+      followers: currentCount + 1,
+    })
+
+    return { success: true, message: "Thêm follower thành công!" }
+  } catch (error) {
+    console.error("Error adding follower:", error)
+    return { success: false, message: "Lỗi khi thêm follower: " + error.message }
+  }
+}
+
+export const addFollowingToUser = async (userId, followingData) => {
+  try {
+    const followingRef = collection(db, "users", userId, "following")
+    await addDoc(followingRef, {
+      userId: followingData.userId,
+      username: followingData.username,
+      avatar: followingData.avatar || "",
+      followedAt: serverTimestamp(),
+      status: "active",
+      mutualFollows: followingData.mutualFollows || false,
+      category: followingData.category || "general", // friend, celebrity, business, interest
+      notifications: followingData.notifications || true,
+      priority: followingData.priority || "normal", // high, normal, low
+      lastSeen: serverTimestamp(),
+      interactionCount: 0,
+    })
+
+    // Update following count
+    const userRef = doc(db, "users", userId)
+    const currentUser = await getDoc(userRef)
+    const currentCount = currentUser.data()?.following || 0
+    await updateDoc(userRef, {
+      following: currentCount + 1,
+    })
+
+    return { success: true, message: "Thêm following thành công!" }
+  } catch (error) {
+    console.error("Error adding following:", error)
+    return { success: false, message: "Lỗi khi thêm following: " + error.message }
+  }
+}
+
+export const getUserFollowers = async (userId) => {
+  try {
+    const followersRef = collection(db, "users", userId, "followers")
+    const q = query(followersRef, orderBy("followedAt", "desc"))
+    const followersSnapshot = await getDocs(q)
+
+    const followersList = followersSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      followedAt: doc.data().followedAt?.toDate().toISOString().split("T")[0] || "",
+      lastInteraction: doc.data().lastInteraction?.toDate().toISOString().split("T")[0] || "",
+    }))
+
+    return followersList
+  } catch (error) {
+    console.error("Error fetching followers:", error)
+    return []
+  }
+}
+
+export const getUserFollowing = async (userId) => {
+  try {
+    const followingRef = collection(db, "users", userId, "following")
+    const q = query(followingRef, orderBy("followedAt", "desc"))
+    const followingSnapshot = await getDocs(q)
+
+    const followingList = followingSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      followedAt: doc.data().followedAt?.toDate().toISOString().split("T")[0] || "",
+      lastSeen: doc.data().lastSeen?.toDate().toISOString().split("T")[0] || "",
+    }))
+
+    return followingList
+  } catch (error) {
+    console.error("Error fetching following:", error)
+    return []
+  }
+}
+
+// ===== RANDOM DATA GENERATORS =====
+export const generateRandomUserData = () => {
+  const firstNames = [
+    "Nguyễn",
+    "Trần",
+    "Lê",
+    "Phạm",
+    "Hoàng",
+    "Huỳnh",
+    "Phan",
+    "Vũ",
+    "Võ",
+    "Đặng",
+    "Bùi",
+    "Đỗ",
+    "Hồ",
+    "Ngô",
+    "Dương",
+  ]
+  const lastNames = [
+    "Văn An",
+    "Thị Bình",
+    "Minh Châu",
+    "Hoàng Dũng",
+    "Thị Em",
+    "Văn Phúc",
+    "Thị Giang",
+    "Minh Hải",
+    "Thị Lan",
+    "Văn Khoa",
+    "Thị Linh",
+    "Minh Nam",
+    "Thị Oanh",
+    "Văn Phong",
+    "Thị Quỳnh",
+  ]
+  const domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com"]
+  const roles = ["user", "user", "user", "moderator", "admin"] // Weighted towards user
+  const statuses = ["active", "active", "active", "inactive"] // Weighted towards active
+  const categories = ["friend", "celebrity", "business", "interest", "general"]
+  const sources = ["direct", "suggested", "imported", "mutual"]
+  const priorities = ["high", "normal", "normal", "low"] // Weighted towards normal
+
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
+  const username = (firstName + lastName).toLowerCase().replace(/\s+/g, "") + Math.floor(Math.random() * 1000)
+  const email = username + "@" + domains[Math.floor(Math.random() * domains.length)]
+
+  return {
+    username: username,
+    email: email,
+    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + " " + lastName)}&background=${Math.floor(Math.random() * 16777215).toString(16)}&color=ffffff&bold=true`,
+    coverImage: `https://picsum.photos/800/200?random=${Math.floor(Math.random() * 1000)}`,
+    bio: `Xin chào! Tôi là ${firstName} ${lastName}. Rất vui được kết nối với mọi người!`,
+    role: roles[Math.floor(Math.random() * roles.length)],
+    status: statuses[Math.floor(Math.random() * statuses.length)],
+    followers: Math.floor(Math.random() * 5000),
+    following: Math.floor(Math.random() * 1000),
+    category: categories[Math.floor(Math.random() * categories.length)],
+    source: sources[Math.floor(Math.random() * sources.length)],
+    priority: priorities[Math.floor(Math.random() * priorities.length)],
+    mutualFollows: Math.random() > 0.7, // 30% chance of mutual follows
+    notifications: Math.random() > 0.2, // 80% chance of notifications enabled
+    interactionCount: Math.floor(Math.random() * 100),
+  }
+}
+
+export const createRandomUsers = async (count = 10) => {
+  try {
+    const results = []
+
+    for (let i = 0; i < count; i++) {
+      const userData = generateRandomUserData()
+      const userId = "random_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5)
+
+      const result = await createUser(userId, userData)
+      results.push({ userId, success: result.success, data: userData })
+
+      // Small delay to avoid overwhelming Firebase
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+
+    return { success: true, message: `Tạo ${count} users random thành công!`, results }
+  } catch (error) {
+    console.error("Error creating random users:", error)
+    return { success: false, message: "Lỗi khi tạo users random: " + error.message }
+  }
+}
+
+export const addRandomFollowersToUser = async (userId, count = 5) => {
+  try {
+    const results = []
+
+    for (let i = 0; i < count; i++) {
+      const followerData = generateRandomUserData()
+      followerData.userId = "follower_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5)
+
+      const result = await addFollowerToUser(userId, followerData)
+      results.push({ followerId: followerData.userId, success: result.success })
+
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+
+    return { success: true, message: `Thêm ${count} followers random thành công!`, results }
+  } catch (error) {
+    console.error("Error adding random followers:", error)
+    return { success: false, message: "Lỗi khi thêm followers random: " + error.message }
+  }
+}
+
+export const addRandomFollowingToUser = async (userId, count = 5) => {
+  try {
+    const results = []
+
+    for (let i = 0; i < count; i++) {
+      const followingData = generateRandomUserData()
+      followingData.userId = "following_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5)
+
+      const result = await addFollowingToUser(userId, followingData)
+      results.push({ followingId: followingData.userId, success: result.success })
+
+      await new Promise((resolve) => setTimeout(resolve, 50))
+    }
+
+    return { success: true, message: `Thêm ${count} following random thành công!`, results }
+  } catch (error) {
+    console.error("Error adding random following:", error)
+    return { success: false, message: "Lỗi khi thêm following random: " + error.message }
+  }
+}
+
 export const getDashboardStats = async () => {
   try {
     const [usersSnapshot, postsSnapshot] = await Promise.all([
