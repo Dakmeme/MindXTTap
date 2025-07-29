@@ -69,6 +69,23 @@ const getAllUsers = async () => {
     return [];
   }
 };
+const getAllPosts = async () => {
+  try {
+    const PostsRef = collection(db, "posts");
+    const PostSnapshot = await getDocs(PostsRef);
+    const posts = [];
+    PostSnapshot.forEach((doc) => {
+      posts.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    return posts;
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    return [];
+  }
+};
 const initializeSearch = async () => {
   if (!userCardTemplate || !userCardContainer || !searchInput) {
     console.warn("Search elements not found");
@@ -84,17 +101,12 @@ const initializeSearch = async () => {
     
     header.textContent = user.username || user.name || "Unknown User";
     body.textContent = user.email || "No email";
-    
-    // Add click handler to navigate to user profile
     card.addEventListener('click', () => {
       console.log(`Navigating to user: ${user.username || user.name}`);
-      // You can implement navigation logic here
       // window.location.href = `profile.html?userId=${user.id}`;
     });
     
     userCardContainer.append(card);
-    
-    // Store reference for filtering
     user.element = card;
   });
 
@@ -124,7 +136,7 @@ const mockUserData = {
   username: "John Doe",
   email: "john.doe@example.com",
   avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-};
+}
 
 const mockPosts = [
   {
@@ -153,7 +165,7 @@ const mockPosts = [
     comments: 3,
     shares: 1,
   },
-];
+]
 
 const mockFriends = [
   {
@@ -180,7 +192,7 @@ const mockFriends = [
     name: "Frank Miller",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
   },
-];
+]
 
 const mockPhotos = [
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
@@ -189,13 +201,15 @@ const mockPhotos = [
   "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=300&h=300&fit=crop",
   "https://images.unsplash.com/photo-1515378791036-0648a814c963?w=300&h=300&fit=crop",
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
-];
+]
 
+const UserData = await getUserInfo("HQk5dXtHghXgIKRRwSeul9jV6Ot1")
+const PostsData = await getAllPosts()
+console.log(PostsData)
+console.log(UserData)
 
-getUserInfo("admin_created_1753352335301_j3ics")
+getUserInfo("HQk5dXtHghXgIKRRwSeul9jV6Ot1")
   .then(user => {
-    console.log(user);
-
     if (!user) {
       console.log("Sai userID r ba");
       return;
@@ -322,14 +336,14 @@ function loadPosts() {
   const postsContainer = document.getElementById("posts-container");
   if (!postsContainer) return;
   
-  postsContainer.innerHTML = mockPosts
+  postsContainer.innerHTML = PostsData
     .map(
       (post) => `
         <div class="post-card">
           <div class="post-header">
-            <div class="post-avatar" style="background-image: url('${mockUserData.avatar}')"></div>
+            <div class="post-avatar" style="background-image: url('${UserData.avatar}')"></div>
             <div class="post-info">
-              <h6>${mockUserData.username}</h6>
+              <h6>${UserData.username}</h6>
               <div class="post-time">${post.timestamp}</div>
             </div>
           </div>
@@ -339,13 +353,13 @@ function loadPosts() {
           ${post.image ? `<div class="post-image" style="background-image: url('${post.image}')"></div>` : ""}
           <div class="post-actions">
             <button class="post-action" onclick="toggleLike(${post.id})">
-              <i class="bi bi-heart"></i> ${post.likes} Like
+              <i class="bi bi-heart"></i> ${post.likeCount} Like
             </button>
             <button class="post-action">
               <i class="bi bi-chat"></i> ${post.comments} Comment
             </button>
             <button class="post-action">
-              <i class="bi bi-share"></i> ${post.shares} Share
+              <i class="bi bi-share"></i> ${post.shareCount} Share
             </button>
           </div>
         </div>
