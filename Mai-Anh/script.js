@@ -4,10 +4,10 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase
 import {
   getAuth,
   onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  createUserWithEmailAndPassword,
-  updateProfile
+  // signInWithEmailAndPassword,
+  // signOut,
+  // createUserWithEmailAndPassword,
+  // updateProfile
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
   getFirestore,
@@ -51,83 +51,38 @@ const userEmailDisplay = document.getElementById('userEmailDisplay');
 const signOutBtn = document.getElementById('signOutBtn');
 
 // --- User State ---
-let currentUser = null;
+let currentUser = { displayName: "Demo User", email: "demo@example.com" }; // Always "signed in" as demo
 
 // --- Auth UI Logic ---
 function showAuthUI(user) {
-  if (user) {
-    // Hide sign in/up, show user info
-    if (signInSection) signInSection.style.display = 'none';
-    if (signUpSection) signUpSection.style.display = 'none';
-    if (userInfoSection) userInfoSection.style.display = '';
-    if (userNameDisplay) userNameDisplay.textContent = user.displayName || user.email || 'User';
-    if (userEmailDisplay) userEmailDisplay.textContent = user.email || '';
-  } else {
-    // Show sign in/up, hide user info
-    if (signInSection) signInSection.style.display = '';
-    if (signUpSection) signUpSection.style.display = '';
-    if (userInfoSection) userInfoSection.style.display = 'none';
-    if (userNameDisplay) userNameDisplay.textContent = '';
-    if (userEmailDisplay) userEmailDisplay.textContent = '';
-  }
+  // Always hide sign in/up, always show user info as demo
+  if (signInSection) signInSection.style.display = 'none';
+  if (signUpSection) signUpSection.style.display = 'none';
+  if (userInfoSection) userInfoSection.style.display = '';
+  if (userNameDisplay) userNameDisplay.textContent = currentUser.displayName || currentUser.email || 'User';
+  if (userEmailDisplay) userEmailDisplay.textContent = currentUser.email || '';
 }
 
 // --- Listen for Auth State Changes ---
-onAuthStateChanged(auth, (user) => {
-  currentUser = user;
-  showAuthUI(user);
-});
+// Simulate always signed in as demo user
+showAuthUI(currentUser);
 
 // --- Sign Up Logic ---
+// Disabled: Remove sign up form and listeners
 if (signUpSection) {
-  const signUpForm = signUpSection.querySelector('form');
-  if (signUpForm) {
-    signUpForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = signUpForm.querySelector('input[type="email"]').value.trim();
-      const password = signUpForm.querySelector('input[type="password"]').value;
-      const displayName = signUpForm.querySelector('input[name="displayName"]')?.value.trim() || '';
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        if (displayName) {
-          await updateProfile(userCredential.user, { displayName });
-        }
-        showNotification('Account created! Welcome, ' + (displayName || email), 'success', 1500);
-      } catch (err) {
-        showNotification('Sign up failed: ' + (err.message || err), 'error');
-      }
-    });
-  }
+  signUpSection.style.display = 'none';
 }
 
 // --- Sign In Logic ---
+// Disabled: Remove sign in form and listeners
 if (signInSection) {
-  const signInForm = signInSection.querySelector('form');
-  if (signInForm) {
-    signInForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = signInForm.querySelector('input[type="email"]').value.trim();
-      const password = signInForm.querySelector('input[type="password"]').value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showNotification('Signed in as ' + email, 'success', 1200);
-      } catch (err) {
-        showNotification('Sign in failed: ' + (err.message || err), 'error');
-      }
-    });
-  }
+  signInSection.style.display = 'none';
 }
 
 // --- Sign Out Logic ---
+// Disabled: Remove sign out button and listeners
 if (signOutBtn) {
-  signOutBtn.addEventListener('click', async () => {
-    try {
-      await signOut(auth);
-      showNotification('Signed out.', 'info', 1200);
-    } catch (err) {
-      showNotification('Sign out failed: ' + (err.message || err), 'error');
-    }
-  });
+  signOutBtn.style.display = 'none';
 }
 
 // --- Scrollable Feed Container Setup ---
@@ -314,19 +269,14 @@ loadAllPosts();
 // Listen for comment added to update comment count in real time (optional, not implemented here)
 
 // --- Restrict actions for unauthenticated users ---
+// Always allow actions, since sign in/up is disabled and user is always "signed in"
 function requireAuthAction(e, actionName = "this action") {
-  if (!currentUser) {
-    showNotification("You must sign in to " + actionName + ".", "warning", 2000);
-    e.preventDefault && e.preventDefault();
-    e.stopPropagation && e.stopPropagation();
-    return false;
-  }
   return true;
 }
 
 // Handle post creation, close modal, and show new post without reload
 postButton.addEventListener('click', async function (e) {
-  if (!requireAuthAction(e, "create a post")) return;
+  // No need to check requireAuthAction
   e.preventDefault();
   const contentInput = document.getElementById('content');
   const imageInput = document.getElementById('image');
@@ -358,11 +308,8 @@ postButton.addEventListener('click', async function (e) {
     fileName = fileInput.getAttribute('data-filename') || '';
   }
 
-  // Use current user's displayName or email for post
-  let userName = 'Anonymous';
-  if (currentUser) {
-    userName = currentUser.displayName || currentUser.email || 'User';
-  }
+  // Use demo user's displayName or email for post
+  let userName = currentUser.displayName || currentUser.email || 'User';
 
   try {
     // Save to Firestore and get the server timestamp
@@ -463,18 +410,30 @@ document.addEventListener('mouseout', function(e) {
 });
 
 document.addEventListener('click', async function(e) {
-  // Restrict all actions except viewing for unauthenticated users
+  // No need to restrict actions for unauthenticated users
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
-    if (!requireAuthAction(e, "like posts")) return;
     const postCard = likeBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
+
+    // Use demo user
+    const user = currentUser;
+    if (!user) return;
+
+    // Like collection logic
+    const likeDocRef = doc(db, 'posts', postId, 'likes', "demo-user");
     let likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
     const isLiked = likedPosts.includes(postId);
+
     try {
       if (!isLiked) {
+        // Add to like collection
+        await setDoc(likeDocRef, {
+          userId: "demo-user",
+          likedAt: new Date().toISOString()
+        });
         await updateDoc(doc(db, 'posts', postId), { likeCount: increment(1) });
         likedPosts.push(postId);
         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
@@ -483,6 +442,8 @@ document.addEventListener('click', async function(e) {
         updatePostCounts(postId, { likeCount, isLiked: true });
         showNotification('You liked this post!', 'success', 1200);
       } else {
+        // Remove from like collection
+        await deleteDoc(likeDocRef);
         await updateDoc(doc(db, 'posts', postId), { likeCount: increment(-1) });
         likedPosts = likedPosts.filter(id => id !== postId);
         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
@@ -499,17 +460,28 @@ document.addEventListener('click', async function(e) {
 
   const shareBtn = e.target.closest('.share-btn');
   if (shareBtn) {
-    if (!requireAuthAction(e, "share posts")) return;
     const postCard = shareBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
+
+    // Use demo user
+    const user = currentUser;
+    if (!user) return;
+
+    // Share collection logic
+    const shareDocRef = doc(db, 'posts', postId, 'shares', "demo-user");
     let sharedPosts = JSON.parse(localStorage.getItem('sharedPosts') || '[]');
     if (sharedPosts.includes(postId)) {
       showNotification('You already shared this post.', 'info', 1500);
       return;
     }
     try {
+      // Add to share collection
+      await setDoc(shareDocRef, {
+        userId: "demo-user",
+        sharedAt: new Date().toISOString()
+      });
       await updateDoc(doc(db, 'posts', postId), { shareCount: increment(1) });
       sharedPosts.push(postId);
       localStorage.setItem('sharedPosts', JSON.stringify(sharedPosts));
@@ -525,7 +497,6 @@ document.addEventListener('click', async function(e) {
 
   const editBtn = e.target.closest('.edit-post-btn');
   if (editBtn) {
-    if (!requireAuthAction(e, "edit posts")) return;
     const postCard = editBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -548,7 +519,6 @@ document.addEventListener('click', async function(e) {
 
   const saveEditBtn = e.target.closest('.save-edit-post-btn');
   if (saveEditBtn) {
-    if (!requireAuthAction(e, "edit posts")) return;
     const postCard = saveEditBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -574,7 +544,6 @@ document.addEventListener('click', async function(e) {
 
   const cancelEditBtn = e.target.closest('.cancel-edit-post-btn');
   if (cancelEditBtn) {
-    if (!requireAuthAction(e, "edit posts")) return;
     const postCard = cancelEditBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -590,7 +559,6 @@ document.addEventListener('click', async function(e) {
 
   const deleteBtn = e.target.closest('.delete-post-btn');
   if (deleteBtn) {
-    if (!requireAuthAction(e, "delete posts")) return;
     const postCard = deleteBtn.closest('.card-body');
     if (!postCard) return;
     const postId = postCard.getAttribute('data-post-id');
@@ -798,8 +766,7 @@ function hideCommentPopup() {
 document.addEventListener('click', async function(e) {
   const commentBtn = e.target.closest('.open-comment-popup');
   if (commentBtn) {
-    // Only allow opening comment popup if signed in
-    if (!requireAuthAction(e, "comment on posts")) return;
+    // No need to check requireAuthAction
     const postCard = commentBtn.closest('.card-body');
     if (postCard) {
       const postId = postCard.getAttribute('data-post-id');
@@ -824,16 +791,13 @@ if (!window._commentPopupListenerAdded) {
   document.addEventListener('click', async function(e) {
     if (!commentPopup || commentPopup.style.display !== 'flex') return;
     if (e.target.closest('.send-comment-btn')) {
-      if (!requireAuthAction(e, "comment on posts")) return;
+      // No need to check requireAuthAction
       const postId = commentPopup.dataset.postId;
       const input = commentPopup.querySelector('input[type="text"]');
       const commentText = input ? input.value.trim() : '';
       if (!postId || !commentText) return;
-      // Use current user's displayName or email for comment
-      let userName = 'Current User';
-      if (currentUser) {
-        userName = currentUser.displayName || currentUser.email || 'User';
-      }
+      // Use demo user's displayName or email for comment
+      let userName = currentUser.displayName || currentUser.email || 'User';
       try {
         await addDoc(collection(db, 'posts', postId, 'comments'), {
           user: userName,
@@ -853,16 +817,13 @@ if (!window._commentPopupListenerAdded) {
     if (e.key === 'Enter' && !e.shiftKey) {
       const input = commentPopup.querySelector('input[type="text"]');
       if (document.activeElement === input) {
-        if (!requireAuthAction(e, "comment on posts")) return;
+        // No need to check requireAuthAction
         e.preventDefault();
         const postId = commentPopup.dataset.postId;
         const commentText = input ? input.value.trim() : '';
         if (!postId || !commentText) return;
-        // Use current user's displayName or email for comment
-        let userName = 'Current User';
-        if (currentUser) {
-          userName = currentUser.displayName || currentUser.email || 'User';
-        }
+        // Use demo user's displayName or email for comment
+        let userName = currentUser.displayName || currentUser.email || 'User';
         try {
           await addDoc(collection(db, 'posts', postId, 'comments'), {
             user: userName,
