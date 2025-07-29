@@ -71,8 +71,6 @@ const getAllUsers = async () => {
   }
 };
 
-const Users = await getAllUsers()
-
 const initializeSearch = async () => {
   if (!userCardTemplate || !userCardContainer || !searchInput) {
     console.warn("Search elements not found");
@@ -192,44 +190,44 @@ const mockPhotos = [
   "https://images.unsplash.com/photo-1515378791036-0648a814c963?w=300&h=300&fit=crop",
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
 ];
+const Users = await getAllUsers()
 
+getUserInfo("admin_created_1753352335301_j3ics")
+  .then(user => {
+    console.log(user);
 
-// getUserInfo("admin_created_1753352335301_j3ics")
-//   .then(user => {
-//     console.log(user);
+    if (!user) {
+      console.log("Sai userID r ba");
+      return;
+    }
 
-//     if (!user) {
-//       console.log("Sai userID r ba");
-//       return;
-//     }
-
-//     const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
-//     const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
-//     const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
-//     const coverEls = document.querySelectorAll(".cover-img");
+    const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
+    const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
+    const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
+    const coverEls = document.querySelectorAll(".cover-img");
     
-//     usernameEls.forEach((el) => (el.textContent = user.username));
-//     emailEls.forEach((el) => (el.textContent = user.email));
-//     avatarEls.forEach((el) => {
-//       el.style.backgroundImage = `url("${user.avatar}")`;
-//       el.style.backgroundSize = "cover";
-//       el.style.backgroundPosition = "center";
-//     });
-//     coverEls.forEach((el) => {
-//       if (el.classList.contains("cover-section")) {
-//         el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-//       }
-//     });
+    usernameEls.forEach((el) => (el.textContent = user.username));
+    emailEls.forEach((el) => (el.textContent = user.email));
+    avatarEls.forEach((el) => {
+      el.style.backgroundImage = `url("${user.avatar}")`;
+      el.style.backgroundSize = "cover";
+      el.style.backgroundPosition = "center";
+    });
+    coverEls.forEach((el) => {
+      if (el.classList.contains("cover-section")) {
+        el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
+      }
+    });
     
-//     loadPosts();
-//     loadFriends();
-//     loadPhotos();
-//     initializeSearch();
-//   })
-//   .catch(error => {
-//     console.error("Error loading user:", error);
-//     initializeFallback();
-//   });
+    loadPosts();
+    loadFriends();
+    loadPhotos();
+    initializeSearch();
+  })
+  .catch(error => {
+    console.error("Error loading user:", error);
+    initializeFallback();
+  });
 
 const initializeFallback = () => {
   const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
@@ -310,7 +308,7 @@ function loadFriends() {
   const friendsGrid = document.getElementById("friends-grid");
   if (!friendsGrid) return;
   
-  friendsGrid.innerHTML = allUsers
+  friendsGrid.innerHTML = Users
     .map(
       (user) => `
         <div class="friend-card" onclick="navigateToFriend('${user.username}')">
