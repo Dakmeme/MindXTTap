@@ -1000,4 +1000,3 @@ document.getElementById('profile').addEventListener('click', () => {
 // Initialize the application
 initializeUI()
 loadAllPosts()
-
