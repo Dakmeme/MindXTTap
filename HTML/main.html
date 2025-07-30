@@ -6,32 +6,35 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="CSS/style.css">
-    <title>Main Page</title>
+    <link rel="stylesheet" href="style.css">
+    <title>Social Feed - Main Page</title>
 </head>
 <body class="d-flex justify-content-center align-items-center vh-100 p-3">
   <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
+    <!-- Enhanced Sidebar with better visual hierarchy -->
     <div class="d-flex flex-column sidebar flex-shrink-0" style="min-width: 280px">
       <div class="profile-section">
         <div class="d-flex align-items-center gap-3" id="profile">
-          <div class="profile-img"></div>
+          <div class="profile-img">
+            <i class="bi bi-person-fill"></i>
+          </div>
           <div>
-            <div id="username" class="fw-bold text-white">Loading...</div>
-            <div id="useremail" class="small text-white-50">Loading...</div>
+            <div id="username" class="fw-bold text-white">Demo User</div>
+            <div id="useremail" class="small text-white-50">demo@example.com</div>
           </div>
         </div>
       </div>
 
       <div class="nav-items">
-        <div class="nav-item" id="feed-nav">
+        <div class="nav-item active" id="feed-nav">
           <i class="bi bi-compass"></i>
           <span>Feed</span>
         </div>
-        <div class="nav-item" id="friends-nav">
+        <div class="nav-item" id="friends">
           <i class="bi bi-people-fill"></i>
           <span>Friends</span>
         </div>
-        <div class="nav-item" id="messages-nav">
+        <div class="nav-item" id="messages">
           <i class="bi bi-chat-fill"></i>
           <span>Messages</span>
         </div>
@@ -39,28 +42,33 @@
           <i class="bi bi-bell-fill"></i>
           <span>Notifications</span>
         </div>
-        <div class="nav-item" if="settings">
+        <div class="nav-item" id="settings-nav">
           <i class="bi bi-gear-fill"></i>
           <span>Settings</span>
         </div>
       </div>
+      
       <div class="pinned-section">
+        <div class="section-title">
+          <span>Pinned</span>
+        </div>
         <div class="nav-item" style="color: var(--p-color)">
           <i class="bi bi-bookmark-fill"></i>
-          <span>Pinned</span>
+          <span>Saved Posts</span>
+        </div>
+        <div class="nav-item" style="color: var(--p-color)">
+          <i class="bi bi-star-fill"></i>
+          <span>Favorites</span>
         </div>
       </div>
     </div>
 
-    <main class="feed-container w-100 d-flex flex-column gap-4" >
+    <main class="feed-container w-100 d-flex flex-column gap-4">
+      <!-- Enhanced Search Bar with better styling -->
       <div class="indicator">
-        <div class="d-flex w-50 align-items-center search-wrapper p-2">
+        <div class="d-flex align-items-center search-wrapper p-3">
           <i class="bi bi-search"></i>
-          <input type="search" id="search" placeholder="Search" data-search style="
-                color: #94a1b2;
-                background-color: rgba(240, 248, 255, 0);
-                border: none;
-              " />
+          <input type="search" id="search" placeholder="Search posts, people, or topics..." data-search />
         </div>
         <div class="search-cards position-absolute hide" data-user-cards-container></div>
         <template data-user-template>
@@ -71,83 +79,153 @@
         </template>
       </div>
 
-
-      <div class="card mb-4 w-100" id="feed-create" style=" max-width: 740px; background-color: var(--main-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px;">
+      <!-- Enhanced Post Creation Card -->
+      <div class="card mb-4 w-100 post-card create-post-card" id="feed-create" style="max-width: 740px;">
         <div class="card-body d-flex align-items-center feed-create-container">
-          <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
+          <div class="profile-img-small">
+            <i class="bi bi-person-fill"></i>
+          </div>
           <div class="flex-grow-1">
-            <button class="form-control text-start mb-2" data-bs-toggle="modal" data-bs-target="#createFeedModal"
-              style="background-color: var(--background-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px; cursor:pointer;">
-              What's on your mind?
+            <button class="form-control text-start mb-3 create-post-input" data-bs-toggle="modal" data-bs-target="#createFeedModal">
+              What's on your mind today?
             </button>
+            <div class="media-buttons-container">
+              <button class="btn media-button" id="media-btn-image">
+                <i class="bi bi-image me-2"></i>Photo
+              </button>
+              <button class="btn media-button" id="media-btn-video">
+                <i class="bi bi-camera-video me-2"></i>Video
+              </button>
+              <button class="btn media-button" id="media-btn-file">
+                <i class="bi bi-paperclip me-2"></i>File
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="modal fade" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" style="z-index: 1061;">
-        <div class="modal-backdrop show" style="z-index: 1060; background: rgba(27, 20, 41, 0.85);"></div>
-        <div class="modal-dialog modal-dialog-centered" style="z-index: 1062; position: relative;">
-          <div class="modal-content" style="background-color: var(--main-color); color: var(--headline-color); border-radius: 20px;">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
-              <h5 class="modal-title" id="createFeedModalLabel">Create Post</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                style="filter: invert(1);"></button>
+      <!-- Enhanced Modal -->
+      <div class="modal fade" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+          <div class="modal-content enhanced-modal">
+            <div class="modal-header">
+              <h5 class="modal-title" id="createFeedModalLabel">
+                <i class="bi bi-plus-circle me-2"></i>Create New Post
+              </h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <div class="d-flex align-items-start mb-3">
-                <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
-                <textarea class="form-control" id="content" rows="3" placeholder="What's on your mind?" style="background-color: var(--background-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px; resize: none;"></textarea>
+                <div class="profile-img-small me-3">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <textarea class="form-control enhanced-textarea" id="content" rows="4" placeholder="Share your thoughts with the community..."></textarea>
+                  <div class="character-count">
+                    <span id="char-count">0</span>/500
+                  </div>
+                </div>
+              </div>
+              
+              <div class="media-options">
+                <div class="media-options-title">Add to your post</div>
+                <div class="media-buttons-container">
+                  <button class="btn media-button-large" id="media-btn-image">
+                    <i class="bi bi-image"></i>
+                    <span>Photo</span>
+                  </button>
+                  <button class="btn media-button-large" id="media-btn-video">
+                    <i class="bi bi-camera-video"></i>
+                    <span>Video</span>
+                  </button>
+                  <button class="btn media-button-large" id="media-btn-file">
+                    <i class="bi bi-paperclip"></i>
+                    <span>File</span>
+                  </button>
+                </div>
               </div>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 20px;">Cancel</button>
-              <button id="postButton" type="button" class="btn btn-primary" style="background-color: var(--b-color); color: var(--b-text-color); border-radius: 20px; border: none;">Post</button>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-circle me-1"></i>Cancel
+              </button>
+              <button id="postButton" type="button" class="btn btn-primary enhanced-post-btn">
+                <i class="bi bi-send me-1"></i>Share Post
+              </button>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- Feed -->
-      <div class="w-100" style="max-width: 740px; height: auto; overflow-y: auto; margin-bottom: 30px;">
+
+      <!-- Enhanced Feed Container -->
+      <div class="w-100 feed-scroll-container" style="max-width: 740px;">
         <div id="feed">
-            <div class="card-body mb-4">
-                <div class="d-flex align-items-center mb-2">
-                    <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: gray; display: flex; align-items: center; justify-content: center;"></span>
-                    <div>
-                        <h5 class="mb-0" style="color: var(--headline-color);"></h5>
-                        <div class="text-muted small" style="color: var(--p-color);"></div>
-                    </div>
-                </div>
-                <div class="mb-2" style="color: var(--p-color);"></div>
-                <div class="mb-2" style="height:200px; background: var(--secondary-color); border-radius: 20px;"></div>
-                <div class="d-flex align-items-center mb-2">
-                    <button class="btn btn-outline-danger btn-sm me-2" style="color: var(--highlight-color); border-color: var(--highlight-color); border-radius: 20px;" aria-label="Like">
-                        <i class="bi bi-heart"></i>
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm me-2" style="color: var(--p-color); border-color: var(--p-color); border-radius: 20px;" aria-label="Comment" data-bs-toggle="modal" data-bs-target="#commentModal">
-                        <i class="bi bi-chat-dots"></i>
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm me-3" style="color: var(--b-color); border-color: var(--b-color); border-radius: 20px;">
-                        <i class="bi bi-share"></i>
-                    </button>
-                    <span class="text-muted small" style="color: var(--p-color);"></span>
-                </div>
-                <div class="d-flex align-items-center mt-3" style="padding: 0;">
-                    <span class="rounded-circle d-inline-block" style="width:36px; height:36px; background-color:#fff; display:flex; align-items:center; justify-content:center; margin-right:12px;"></span>
-                    <div style="flex:1; display:flex; align-items:center; background:var(--background-color); border-radius:20px; border:1px solid var(--border-color); padding:0 12px; margin-right:12px; min-height:44px;">
-                        <input type="text" class="form-control border-0 shadow-none" placeholder="Write a comment..." style="background:transparent; color:var(--headline-color); font-size:1rem; outline:none; box-shadow:none; height:40px; padding:0;" aria-label="Write a comment">
-                    </div>
-                    <button class="d-flex align-items-center justify-content-center" style="width:40px; height:40px; background:var(--highlight-color); border:none; border-radius:50%; color:var(--b-text-color); cursor:pointer;" aria-label="Send message">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
-                        </svg>
-                    </button>
-                </div>
+          <!-- Sample post for demonstration -->
+          <div class="card-body mb-4 post-card sample-post">
+            <div class="d-flex align-items-center mb-3">
+              <div class="profile-img-small me-3">
+                <i class="bi bi-person-fill"></i>
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="mb-0 post-author">Welcome to Social Feed</h6>
+                <div class="post-time">Just now</div>
+              </div>
+              <div class="post-menu-trigger">
+                <i class="bi bi-three-dots"></i>
+              </div>
             </div>
+            
+            <div class="post-content mb-3">
+              Welcome to your social feed! Start sharing your thoughts and connect with others.
+            </div>
+            
+            <div class="post-media mb-3">
+              <div class="sample-media-placeholder">
+                <i class="bi bi-image" style="font-size: 3rem; opacity: 0.3;"></i>
+                <p>Media content will appear here</p>
+              </div>
+            </div>
+            
+            <div class="post-actions">
+              <div class="action-buttons">
+                <button class="btn action-btn like-btn">
+                  <i class="bi bi-heart"></i>
+                  <span class="like-count">0</span>
+                </button>
+                <button class="btn action-btn comment-btn open-comment-popup">
+                  <i class="bi bi-chat-dots"></i>
+                  <span class="comment-count">0</span>
+                </button>
+                <button class="btn action-btn share-btn">
+                  <i class="bi bi-share"></i>
+                  <span class="share-count">0</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Enhanced Comment Input -->
+            <div class="comment-input-section">
+              <div class="profile-img-tiny">
+                <i class="bi bi-person-fill"></i>
+              </div>
+              <div class="comment-input-wrapper">
+                <input type="text" class="form-control comment-input" placeholder="Write a comment..." />
+              </div>
+              <button class="btn comment-send-btn">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </main>
   </div>
+
+  <!-- Loading Spinner -->
+  <div id="loading-spinner" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading your feed...</p>
+  </div>
 </body>
-<script type="module" src="JS/script.js"></script>
+<script type="module" src="script.js"></script>
 </html>
