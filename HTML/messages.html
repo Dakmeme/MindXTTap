@@ -1,98 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Friends - Brand</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
-    />
-    <link rel="stylesheet" href="CSS/message.css" />
-  </head>
-  <body class="d-flex justify-content-center align-items-center vh-100 p-3">
-    <div
-      class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container"
-    >
-      <div class="h-100 position-relative sidebar-collapsed">
-        <div
-          class="d-flex align-items-center justify-content-center profile-section-collapsed"
-        >
-          <div class="profile-img-collapsed" id="collapsed-avatar"></div>
-        </div>
-        <div
-          class="d-flex justify-content-center align-items-center nav-items-collapsed"
-        >
-          <div
-            class="nav-item-collapsed"
-            data-tooltip="Feed"
-            onclick="navigateTo('feed')"
-          >
-            <i class="bi bi-compass"></i>
-          </div>
-          <div
-            class="nav-item-collapsed"
-            data-tooltip="Friends"
-            onclick="navigateTo('friends')"
-          >
-            <i class="bi bi-people-fill"></i>
-          </div>
-          <div
-            class="nav-item-collapsed active"
-            data-tooltip="Messages"
-            onclick="navigateTo('messages')"
-          >
-            <i class="bi bi-chat-fill"></i>
-          </div>
-          <div
-            class="nav-item-collapsed"
-            data-tooltip="Notifications"
-            onclick="navigateTo('notifications')"
-          >
-            <i class="bi bi-bell-fill"></i>
-          </div>
-          <div
-            class="nav-item-collapsed"
-            data-tooltip="Settings"
-            onclick="navigateTo('settings')"
-          >
-            <i class="bi bi-gear-fill"></i>
-          </div>
-        </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friends - Brand</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css" />
+  <link rel="stylesheet" href="CSS/message.css" />
+</head>
+
+<body class="d-flex justify-content-center align-items-center vh-100 p-3">
+  <div class="container-fluid p-4 d-flex gap-4 overflow-hidden main-container">
+    <div class="h-100 position-relative sidebar-collapsed">
+      <div class="d-flex align-items-center justify-content-center profile-section-collapsed">
+        <div class="profile-img-collapsed" id="collapsed-avatar"></div>
       </div>
-
-      <div class="h-100 w-100 d-flex friends-content">
-        <div class="d-flex flex-column friends-filters">
-            <h2>Messages</h2>
-          <div class="search-box">
-            <input
-              type="text"
-              class="search-input"
-              placeholder="Search conversations..."
-              id="friends-search"
-            />
-          </div>
-          <div class="d-flex align-items-center justify-content-between filter-buttons">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="online">Unread</button>
-            <button class="filter-btn" data-filter="groups">Groups</button>
-          </div>
-          <div class="friends-list">
-            <div class="content-section" id="friends-section">
-              <div class="friends-grid" id="friends-grid"></div>
-            </div>
-          </div>
+      <div class="d-flex justify-content-center align-items-center nav-items-collapsed">
+        <div class="nav-item-collapsed" data-tooltip="Feed" onclick="navigateTo('feed-nav')">
+          <i class="bi bi-compass"></i>
         </div>
-        <div class="w-100 h-100 chatbox">
-
+        <div class="nav-item-collapsed" data-tooltip="Friends" onclick="navigateTo('friends-nav')">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="nav-item-collapsed active" data-tooltip="Messages" onclick="navigateTo('messages-nav')">
+          <i class="bi bi-chat-fill"></i>
+        </div>
+        <div class="nav-item-collapsed" data-tooltip="Notifications" onclick="navigateTo('notifications')">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+        <div class="nav-item-collapsed" data-tooltip="Settings" onclick="navigateTo('settings')">
+          <i class="bi bi-gear-fill"></i>
         </div>
       </div>
     </div>
 
-    <script defer type="module" src="JS/message.js"></script>
-  </body>
+    <div class="h-100 w-100 d-flex friends-content">
+      <div class="d-flex flex-column friends-filters">
+        <h2>Messages</h2>
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="Search conversations..." id="friends-search" />
+        </div>
+        <div class="d-flex align-items-center justify-content-between filter-buttons">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="online">Unread</button>
+          <button class="filter-btn" data-filter="groups">Groups</button>
+        </div>
+        <div class="friends-list">
+          <div class="content-section" id="friends-section">
+            <div class="friends-grid" id="friends-grid"></div>
+          </div>
+        </div>
+      </div>
+      <div class="w-100 h-100 chatbox">
+
+      </div>
+    </div>
+  </div>
+
+  <script defer type="module" src="JS/message.js"></script>
+</body>
+
 </html>

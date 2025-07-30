@@ -192,10 +192,9 @@ const mockPhotos = [
 ];
 const Users = await getAllUsers()
 
-getUserInfo("admin_created_1753352335301_j3ics")
+getUserInfo("random_1753691292193_ujapz")
   .then(user => {
     console.log(user);
-
     if (!user) {
       console.log("Sai userID r ba");
       return;
@@ -358,32 +357,28 @@ window.navigateToFriend = function(friendName) {
   alert(`Would navigate to ${friendName}'s profile`);
 };
 
-document.querySelectorAll(".nav-item").forEach((item) => {
+document.querySelectorAll(".nav-item-collapsed").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
     switch(id) {
-      case "feed":
+      case "feed-nav":
         console.log("Navigating to Feed...");
-        // window.location.href = 'feed.html';
-        alert("Would navigate to Feed");
+        window.location.href = 'main.html';
         break;
-      case "friends":
+      case "friends-nav":
         console.log("Navigating to Friends page...");
         window.location.href = 'friends.html';
         break;
-      case "messages":
+      case "messages-nav":
         console.log("Opening Messages...");
-        // window.location.href = 'messages.html';
-        alert("Would open Messages");
+        window.location.href = 'messages.html';
         break;
       case "notif":
         console.log("Opening Notifications...");
-        // window.location.href = 'notifications.html';
         alert("Would open Notifications");
         break;
       case "settings":
         console.log("Opening Settings...");
-        // window.location.href = 'settings.html';
         alert("Would open Settings");
         break;
       default:
@@ -392,10 +387,9 @@ document.querySelectorAll(".nav-item").forEach((item) => {
     }
   });
 });
-
-// document.getElementById('profile').addEventListener('click', () => {
-//   window.location.href = 'profile.html';
-// });
+document.getElementById('collapsed-avatar').addEventListener('click', () => {
+  window.location.href = 'profile.html';
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {

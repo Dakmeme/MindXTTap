@@ -962,6 +962,42 @@ feedContainer.addEventListener("scroll", () => {
   }
 })
 
+
+document.querySelectorAll(".nav-item").forEach((item) => {
+  item.addEventListener("click", () => {
+    const id = item.id;
+    switch(id) {
+      case "feed-nav":
+        console.log("Navigating to Feed...");
+        window.location.href = 'main.html';
+        break;
+      case "friends-nav":
+        console.log("Navigating to Friends page...");
+        window.location.href = 'friends.html';
+        break;
+      case "messages-nav":
+        console.log("Opening Messages...");
+        window.location.href = 'messages.html';
+        break;
+      case "notif":
+        console.log("Opening Notifications...");
+        // window.location.href = 'notifications.html';
+        break;
+      case "settings":
+        console.log("Opening Settings...");
+        // window.location.href = 'settings.html';
+        alert("Would open Settings");
+        break;
+      default:
+        console.log(`Clicked on: ${id}`);
+        break;
+    }
+  });
+});
+document.getElementById('profile').addEventListener('click', () => {
+  window.location.href = 'profile.html';
+});
 // Initialize the application
 initializeUI()
 loadAllPosts()
+

@@ -203,12 +203,12 @@ const mockPhotos = [
   "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
 ]
 
-const UserData = await getUserInfo("HQk5dXtHghXgIKRRwSeul9jV6Ot1")
+const UserData = await getUserInfo("random_1753691292193_ujapz")
 const PostsData = await getAllPosts()
 console.log(PostsData)
 console.log(UserData)
 
-getUserInfo("HQk5dXtHghXgIKRRwSeul9jV6Ot1")
+getUserInfo("random_1753691292193_ujapz")
   .then(user => {
     if (!user) {
       console.log("Sai userID r ba");
