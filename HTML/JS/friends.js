@@ -1,3 +1,35 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
+import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+import {
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  query,
+  orderBy,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
+  authDomain: "ttmindx.firebaseapp.com",
+  projectId: "ttmindx",
+  storageBucket: "ttmindx.firebasestorage.app",
+  messagingSenderId: "499689288083",
+  appId: "1:499689288083:web:394be22db426aa48b93866",
+  measurementId: "G-Y0NCNLB337",
+}
+const app = initializeApp(firebaseConfig)
+export const db = getFirestore(app)
+console.log("Firebase đã được khởi tạo thành công!")
+
+
+
+
 const friendsData = [
     { id: 1, name: "Alice Johnson", avatar: "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=150&h=150&fit=crop&crop=face", status: "Active 2 minutes ago", online: true, mutual: 15 },
     { id: 2, name: "Bob Smith", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", status: "Active 1 hour ago", online: false, mutual: 8 },
@@ -62,8 +94,46 @@ const mockUserData = {
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
 };
 
-document.getElementById('collapsed-avatar').style.backgroundImage = `url("${mockUserData.avatar}")`;
+export const getUserInfo = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      return {
+        id: userSnap.id,
+        ...userSnap.data(),
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin người dùng:", error);
+    return null;
+  }
+};
 
+const getAllUsers = async () => {
+  try {
+    const usersRef = collection(db, "users");
+    const querySnapshot = await getDocs(usersRef);
+    const users = [];
+    querySnapshot.forEach((doc) => {
+      users.push({
+        id: doc.id,
+        ...doc.data()
+      });
+    });
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+};
+const AllUsers = await getAllUsers()
+const UserData = await getUserInfo("HQk5dXtHghXgIKRRwSeul9jV6Ot1")
+
+
+document.getElementById('collapsed-avatar').style.backgroundImage = `url("${UserData.avatar}")`;
 function toggleRequests() {
     const dropdown = document.getElementById('requests-dropdown');
     dropdown.classList.toggle('active');
@@ -76,8 +146,6 @@ document.addEventListener('click', function (event) {
         dropdown.classList.remove('active');
     }
 });
-
-
 function acceptRequest(id) {
     console.log(`Accepting friend request ${id}`);
     const countElement = document.querySelector('.requests-count');
@@ -85,7 +153,6 @@ function acceptRequest(id) {
     countElement.textContent = Math.max(0, currentCount - 1);
     event.target.closest('.request-item').remove();
 }
-
 function declineRequest(id) {
     console.log(`Declining friend request ${id}`);
     const countElement = document.querySelector('.requests-count');
@@ -93,19 +160,18 @@ function declineRequest(id) {
     countElement.textContent = Math.max(0, currentCount - 1);
     event.target.closest('.request-item').remove();
 }
-
 function loadFriends(filter = 'all') {
     const friendsGrid = document.getElementById('friends-grid');
-    let filteredFriends = friendsData;
+    let filteredFriends = AllUsers;
 
     if (filter === 'online') {
-        filteredFriends = friendsData.filter(f => f.online);
+        filteredFriends = AllUsers.filter(f => f.online);
     } else if (filter === 'recent') {
-        filteredFriends = friendsData.filter(f =>
+        filteredFriends = AllUsers.filter(f =>
             f.status.includes('minutes') || f.status.includes('hour')
         );
     } else if (filter === 'mutual') {
-        filteredFriends = friendsData.filter(f => f.mutual > 10);
+        filteredFriends = AllUsers.filter(f => f.mutual > 10);
     }
 
     friendsGrid.innerHTML = filteredFriends.map(friend => `
@@ -114,7 +180,7 @@ function loadFriends(filter = 'all') {
                     <div class="friend-card-content">
                         <div class="friend-avatar-large" style="background-image: url('${friend.avatar}')"></div>
                         <div class="friend-info">
-                            <div class="friend-name">${friend.name}</div>
+                            <div class="friend-name">${friend.username}</div>
                             <div class="friend-status">${friend.status}</div>
                             <div class="friend-actions">
                                 <button class="friend-btn" onclick="event.stopPropagation(); viewProfile(${friend.id})">
@@ -190,11 +256,12 @@ document.getElementById('friends-search').addEventListener('input', e => {
     });
 });
 
-document.querySelectorAll(".nav-item").forEach((item) => {
+
+document.querySelectorAll(".nav-item-collapsed").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
     switch(id) {
-      case "feed":
+      case "feed-nav":
         console.log("Navigating to Feed...");
         window.location.href = 'main.html';
         break;
@@ -208,12 +275,10 @@ document.querySelectorAll(".nav-item").forEach((item) => {
         break;
       case "notif":
         console.log("Opening Notifications...");
-        // window.location.href = 'notifications.html';
         alert("Would open Notifications");
         break;
       case "settings":
         console.log("Opening Settings...");
-        // window.location.href = 'settings.html';
         alert("Would open Settings");
         break;
       default:

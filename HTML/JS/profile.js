@@ -427,7 +427,7 @@ document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
     switch(id) {
-      case "feed":
+      case "feed-nav":
         console.log("Navigating to Feed...");
         window.location.href = 'main.html';
         break;
