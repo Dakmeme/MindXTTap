@@ -16,6 +16,12 @@
   --hover-bg: rgba(127, 90, 240, 0.1);
   --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.3);
   --shadow-softer: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --error-color: #d90429;
+  --warning-color: #ffbe0b;
+  --warning-text-color: #222;
+  --success-color: #2cb67d;
+  --gradient-primary: linear-gradient(135deg, var(--b-color), #9d6bff);
+  --gradient-secondary: linear-gradient(135deg, #ff6b6b, #ffd93d);
 }
 
 * {
@@ -43,7 +49,6 @@ body {
   max-width: 1400px;
 }
 
-
 .sidebar {
   background: rgba(30, 30, 30, 0.8);
   border-radius: 0px 20px 20px 0;
@@ -53,7 +58,7 @@ body {
 }
 
 .profile-section {
-  background: linear-gradient(135deg, var(--b-color), #9d6bff);
+  background: var(--gradient-primary);
   border-radius: 18px;
   padding: 1.2rem;
   margin-bottom: 1.5rem;
@@ -61,10 +66,11 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
 }
+
 .profile-img {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #ff6b6b, #ffd93d);
+  background: var(--gradient-secondary);
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   border: 2px solid rgba(255, 255, 255, 0.2);
@@ -101,7 +107,15 @@ body {
   border-top: 1px solid var(--card-border);
 }
 
-
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--p-color);
+  margin-bottom: 1rem;
+  padding: 0 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
 
 .hide{
