@@ -1,13 +1,6 @@
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-import {
-  getAuth,
-  onAuthStateChanged,
-  // signInWithEmailAndPassword,
-  // signOut,
-  // createUserWithEmailAndPassword,
-  // updateProfile
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
   getFirestore,
   addDoc,
@@ -19,15 +12,21 @@ import {
   orderBy,
   updateDoc,
   increment,
-  arrayUnion,
   deleteDoc
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
   authDomain: "ttmindx.firebaseapp.com",
   projectId: "ttmindx",
-  storageBucket: "ttmindx.firebasestorage.app",
+  storageBucket: "ttmindx.appspot.com",
   messagingSenderId: "499689288083",
   appId: "1:499689288083:web:394be22db426aa48b93866",
   measurementId: "G-Y0NCNLB337"
@@ -35,13 +34,13 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 const createFeedModal = document.getElementById('createFeedModal');
 const postButton = document.getElementById('postButton');
 
-// --- Auth UI Elements ---
+// --- Remove Auth UI Elements ---
 const signInSection = document.getElementById('signInSection');
 const signUpSection = document.getElementById('signUpSection');
 const userInfoSection = document.getElementById('userInfoSection');
@@ -49,38 +48,14 @@ const userNameDisplay = document.getElementById('userNameDisplay');
 const userEmailDisplay = document.getElementById('userEmailDisplay');
 const signOutBtn = document.getElementById('signOutBtn');
 
+if (signInSection) signInSection.style.display = 'none';
+if (signUpSection) signUpSection.style.display = 'none';
+if (userInfoSection) userInfoSection.style.display = 'none';
+
 // --- User State ---
-let currentUser = { displayName: "Demo User", email: "demo@example.com" }; // Always "signed in" as demo
+let currentUser = null; // Always null, no auth
 
-// --- Auth UI Logic ---
-function showAuthUI(user) {
-  // Always hide sign in/up, always show user info as demo
-  if (signInSection) signInSection.style.display = 'none';
-  if (signUpSection) signUpSection.style.display = 'none';
-  if (userInfoSection) userInfoSection.style.display = '';
-  if (userNameDisplay) userNameDisplay.textContent = currentUser.displayName || currentUser.email || 'User';
-  if (userEmailDisplay) userEmailDisplay.textContent = currentUser.email || '';
-}
-
-showAuthUI(currentUser);
-
-if (signUpSection) {
-  signUpSection.style.display = 'none';
-}
-
-// --- Sign In Logic ---
-// Disabled: Remove sign in form and listeners
-if (signInSection) {
-  signInSection.style.display = 'none';
-}
-
-// --- Sign Out Logic ---
-// Disabled: Remove sign out button and listeners
-if (signOutBtn) {
-  signOutBtn.style.display = 'none';
-}
-
-
+// --- Scrollable Feed Container Setup ---
 let feedContainer = document.getElementById('feed');
 if (!feedContainer) {
   feedContainer = document.createElement('div');
@@ -92,6 +67,81 @@ feedContainer.style.maxHeight = '80vh';
 feedContainer.style.minHeight = '200px';
 feedContainer.style.paddingRight = '8px';
 
+// --- FEED CREATE: Add image input for photo upload as a button under input ---
+let photoInput = document.getElementById('photo');
+let photoButton = document.getElementById('photoButton');
+let photoPreview = document.getElementById('photoPreview');
+(function setupPhotoInputButton() {
+  const contentInput = document.getElementById('content');
+  if (!contentInput) return;
+  // Remove any existing photo input
+  if (photoInput && photoInput.parentElement) photoInput.parentElement.removeChild(photoInput);
+  if (photoButton && photoButton.parentElement) photoButton.parentElement.removeChild(photoButton);
+  if (photoPreview && photoPreview.parentElement) photoPreview.parentElement.removeChild(photoPreview);
+
+  // Create hidden file input
+  photoInput = document.createElement('input');
+  photoInput.type = 'file';
+  photoInput.accept = 'image/*';
+  photoInput.id = 'photo';
+  photoInput.style.display = 'none';
+
+  // Create photo button
+  photoButton = document.createElement('button');
+  photoButton.type = 'button';
+  photoButton.id = 'photoButton';
+  photoButton.innerHTML = '<i class="bi bi-image"></i> Add Photo';
+  photoButton.style.display = 'block';
+  photoButton.style.margin = '8px auto 0 auto';
+  photoButton.style.borderRadius = '20px';
+  photoButton.style.background = 'var(--main-color)';
+  photoButton.style.color = 'var(--headline-color)';
+  photoButton.style.border = '1px solid var(--border-color)';
+  photoButton.style.padding = '8px 18px';
+  photoButton.style.fontSize = '1rem';
+  photoButton.style.cursor = 'pointer';
+  photoButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+  photoButton.style.transition = 'background 0.2s';
+
+  // Create preview image
+  photoPreview = document.createElement('img');
+  photoPreview.id = 'photoPreview';
+  photoPreview.style.display = 'none';
+  photoPreview.style.maxWidth = '100%';
+  photoPreview.style.maxHeight = '180px';
+  photoPreview.style.margin = '8px auto 0 auto';
+  photoPreview.style.borderRadius = '12px';
+  photoPreview.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+  photoPreview.alt = 'Selected photo preview';
+
+  // Insert after content input
+  if (contentInput.parentElement) {
+    contentInput.parentElement.appendChild(photoInput);
+    contentInput.parentElement.appendChild(photoButton);
+    contentInput.parentElement.appendChild(photoPreview);
+  }
+
+  // Button click opens file input
+  photoButton.addEventListener('click', () => photoInput.click());
+
+  // Show preview when file selected
+  photoInput.addEventListener('change', function () {
+    if (photoInput.files && photoInput.files[0]) {
+      const file = photoInput.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        photoPreview.src = e.target.result;
+        photoPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      photoPreview.src = '';
+      photoPreview.style.display = 'none';
+    }
+  });
+})();
+
+// Helper to render a single post (prepend if needed)
 function renderPost(data, prepend = false) {
   let dateStr = '';
   if (data.date) {
@@ -105,11 +155,16 @@ function renderPost(data, prepend = false) {
     });
   }
 
+  // Default counts
   const likeCount = data.likeCount || 0;
   const commentCount = data.commentCount || 0;
   const shareCount = data.shareCount || 0;
+
+  // For demo, use localStorage to track liked posts by this user
   const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
   const isLiked = likedPosts.includes(data.id);
+
+  // Three-dot menu for edit/delete
   const menuHtml = `
     <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
       <button class="btn btn-sm post-menu-btn" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background: var(--secondary-color); border: none;" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
@@ -130,19 +185,20 @@ function renderPost(data, prepend = false) {
     </div>
   `;
 
-  // --- IMAGE, VIDEO, FILE RENDER LOGIC with media-btn-* classes ---
+  // --- Render photo if present ---
   let mediaHtml = '';
-  if (data.image) {
-    mediaHtml += `<div class="mb-2 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
+  if (data.photoUrl) {
+    mediaHtml = `
+      <div class="mb-2">
+        <img src="${data.photoUrl}" alt="Post photo" style="max-width:100%;max-height:320px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:8px;">
+      </div>
+    `;
   }
-  if (data.video) {
-    mediaHtml += `<div class="mb-2 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
-  }
-  if (data.file) {
-    mediaHtml += `<div class="mb-2 media-btn-file" style="background-color: var(--secondary-color); color: var(--main-color); border-color: var(--border-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
-      <i class="bi bi-paperclip me-1" style="font-size:1.5rem; color:var(--b-color);"></i>
-      <a href="${data.file}" target="_blank" style="color: var(--main-color); word-break:break-all; text-decoration: underline;">${data.fileName || 'Download file'}</a>
-    </div>`;
+
+  // Show userID if present
+  let userIdHtml = '';
+  if (data.userID) {
+    userIdHtml = `<div class="text-muted small" style="color: var(--p-color);">${data.userID}</div>`;
   }
 
   const feed = document.createElement('div');
@@ -153,6 +209,7 @@ function renderPost(data, prepend = false) {
         <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
         <div>
           <h5 class="mb-0" style="color: var(--headline-color);">${data.user ? data.user : 'Unknown User'}</h5>
+          ${userIdHtml}
           <div class="text-muted small" style="color: var(--p-color);">${dateStr}</div>
         </div>
         ${menuHtml}
@@ -200,7 +257,7 @@ function renderPost(data, prepend = false) {
   }
 }
 
-
+// Helper to update a single post's counts in the DOM
 function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}) {
   const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`);
   if (!postEl) return;
@@ -238,6 +295,7 @@ function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}
   }
 }
 
+// Initial load: render all posts with counts
 async function loadAllPosts() {
   feedContainer.innerHTML = '';
   const querySnapshot = await getDocs(collection(db, 'posts'));
@@ -246,87 +304,118 @@ async function loadAllPosts() {
     data.id = docSnap.id;
     data.likeCount = typeof data.likeCount === 'number' ? data.likeCount : 0;
     data.shareCount = typeof data.shareCount === 'number' ? data.shareCount : 0;
+    // --- Get like and share collection counts ---
+    const likesCol = collection(db, 'posts', data.id, 'likes');
+    const likesSnap = await getDocs(likesCol);
+    data.likeCount = likesSnap.size;
+    const sharesCol = collection(db, 'posts', data.id, 'shares');
+    const sharesSnap = await getDocs(sharesCol);
+    data.shareCount = sharesSnap.size;
+    // --- End like/share collection counts ---
     const commentsCol = collection(db, 'posts', data.id, 'comments');
     const commentsSnap = await getDocs(commentsCol);
     data.commentCount = commentsSnap.size;
+
+    // If photoPath exists but no photoUrl, get download URL
+    if (data.photoPath && !data.photoUrl) {
+      try {
+        data.photoUrl = await getDownloadURL(storageRef(storage, data.photoPath));
+      } catch (err) {
+        data.photoUrl = '';
+      }
+    }
+
+    // If userID is missing, set to '@anonymous' for backward compatibility
+    if (!data.userID) {
+      data.userID = '@anonymous';
+    }
+
     renderPost(data);
   }
 }
 loadAllPosts();
 
-
+// --- No Auth Restriction: allow all actions ---
 function requireAuthAction(e, actionName = "this action") {
+  // Always allow
   return true;
 }
-  postButton.addEventListener('click', async function (e) {
+
+// Handle post creation, close modal, and show new post without reload
+postButton.addEventListener('click', async function (e) {
   e.preventDefault();
   const contentInput = document.getElementById('content');
-  const imageInput = document.getElementById('image');
-  const videoInput = document.getElementById('video');
-  const fileInput = document.getElementById('file');
-  let imageUrl = '';
-  let videoUrl = '';
-  let fileUrl = '';
-  let fileName = '';
-
+  const photoInput = document.getElementById('photo');
+  const photoPreview = document.getElementById('photoPreview');
   if (!contentInput) {
     console.error('Content input not found');
     return;
   }
   const contentValue = contentInput.value.trim();
-  if (!contentValue) {
+  if (!contentValue && (!photoInput || !photoInput.files || !photoInput.files[0])) {
+    // Require at least text or photo
+    showNotification('Please enter some text or select a photo.', 'warning', 1500);
     return;
   }
 
-
-  if (imageInput && imageInput.value.trim()) {
-    imageUrl = imageInput.value.trim();
-  }
-  if (videoInput && videoInput.value.trim()) {
-    videoUrl = videoInput.value.trim();
-  }
-  if (fileInput && fileInput.value.trim()) {
-    fileUrl = fileInput.value.trim();
-    fileName = fileInput.getAttribute('data-filename') || '';
-  }
-
-
-  let userName = currentUser.displayName || currentUser.email || 'User';
+  // Use "Anonymous" for post user
+  let userName = 'Anonymous';
+  let userID = '@anonymous';
+  let photoUrl = '';
+  let photoPath = '';
 
   try {
+    // 1. If photo selected, upload to Firebase Storage
+    if (photoInput && photoInput.files && photoInput.files[0]) {
+      const file = photoInput.files[0];
+      const ext = file.name.split('.').pop();
+      const postId = `post_${Date.now()}_${Math.floor(Math.random()*100000)}`;
+      photoPath = `post_photos/${postId}.${ext}`;
+      const fileRef = storageRef(storage, photoPath);
+      await uploadBytes(fileRef, file);
+      photoUrl = await getDownloadURL(fileRef);
+    }
 
+    // 2. Save to Firestore and get the server timestamp
     const docRef = await addDoc(collection(db, 'posts'), {
       user: userName,
+      userID: userID,
       content: contentValue,
       date: new Date().toISOString(),
       likeCount: 0,
       shareCount: 0,
-      ...(imageUrl && { image: imageUrl }),
-      ...(videoUrl && { video: videoUrl }),
-      ...(fileUrl && { file: fileUrl, fileName: fileName })
+      ...(photoUrl ? { photoUrl, photoPath } : {})
     });
 
-    // Show the new post at the top
+    // If photoPath exists but no photoUrl, get download URL (shouldn't happen, but for safety)
+    let finalPhotoUrl = photoUrl;
+    if (!finalPhotoUrl && photoPath) {
+      try {
+        finalPhotoUrl = await getDownloadURL(storageRef(storage, photoPath));
+      } catch (err) {
+        finalPhotoUrl = '';
+      }
+    }
+
+    // Show the new post at the top, with photo if present
     renderPost({
       user: userName,
+      userID: userID,
       content: contentValue,
       date: new Date().toISOString(),
       id: docRef.id,
       likeCount: 0,
       commentCount: 0,
       shareCount: 0,
-      ...(imageUrl && { image: imageUrl }),
-      ...(videoUrl && { video: videoUrl }),
-      ...(fileUrl && { file: fileUrl, fileName: fileName })
+      photoUrl: finalPhotoUrl
     }, true);
 
-    // Clear textarea and media inputs
+    // Clear textarea and photo input/preview
     contentInput.value = '';
-    if (imageInput) imageInput.value = '';
-    if (videoInput) videoInput.value = '';
-    if (fileInput) {
-      fileInput.value = '';
-      fileInput.removeAttribute('data-filename');
+    if (photoInput) photoInput.value = '';
+    if (photoPreview) {
+      photoPreview.src = '';
+      photoPreview.style.display = 'none';
     }
 
     // Close the modal
@@ -351,6 +440,7 @@ function requireAuthAction(e, actionName = "this action") {
     window.scrollTo(0, document.body.scrollHeight);
   } catch (e) {
     console.error('Error adding document: ', e);
+    showNotification('Failed to create post.', 'error');
   }
 });
 
@@ -392,7 +482,7 @@ document.addEventListener('mouseout', function(e) {
 });
 
 document.addEventListener('click', async function(e) {
-  // No need to restrict actions for unauthenticated users
+  // No auth restriction
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
     const postCard = likeBtn.closest('.card-body');
@@ -400,37 +490,41 @@ document.addEventListener('click', async function(e) {
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
 
-    // Use demo user
-    const user = currentUser;
-    if (!user) return;
-
-    // Like collection logic
-    const likeDocRef = doc(db, 'posts', postId, 'likes', "demo-user");
+    // Like collection logic (localStorage + Firestore collection)
     let likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
     const isLiked = likedPosts.includes(postId);
 
     try {
+      const likesCol = collection(db, 'posts', postId, 'likes');
       if (!isLiked) {
-        // Add to like collection
-        await setDoc(likeDocRef, {
-          userId: "demo-user",
-          likedAt: new Date().toISOString()
+        // Add a like doc (anonymous, so just a random id)
+        await addDoc(likesCol, {
+          user: 'Anonymous',
+          userID: '@anonymous',
+          date: new Date().toISOString()
         });
-        await updateDoc(doc(db, 'posts', postId), { likeCount: increment(1) });
         likedPosts.push(postId);
         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
-        const postDoc = await getDoc(doc(db, 'posts', postId));
-        const likeCount = postDoc.data().likeCount || 1;
+        const likesSnap = await getDocs(likesCol);
+        const likeCount = likesSnap.size;
         updatePostCounts(postId, { likeCount, isLiked: true });
         showNotification('You liked this post!', 'success', 1200);
       } else {
-        // Remove from like collection
-        await deleteDoc(likeDocRef);
-        await updateDoc(doc(db, 'posts', postId), { likeCount: increment(-1) });
+        // Remove a like doc (remove any like by Anonymous)
+        const likesSnap = await getDocs(likesCol);
+        let deleted = false;
+        for (const likeDoc of likesSnap.docs) {
+          const d = likeDoc.data();
+          if (d.user === 'Anonymous' && d.userID === '@anonymous') {
+            await deleteDoc(doc(db, 'posts', postId, 'likes', likeDoc.id));
+            deleted = true;
+            break;
+          }
+        }
         likedPosts = likedPosts.filter(id => id !== postId);
         localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
-        const postDoc = await getDoc(doc(db, 'posts', postId));
-        const likeCount = postDoc.data().likeCount || 0;
+        const likesSnap2 = await getDocs(likesCol);
+        const likeCount = likesSnap2.size;
         updatePostCounts(postId, { likeCount, isLiked: false });
         showNotification('You unliked this post.', 'info', 1200);
       }
@@ -447,28 +541,24 @@ document.addEventListener('click', async function(e) {
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
 
-    // Use demo user
-    const user = currentUser;
-    if (!user) return;
-
-    // Share collection logic
-    const shareDocRef = doc(db, 'posts', postId, 'shares', "demo-user");
+    // Share collection logic (localStorage + Firestore collection)
     let sharedPosts = JSON.parse(localStorage.getItem('sharedPosts') || '[]');
-    if (sharedPosts.includes(postId)) {
+    const isShared = sharedPosts.includes(postId);
+    const sharesCol = collection(db, 'posts', postId, 'shares');
+    if (isShared) {
       showNotification('You already shared this post.', 'info', 1500);
       return;
     }
     try {
-      // Add to share collection
-      await setDoc(shareDocRef, {
-        userId: "demo-user",
-        sharedAt: new Date().toISOString()
+      await addDoc(sharesCol, {
+        user: 'Anonymous',
+        userID: '@anonymous',
+        date: new Date().toISOString()
       });
-      await updateDoc(doc(db, 'posts', postId), { shareCount: increment(1) });
       sharedPosts.push(postId);
       localStorage.setItem('sharedPosts', JSON.stringify(sharedPosts));
-      const postDoc = await getDoc(doc(db, 'posts', postId));
-      const shareCount = postDoc.data().shareCount || 1;
+      const sharesSnap = await getDocs(sharesCol);
+      const shareCount = sharesSnap.size;
       updatePostCounts(postId, { shareCount });
       showNotification('Post shared!', 'success', 1200);
     } catch (err) {
@@ -546,15 +636,30 @@ document.addEventListener('click', async function(e) {
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
     if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
-    deleteDoc(doc(db, 'posts', postId))
-      .then(() => {
-        const feedPost = postCard.closest('.feed-post');
-        if (feedPost) feedPost.remove();
-        showNotification('Post deleted.', 'success', 1200);
-      })
-      .catch(() => {
-        showNotification('Failed to delete post.', 'error');
-      });
+
+    // Delete photo from storage if present
+    getDoc(doc(db, 'posts', postId)).then(async (postDoc) => {
+      if (postDoc.exists()) {
+        const postData = postDoc.data();
+        if (postData.photoPath) {
+          try {
+            await deleteObject(storageRef(storage, postData.photoPath));
+          } catch (err) {
+            // ignore error
+          }
+        }
+      }
+      deleteDoc(doc(db, 'posts', postId))
+        .then(() => {
+          const feedPost = postCard.closest('.feed-post');
+          if (feedPost) feedPost.remove();
+          else postCard.parentElement && postCard.parentElement.removeChild(postCard);
+          showNotification('Post deleted.', 'success', 1200);
+        })
+        .catch(() => {
+          showNotification('Failed to delete post.', 'error');
+        });
+    });
     return;
   }
 });
@@ -634,17 +739,20 @@ function renderPopupPost(postData) {
     });
   }
 
-  // --- IMAGE, VIDEO, FILE RENDER LOGIC FOR POPUP ---
+  // --- Render photo if present ---
   let mediaHtml = '';
-  if (postData.image) {
-    mediaHtml = `<div class="mb-2"><img src="${postData.image}" alt="Post image" style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;" loading="lazy"></div>`;
-  } else if (postData.video) {
-    mediaHtml = `<div class="mb-2"><video src="${postData.video}" controls style="max-width:100%; max-height:200px; border-radius:20px; display:block; margin:auto;"></video></div>`;
-  } else if (postData.file) {
-    mediaHtml = `<div class="mb-2" style="background: var(--secondary-color); border-radius: 20px; padding: 1rem; display: flex; align-items: center; gap: 10px; min-height:60px;">
-      <i class="bi bi-paperclip" style="font-size:1.5rem; color:var(--b-color);"></i>
-      <a href="${postData.file}" target="_blank" style="color:var(--b-color); word-break:break-all;">${postData.fileName || 'Download file'}</a>
-    </div>`;
+  if (postData.photoUrl) {
+    mediaHtml = `
+      <div class="mb-2">
+        <img src="${postData.photoUrl}" alt="Post photo" style="max-width:100%;max-height:320px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:8px;">
+      </div>
+    `;
+  }
+
+  // Show userID if present
+  let userIdHtml = '';
+  if (postData.userID) {
+    userIdHtml = `<div class="text-muted small" style="color: var(--p-color);">${postData.userID}</div>`;
   }
 
   postDiv.innerHTML = `
@@ -652,6 +760,7 @@ function renderPopupPost(postData) {
       <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
       <div>
         <h6 class="mb-0" style="color: var(--headline-color);">${postData.user ? postData.user : 'Unknown User'}</h6>
+        ${userIdHtml}
         <div class="text-muted small" style="color: var(--p-color);">${dateStr}</div>
       </div>
     </div>
@@ -688,6 +797,11 @@ async function renderPopupComments(postId) {
           minute: '2-digit'
         });
       }
+      // Show userID if present
+      let userIdHtml = '';
+      if (c.userID) {
+        userIdHtml = `<div style="font-size:0.8em; color:var(--p-color);">${c.userID}</div>`;
+      }
       const commentEl = document.createElement('div');
       commentEl.className = 'comment mb-2';
       commentEl.innerHTML = `
@@ -695,6 +809,7 @@ async function renderPopupComments(postId) {
           <span class="rounded-circle d-inline-block me-2" style="width:32px;height:32px; background-color: #eee; display: flex; align-items: center; justify-content: center; font-size:1rem;">${c.user ? c.user[0] : '?'}</span>
           <div>
             <div style="font-weight:500;">${c.user || 'Anonymous'}</div>
+            ${userIdHtml}
             <div style="font-size:0.95em; color:var(--headline-color);">${c.content}</div>
             <div style="font-size:0.8em; color:var(--p-color);">${dateStr}</div>
           </div>
@@ -725,6 +840,20 @@ async function showCommentPopup(postData) {
     popupContent.style.maxWidth = '98vw';
   }
 
+  // If photoPath exists but no photoUrl, get download URL
+  if (postData.photoPath && !postData.photoUrl) {
+    try {
+      postData.photoUrl = await getDownloadURL(storageRef(storage, postData.photoPath));
+    } catch (err) {
+      postData.photoUrl = '';
+    }
+  }
+
+  // If userID is missing, set to '@anonymous' for backward compatibility
+  if (!postData.userID) {
+    postData.userID = '@anonymous';
+  }
+
   renderPopupPost(postData);
   commentPopup.style.display = 'flex';
   commentPopup.dataset.postId = postData.id;
@@ -748,7 +877,6 @@ function hideCommentPopup() {
 document.addEventListener('click', async function(e) {
   const commentBtn = e.target.closest('.open-comment-popup');
   if (commentBtn) {
-    // No need to check requireAuthAction
     const postCard = commentBtn.closest('.card-body');
     if (postCard) {
       const postId = postCard.getAttribute('data-post-id');
@@ -757,6 +885,18 @@ document.addEventListener('click', async function(e) {
       if (!postDoc.exists()) return;
       const postData = postDoc.data();
       postData.id = postId;
+      // If photoPath exists but no photoUrl, get download URL
+      if (postData.photoPath && !postData.photoUrl) {
+        try {
+          postData.photoUrl = await getDownloadURL(storageRef(storage, postData.photoPath));
+        } catch (err) {
+          postData.photoUrl = '';
+        }
+      }
+      // If userID is missing, set to '@anonymous' for backward compatibility
+      if (!postData.userID) {
+        postData.userID = '@anonymous';
+      }
       showCommentPopup(postData);
     }
   }
@@ -773,16 +913,17 @@ if (!window._commentPopupListenerAdded) {
   document.addEventListener('click', async function(e) {
     if (!commentPopup || commentPopup.style.display !== 'flex') return;
     if (e.target.closest('.send-comment-btn')) {
-      // No need to check requireAuthAction
       const postId = commentPopup.dataset.postId;
       const input = commentPopup.querySelector('input[type="text"]');
       const commentText = input ? input.value.trim() : '';
       if (!postId || !commentText) return;
-      // Use demo user's displayName or email for comment
-      let userName = currentUser.displayName || currentUser.email || 'User';
+      // Use "Anonymous" for comment user
+      let userName = 'Anonymous';
+      let userID = '@anonymous';
       try {
         await addDoc(collection(db, 'posts', postId, 'comments'), {
           user: userName,
+          userID: userID,
           content: commentText,
           date: new Date().toISOString()
         });
@@ -799,16 +940,17 @@ if (!window._commentPopupListenerAdded) {
     if (e.key === 'Enter' && !e.shiftKey) {
       const input = commentPopup.querySelector('input[type="text"]');
       if (document.activeElement === input) {
-        // No need to check requireAuthAction
         e.preventDefault();
         const postId = commentPopup.dataset.postId;
         const commentText = input ? input.value.trim() : '';
         if (!postId || !commentText) return;
-        // Use demo user's displayName or email for comment
-        let userName = currentUser.displayName || currentUser.email || 'User';
+        // Use "Anonymous" for comment user
+        let userName = 'Anonymous';
+        let userID = '@anonymous';
         try {
           await addDoc(collection(db, 'posts', postId, 'comments'), {
             user: userName,
+            userID: userID,
             content: commentText,
             date: new Date().toISOString()
           });
@@ -825,6 +967,7 @@ if (!window._commentPopupListenerAdded) {
   });
 }
 
+// --- Notification Popup System ---
 function showNotification(message, type = 'info', duration = 3000) {
   let existing = document.getElementById('custom-notification');
   if (existing) existing.remove();
@@ -882,14 +1025,16 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 let notificationList = [];
 
-let notifBtn = document.getElementById('notification-dropdown');
+// Get the notification button by id 'notif', or create it if not present
+let notifBtn = document.getElementById('notif');
 if (!notifBtn) {
   notifBtn = document.createElement('button');
-  notifBtn.id = 'notification-btn';
+  notifBtn.id = 'notif';
   notifBtn.textContent = '🔔';
   notifBtn.style.position = 'fixed';
   notifBtn.style.top = '30px';
-  notifBtn.style.right = '30px';
+  notifBtn.style.left = '50%';
+  notifBtn.style.transform = 'translateX(-50%)';
   notifBtn.style.zIndex = 100000;
   notifBtn.style.background = 'var(--main-color)';
   notifBtn.style.color = 'var(--headline-color)';
@@ -906,13 +1051,31 @@ if (!notifBtn) {
   document.body.appendChild(notifBtn);
 }
 
+// Modal fade (backdrop) for notification popup
+let notifModalFade = document.getElementById('notification-modal-fade');
+if (!notifModalFade) {
+  notifModalFade = document.createElement('div');
+  notifModalFade.id = 'notification-modal-fade';
+  notifModalFade.style.position = 'fixed';
+  notifModalFade.style.top = '0';
+  notifModalFade.style.left = '0';
+  notifModalFade.style.width = '100vw';
+  notifModalFade.style.height = '100vh';
+  notifModalFade.style.background = 'rgba(0,0,0,0.35)';
+  notifModalFade.style.zIndex = 100000;
+  notifModalFade.style.display = 'none';
+  notifModalFade.style.transition = 'opacity 0.2s';
+  document.body.appendChild(notifModalFade);
+}
+
 let notifPopup = document.getElementById('notification-popup');
 if (!notifPopup) {
   notifPopup = document.createElement('div');
   notifPopup.id = 'notification-popup';
   notifPopup.style.position = 'fixed';
   notifPopup.style.top = '80px';
-  notifPopup.style.right = '30px';
+  notifPopup.style.left = '50%';
+  notifPopup.style.transform = 'translateX(-50%)';
   notifPopup.style.width = 'min(600px, 98vw)';
   notifPopup.style.maxWidth = '98vw';
   notifPopup.style.minWidth = '0';
@@ -977,20 +1140,49 @@ notifBtn.addEventListener('click', function() {
   if (notifPopup.style.display === 'none' || notifPopup.style.display === '') {
     renderNotificationPopup();
     notifPopup.style.display = 'block';
+    notifModalFade.style.display = 'block';
+    setTimeout(() => {
+      notifModalFade.style.opacity = '1';
+    }, 10);
   } else {
     notifPopup.style.display = 'none';
+    notifModalFade.style.opacity = '0';
+    setTimeout(() => {
+      notifModalFade.style.display = 'none';
+    }, 200);
   }
 });
 
 notifPopup.addEventListener('click', function(e) {
   if (e.target && e.target.id === 'close-notif-popup') {
     notifPopup.style.display = 'none';
+    notifModalFade.style.opacity = '0';
+    setTimeout(() => {
+      notifModalFade.style.display = 'none';
+    }, 200);
+  }
+});
+
+notifModalFade.addEventListener('mousedown', function(e) {
+  // Only close if clicking directly on the fade, not the popup
+  if (notifPopup.style.display === 'block') {
+    notifPopup.style.display = 'none';
+    notifModalFade.style.opacity = '0';
+    setTimeout(() => {
+      notifModalFade.style.display = 'none';
+    }, 200);
   }
 });
 
 document.addEventListener('mousedown', function(e) {
+  // If fade is visible, let its handler close the popup
+  if (notifModalFade.style.display === 'block') return;
   if (notifPopup.style.display === 'block' && !notifPopup.contains(e.target) && e.target !== notifBtn) {
     notifPopup.style.display = 'none';
+    notifModalFade.style.opacity = '0';
+    setTimeout(() => {
+      notifModalFade.style.display = 'none';
+    }, 200);
   }
 });
 
@@ -1019,11 +1211,3 @@ if (!scrollTopBtn) {
     if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
   });
 }
-
-feedContainer.addEventListener('scroll', function() {
-  if (feedContainer.scrollTop > 200) {
-    scrollTopBtn.style.display = 'block';
-  } else {
-    scrollTopBtn.style.display = 'none';
-  }
-});
