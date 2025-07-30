@@ -1,6 +1,4 @@
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-  const supabase = createClient('https://tfafmgaavnizcteboecf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYWZtZ2Fhdm5pemN0ZWJvZWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NDYzNDgsImV4cCI6MjA2OTQyMjM0OH0.YLk_F51XRhpnHw1NAnMx1_PWASk3cq3mgsXqxMgPXqw')
-  console.log('Supabase Instance: ', supabase)
+
 
 //Tao bucket
 const { data, error } = await supabase.storage.createBucket('avatars', {

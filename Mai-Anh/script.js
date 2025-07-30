@@ -1,4 +1,9 @@
-// Import the functions you need from the SDKs you need
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+const supabase = createClient('https://tfafmgaavnizcteboecf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYWZtZ2Fhdm5pemN0ZWJvZWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NDYzNDgsImV4cCI6MjA2OTQyMjM0OH0.YLk_F51XRhpnHw1NAnMx1_PWASk3cq3mgsXqxMgPXqw')
+console.log('Supabase Instance: ', supabase)
+
+
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
 import {
@@ -40,7 +45,6 @@ const storage = getStorage(app);
 const createFeedModal = document.getElementById('createFeedModal');
 const postButton = document.getElementById('postButton');
 
-// --- Remove Auth UI Elements ---
 const signInSection = document.getElementById('signInSection');
 const signUpSection = document.getElementById('signUpSection');
 const userInfoSection = document.getElementById('userInfoSection');
@@ -67,26 +71,24 @@ feedContainer.style.maxHeight = '80vh';
 feedContainer.style.minHeight = '200px';
 feedContainer.style.paddingRight = '8px';
 
-// --- FEED CREATE: Add image input for photo upload as a button under input ---
+
 let photoInput = document.getElementById('photo');
 let photoButton = document.getElementById('photoButton');
 let photoPreview = document.getElementById('photoPreview');
+
 (function setupPhotoInputButton() {
   const contentInput = document.getElementById('content');
   if (!contentInput) return;
-  // Remove any existing photo input
   if (photoInput && photoInput.parentElement) photoInput.parentElement.removeChild(photoInput);
   if (photoButton && photoButton.parentElement) photoButton.parentElement.removeChild(photoButton);
   if (photoPreview && photoPreview.parentElement) photoPreview.parentElement.removeChild(photoPreview);
 
-  // Create hidden file input
   photoInput = document.createElement('input');
   photoInput.type = 'file';
   photoInput.accept = 'image/*';
   photoInput.id = 'photo';
   photoInput.style.display = 'none';
 
-  // Create photo button
   photoButton = document.createElement('button');
   photoButton.type = 'button';
   photoButton.id = 'photoButton';
@@ -103,7 +105,6 @@ let photoPreview = document.getElementById('photoPreview');
   photoButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
   photoButton.style.transition = 'background 0.2s';
 
-  // Create preview image
   photoPreview = document.createElement('img');
   photoPreview.id = 'photoPreview';
   photoPreview.style.display = 'none';
@@ -114,26 +115,26 @@ let photoPreview = document.getElementById('photoPreview');
   photoPreview.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
   photoPreview.alt = 'Selected photo preview';
 
-  // Insert after content input
   if (contentInput.parentElement) {
     contentInput.parentElement.appendChild(photoInput);
     contentInput.parentElement.appendChild(photoButton);
     contentInput.parentElement.appendChild(photoPreview);
   }
 
-  // Button click opens file input
   photoButton.addEventListener('click', () => photoInput.click());
 
-  // Show preview when file selected
   photoInput.addEventListener('change', function () {
     if (photoInput.files && photoInput.files[0]) {
       const file = photoInput.files[0];
+
       const reader = new FileReader();
       reader.onload = function (e) {
         photoPreview.src = e.target.result;
         photoPreview.style.display = 'block';
       };
       reader.readAsDataURL(file);
+
+      uploadFile(file); // vital addition
     } else {
       photoPreview.src = '';
       photoPreview.style.display = 'none';
@@ -141,7 +142,18 @@ let photoPreview = document.getElementById('photoPreview');
   });
 })();
 
-// Helper to render a single post (prepend if needed)
+async function uploadFile(file) {
+  const filePath = `uploads/${Date.now()}_${file.name}`; 
+  const { data, error } = await supabase.storage.from('mindxtt').upload(filePath, file);
+  if (error) {
+    console.error('Upload failed:', error);
+  } else {
+    console.log('Upload success:', data);
+  }
+}
+
+
+
 function renderPost(data, prepend = false) {
   let dateStr = '';
   if (data.date) {
