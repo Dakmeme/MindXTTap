@@ -429,17 +429,15 @@ document.querySelectorAll(".nav-item").forEach((item) => {
     switch(id) {
       case "feed":
         console.log("Navigating to Feed...");
-        // window.location.href = 'feed.html';
-        alert("Would navigate to Feed");
+        window.location.href = 'main.html';
         break;
-      case "friends":
+      case "friends-nav":
         console.log("Navigating to Friends page...");
         window.location.href = 'friends.html';
         break;
-      case "messages":
+      case "messages-nav":
         console.log("Opening Messages...");
-        // window.location.href = 'messages.html';
-        alert("Would open Messages");
+        window.location.href = 'messages.html';
         break;
       case "notif":
         console.log("Opening Notifications...");
