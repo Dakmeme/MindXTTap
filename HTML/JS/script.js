@@ -82,7 +82,6 @@ if (!feedContainer) {
   feedContainer.id = "feed"
   document.body.appendChild(feedContainer)
 }
-feedContainer.style.overflowY = "auto"
 feedContainer.style.maxHeight = "80vh"
 feedContainer.style.minHeight = "200px"
 feedContainer.style.paddingRight = "8px"
