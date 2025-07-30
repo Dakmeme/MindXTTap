@@ -1025,7 +1025,6 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 let notificationList = [];
 
-// Get the notification button by id 'notif', or create it if not present
 let notifBtn = document.getElementById('notif');
 if (!notifBtn) {
   notifBtn = document.createElement('button');
@@ -1175,7 +1174,6 @@ notifModalFade.addEventListener('mousedown', function(e) {
 });
 
 document.addEventListener('mousedown', function(e) {
-  // If fade is visible, let its handler close the popup
   if (notifModalFade.style.display === 'block') return;
   if (notifPopup.style.display === 'block' && !notifPopup.contains(e.target) && e.target !== notifBtn) {
     notifPopup.style.display = 'none';
@@ -1236,7 +1234,6 @@ document.querySelectorAll(".nav-item").forEach((item) => {
         break;
       case "notif":
         console.log("Opening Notifications...");
-        alert("Would open Notifications");
         break;
       case "settings":
         console.log("Opening Settings...");
