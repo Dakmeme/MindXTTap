@@ -206,25 +206,7 @@ body {
   max-width: 740px;
 }
 
-/* Enhanced Post Creation Card */
-.create-post-card {
-  background: var(--card-bg);
-  border-radius: 20px;
-  padding: 0;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-softer);
-  transition: all 0.3s ease;
-}
 
-.create-post-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-  border-color: var(--b-color);
-}
-
-.feed-create-container {
-  padding: 1.5rem;
-}
 
 .create-post-input {
   background-color: var(--background-color);
@@ -237,10 +219,7 @@ body {
   transition: all 0.3s ease;
 }
 
-.create-post-input:hover {
-  border-color: var(--b-color);
-  background-color: rgba(127, 90, 240, 0.05);
-}
+
 
 .media-buttons-container {
   display: flex;
@@ -388,7 +367,12 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(127, 90, 240, 0.4);
 }
-
+.feed-create-container{
+  position: absolute;
+  bottom: 0;
+  right:0;
+  transform: translate(50%, -100%);
+}
 /* Enhanced Post Card Styles */
 .post-card {
   background: var(--card-bg);
