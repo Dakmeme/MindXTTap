@@ -227,7 +227,6 @@ function updatePostCounts(postId, { likeCount, commentCount, shareCount, isLiked
 }
 
 async function loadAllPosts() {
-  // Remove sample post
   const samplePost = document.querySelector(".sample-post")
   if (samplePost) samplePost.remove()
 
