@@ -200,13 +200,11 @@ body {
 }
 
 .indicator {
-  position: relative;
   width: 100%;
-  max-width: 740px;
+  gap:25%
 }
-
-
-
+.search-container{
+  flex: 1}
 
 
 .media-buttons-container {
