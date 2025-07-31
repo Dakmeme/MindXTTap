@@ -36,7 +36,6 @@ const db = getFirestore(app)
 const createFeedModal = document.getElementById("createFeedModal")
 const postButton = document.getElementById("postButton")
 
-// User State - Demo Mode
 const currentUser = { displayName: "Demo User", email: "demo@example.com", uid: "demo-user-id" }
 
 // Initialize UI
@@ -47,17 +46,16 @@ function initializeUI() {
   if (username) username.textContent = currentUser.displayName
   if (useremail) useremail.textContent = currentUser.email
 
-  // Show loading spinner initially
-  const loadingSpinner = document.getElementById("loading-spinner")
-  if (loadingSpinner) {
-    loadingSpinner.style.display = "flex"
-    setTimeout(() => {
-      loadingSpinner.style.display = "none"
-    }, 1500)
-  }
+  // const loadingSpinner = document.getElementById("loading-spinner")
+  // if (loadingSpinner) {
+  //   loadingSpinner.style.display = "flex"
+  //   setTimeout(() => {
+  //     loadingSpinner.style.display = "none"
+  //   }, 1500)
+  // }
 }
 
-// Character counter for textarea
+// Gioi han chu
 const contentTextarea = document.getElementById("content")
 if (contentTextarea) {
   const charCount = document.getElementById("char-count")
@@ -77,6 +75,8 @@ if (contentTextarea) {
   }
 }
 
+
+
 let feedContainer = document.getElementById("feed")
 if (!feedContainer) {
   feedContainer = document.createElement("div")
@@ -85,7 +85,6 @@ if (!feedContainer) {
 }
 feedContainer.style.maxHeight = "80vh"
 feedContainer.style.minHeight = "200px"
-feedContainer.style.paddingRight = "8px"
 
 function renderPost(data, prepend = false) {
   let dateStr = ""
@@ -105,6 +104,7 @@ function renderPost(data, prepend = false) {
   const shareCount = data.shareCount || 0
   const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]")
   const isLiked = likedPosts.includes(data.id)
+
 
   const menuHtml = `
     <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
@@ -327,7 +327,6 @@ if (postButton) {
         true,
       )
 
-      // Clear inputs
       contentInput.value = ""
       if (imageInput) imageInput.value = ""
       if (videoInput) videoInput.value = ""
@@ -336,7 +335,6 @@ if (postButton) {
         fileInput.removeAttribute("data-filename")
       }
 
-      // Reset character counter
       const charCount = document.getElementById("char-count")
       if (charCount) {
         charCount.textContent = "0"
@@ -832,7 +830,6 @@ function showNotification(message, type = "info", duration = 3000) {
   notif.id = "custom-notification";
   notif.textContent = message;
   notif.className = "custom-notification-base";
-  // Center and fix notification at top, with fade
   notif.style.position = "fixed";
   notif.style.left = "50%";
   notif.style.top = "32px";
@@ -925,7 +922,8 @@ if (!notifModalOverlay) {
   notifModalOverlay.style.left = "0";
   notifModalOverlay.style.width = "100vw";
   notifModalOverlay.style.height = "100vh";
-  notifModalOverlay.style.background = "rgba(0,0,0,0.32)";
+  notifModalOverlay.style.background = "rgba(0, 0, 0, 0.6)";
+  notifModalOverlay.style.backdropFilter = "blur(8px)";
   notifModalOverlay.style.zIndex = "10000";
   notifModalOverlay.style.display = "none";
   notifModalOverlay.style.opacity = "0";
