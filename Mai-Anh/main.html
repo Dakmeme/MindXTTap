@@ -98,6 +98,14 @@
                 <span class="rounded-circle d-inline-block me-3" style="width:40px;height:40px; background-color: #fff; display: flex; align-items: center; justify-content: center;"></span>
                 <textarea class="form-control" id="content" rows="3" placeholder="What's on your mind?" style="background-color: var(--background-color); color: var(--headline-color); border-color: var(--border-color); border-radius: 20px; resize: none;"></textarea>
               </div>
+              <div id="imageControlDiv" style="margin-top: 12px;">
+                <button type="button" id="photoButton" class="btn btn-outline-secondary btn-sm" style="margin-right: 12px; border-radius: 20px;">
+                  📷 Add Images
+                </button>
+                <input type="file" id="photo" accept="image/*" style="display: none;" multiple>
+              </div>
+              <div id="photoListDiv" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;"></div>
+              <input type="hidden" id="photoPath">
             </div>
             <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 20px;">Cancel</button>
@@ -150,4 +158,5 @@
   </div>
 </body>
 <script type="module" src="script.js"></script>
+<script type="module" src="storage.js"></script>
 </html>

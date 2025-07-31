@@ -160,38 +160,28 @@ body {
   }
 }
 
-/* Style for the photo input under the textarea in the modal */
-#createFeedModal .modal-body {
+#photoListDiv {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
 }
 
-#createFeedModal #photo {
-  display: block;
-  width: 100%;
-  margin-top: 0.5rem;
-  background: var(--background-color);
-  color: var(--headline-color);
-  border: 1px solid var(--border-color);
+#photoListDiv img {
+  max-width: 120px;
+  max-height: 120px;
   border-radius: 12px;
-  padding: 8px 12px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin: 4px;
 }
 
-#createFeedModal #photo:focus {
-  outline: none;
-  border-color: var(--b-color);
+#photoListDiv img:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
 }
 
-#createFeedModal label[for="photo"] {
-  display: block;
-  margin-top: 0.5rem;
-  margin-bottom: 0.25rem;
-  color: var(--headline-color);
-  font-size: 0.98em;
-  font-weight: 500;
+#photoButton {
+  margin-top: 12px;
 }
 
 

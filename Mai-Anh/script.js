@@ -1,9 +1,4 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-const supabase = createClient('https://tfafmgaavnizcteboecf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYWZtZ2Fhdm5pemN0ZWJvZWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NDYzNDgsImV4cCI6MjA2OTQyMjM0OH0.YLk_F51XRhpnHw1NAnMx1_PWASk3cq3mgsXqxMgPXqw')
-console.log('Supabase Instance: ', supabase)
-
-
-
+// Import Firebase core and Firestore modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
 import {
@@ -16,16 +11,17 @@ import {
   query,
   orderBy,
   updateDoc,
-  increment,
   deleteDoc
-} from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
-import {
-  getStorage,
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+} from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js';
+
+// Supabase client and storage helpers
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+import { getImageUrl as getImageUrlFromStorage, uploadFile } from './storage.js';
+
+const SUPABASE_URL = 'https://tfafmgaavnizcteboecf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmYWZtZ2Fhdm5pemN0ZWJvZWNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4NDYzNDgsImV4cCI6MjA2OTQyMjM0OH0.YLk_F51XRhpnHw1NAnMx1_PWASk3cq3mgsXqxMgPXqw';
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
@@ -40,121 +36,239 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 const createFeedModal = document.getElementById('createFeedModal');
 const postButton = document.getElementById('postButton');
 
-const signInSection = document.getElementById('signInSection');
-const signUpSection = document.getElementById('signUpSection');
-const userInfoSection = document.getElementById('userInfoSection');
-const userNameDisplay = document.getElementById('userNameDisplay');
-const userEmailDisplay = document.getElementById('userEmailDisplay');
-const signOutBtn = document.getElementById('signOutBtn');
+// Hide auth UI elements if present
+['signInSection', 'signUpSection', 'userInfoSection'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+});
 
-if (signInSection) signInSection.style.display = 'none';
-if (signUpSection) signUpSection.style.display = 'none';
-if (userInfoSection) userInfoSection.style.display = 'none';
+// User state (no auth)
+let currentUser = null;
 
-// --- User State ---
-let currentUser = null; // Always null, no auth
-
-// --- Scrollable Feed Container Setup ---
+// Feed container setup
 let feedContainer = document.getElementById('feed');
 if (!feedContainer) {
   feedContainer = document.createElement('div');
   feedContainer.id = 'feed';
   document.body.appendChild(feedContainer);
 }
-feedContainer.style.overflowY = 'auto';
-feedContainer.style.maxHeight = '80vh';
-feedContainer.style.minHeight = '200px';
-feedContainer.style.paddingRight = '8px';
+Object.assign(feedContainer.style, {
+  overflowY: 'auto',
+  maxHeight: '80vh',
+  minHeight: '200px',
+  paddingRight: '8px'
+});
 
+// Remove any old photo input/button/preview
+(function cleanupOldPhotoInputs() {
+  ['photo', 'photoButton', 'photoPreview', 'photoListDiv'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.parentElement) el.parentElement.removeChild(el);
+  });
+})();
 
-let photoInput = document.getElementById('photo');
-let photoButton = document.getElementById('photoButton');
-let photoPreview = document.getElementById('photoPreview');
+// Track selected images for this post
+let selectedImages = [];
 
-(function setupPhotoInputButton() {
+// Create image upload button and preview list
+(function setupImageUploadUI() {
+  if (!createFeedModal) return;
   const contentInput = document.getElementById('content');
   if (!contentInput) return;
-  if (photoInput && photoInput.parentElement) photoInput.parentElement.removeChild(photoInput);
-  if (photoButton && photoButton.parentElement) photoButton.parentElement.removeChild(photoButton);
-  if (photoPreview && photoPreview.parentElement) photoPreview.parentElement.removeChild(photoPreview);
 
-  photoInput = document.createElement('input');
+  let imageControlDiv = document.getElementById('imageControlDiv');
+  if (!imageControlDiv) {
+    imageControlDiv = document.createElement('div');
+    imageControlDiv.id = 'imageControlDiv';
+    imageControlDiv.style.marginTop = '12px';
+    contentInput.parentElement.appendChild(imageControlDiv);
+  } else {
+    imageControlDiv.innerHTML = '';
+  }
+
+  // File input (hidden, allow multiple)
+  const photoInput = document.createElement('input');
   photoInput.type = 'file';
   photoInput.accept = 'image/*';
   photoInput.id = 'photo';
   photoInput.style.display = 'none';
+  photoInput.multiple = true;
 
-  photoButton = document.createElement('button');
+  // Button to trigger file input
+  const photoButton = document.createElement('button');
   photoButton.type = 'button';
   photoButton.id = 'photoButton';
-  photoButton.innerHTML = '<i class="bi bi-image"></i> Add Photo';
-  photoButton.style.display = 'block';
-  photoButton.style.margin = '8px auto 0 auto';
+  photoButton.textContent = '📷 Add Images';
+  photoButton.className = 'btn btn-outline-secondary btn-sm';
+  photoButton.style.marginRight = '12px';
   photoButton.style.borderRadius = '20px';
-  photoButton.style.background = 'var(--main-color)';
-  photoButton.style.color = 'var(--headline-color)';
-  photoButton.style.border = '1px solid var(--border-color)';
-  photoButton.style.padding = '8px 18px';
-  photoButton.style.fontSize = '1rem';
-  photoButton.style.cursor = 'pointer';
-  photoButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
-  photoButton.style.transition = 'background 0.2s';
 
-  photoPreview = document.createElement('img');
-  photoPreview.id = 'photoPreview';
-  photoPreview.style.display = 'none';
-  photoPreview.style.maxWidth = '100%';
-  photoPreview.style.maxHeight = '180px';
-  photoPreview.style.margin = '8px auto 0 auto';
-  photoPreview.style.borderRadius = '12px';
-  photoPreview.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-  photoPreview.alt = 'Selected photo preview';
-
-  if (contentInput.parentElement) {
-    contentInput.parentElement.appendChild(photoInput);
-    contentInput.parentElement.appendChild(photoButton);
-    contentInput.parentElement.appendChild(photoPreview);
+  // Image preview list
+  let photoListDiv = document.getElementById('photoListDiv');
+  if (!photoListDiv) {
+    photoListDiv = document.createElement('div');
+    photoListDiv.id = 'photoListDiv';
+    Object.assign(photoListDiv.style, {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '8px',
+      marginTop: '8px'
+    });
+    contentInput.parentElement.appendChild(photoListDiv);
+  } else {
+    photoListDiv.innerHTML = '';
   }
 
-  photoButton.addEventListener('click', () => photoInput.click());
+  // Hidden input to store photoPaths (for Firestore, as JSON array)
+  let photoPathInput = document.getElementById('photoPath');
+  if (!photoPathInput) {
+    photoPathInput = document.createElement('input');
+    photoPathInput.type = 'hidden';
+    photoPathInput.id = 'photoPath';
+    contentInput.parentElement.appendChild(photoPathInput);
+  }
 
-  photoInput.addEventListener('change', function () {
-    if (photoInput.files && photoInput.files[0]) {
-      const file = photoInput.files[0];
+  imageControlDiv.appendChild(photoButton);
+  imageControlDiv.appendChild(photoInput);
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        photoPreview.src = e.target.result;
-        photoPreview.style.display = 'block';
-      };
-      reader.readAsDataURL(file);
-
-      uploadFile(file); // vital addition
-    } else {
-      photoPreview.src = '';
-      photoPreview.style.display = 'none';
+  photoButton.addEventListener('click', function() {
+    if (selectedImages.length >= 5) {
+      showNotification('You can upload up to 5 images per post.', 'warning', 2000);
+      return;
     }
+    photoInput.value = '';
+    photoInput.click();
   });
+
+  function removeImage(idx) {
+    selectedImages.splice(idx, 1);
+    renderPhotoList();
+    updatePhotoPathInput();
+    if (selectedImages.length < 5) {
+      photoButton.disabled = false;
+      photoButton.textContent = '📷 Add Images';
+    }
+  }
+
+  function renderPhotoList() {
+    photoListDiv.innerHTML = '';
+    selectedImages.forEach((img, idx) => {
+      const wrapper = document.createElement('div');
+      Object.assign(wrapper.style, {
+        position: 'relative',
+        display: 'inline-block'
+      });
+
+      const imgEl = document.createElement('img');
+      imgEl.src = img.previewUrl;
+      Object.assign(imgEl.style, {
+        maxWidth: '90px',
+        maxHeight: '90px',
+        borderRadius: '10px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        display: 'block'
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'Remove image';
+      Object.assign(removeBtn.style, {
+        position: 'absolute',
+        top: '-8px',
+        right: '-8px',
+        background: '#fff',
+        color: '#d90429',
+        border: '1px solid #d90429',
+        borderRadius: '50%',
+        width: '22px',
+        height: '22px',
+        fontSize: '1.1em',
+        cursor: 'pointer',
+        zIndex: '2'
+      });
+      removeBtn.addEventListener('click', () => removeImage(idx));
+
+      wrapper.appendChild(imgEl);
+      wrapper.appendChild(removeBtn);
+      photoListDiv.appendChild(wrapper);
+    });
+    if (selectedImages.length >= 5) {
+      photoButton.disabled = true;
+      photoButton.textContent = 'Max 5 images';
+    } else {
+      photoButton.disabled = false;
+      photoButton.textContent = '📷 Add Images';
+    }
+  }
+
+  function updatePhotoPathInput() {
+    const uploadedPaths = selectedImages.filter(img => img.uploaded && img.storagePath).map(img => img.storagePath);
+    photoPathInput.value = JSON.stringify(uploadedPaths);
+  }
+
+  photoInput.addEventListener('change', async function() {
+    const files = Array.from(photoInput.files || []);
+    if (!files.length) return;
+    if (selectedImages.length + files.length > 5) {
+      showNotification('You can upload up to 5 images per post.', 'warning', 2000);
+      return;
+    }
+    for (const file of files) {
+      if (selectedImages.length >= 5) break;
+      const reader = new FileReader();
+      let previewUrl = '';
+      await new Promise((resolve) => {
+        reader.onload = function(e) {
+          previewUrl = e.target.result;
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      });
+
+      try {
+        const filePath = `post_images/${Date.now()}-${Math.floor(Math.random()*100000)}-${file.name}`;
+        await uploadFile(file, filePath);
+        selectedImages.push({
+          file,
+          previewUrl,
+          storagePath: filePath,
+          uploaded: true
+        });
+        showNotification('Image uploaded!', 'success', 1000);
+      } catch (err) {
+        showNotification('Failed to upload image.', 'error');
+      }
+    }
+    renderPhotoList();
+    updatePhotoPathInput();
+  });
+
+  function resetImages() {
+    selectedImages = [];
+    renderPhotoList();
+    updatePhotoPathInput();
+  }
+
+  window._resetFeedImages = resetImages;
 })();
 
-async function uploadFile(file) {
-  const filePath = `uploads/${Date.now()}_${file.name}`; 
-  const { data, error } = await supabase.storage.from('mindxtt').upload(filePath, file);
-  if (error) {
-    console.error('Upload failed:', error);
-  } else {
-    console.log('Upload success:', data);
+// Helper to get image URL from Supabase Storage if photoPath exists
+async function getImageUrl(photoPath) {
+  if (!photoPath) return null;
+  try {
+    return `${SUPABASE_URL}/storage/v1/object/public/${photoPath}`;
+  } catch (err) {
+    return null;
   }
 }
 
-
-
-function renderPost(data, prepend = false) {
+// Helper to render a single post (prepend if needed)
+async function renderPost(data, prepend = false) {
   let dateStr = '';
   if (data.date) {
     const dateObj = new Date(data.date);
@@ -167,16 +281,13 @@ function renderPost(data, prepend = false) {
     });
   }
 
-  // Default counts
   const likeCount = data.likeCount || 0;
   const commentCount = data.commentCount || 0;
   const shareCount = data.shareCount || 0;
 
-  // For demo, use localStorage to track liked posts by this user
   const likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
   const isLiked = likedPosts.includes(data.id);
 
-  // Three-dot menu for edit/delete
   const menuHtml = `
     <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
       <button class="btn btn-sm post-menu-btn" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background: var(--secondary-color); border: none;" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
@@ -197,17 +308,32 @@ function renderPost(data, prepend = false) {
     </div>
   `;
 
-  // --- Render photo if present ---
   let mediaHtml = '';
-  if (data.photoUrl) {
-    mediaHtml = `
-      <div class="mb-2">
-        <img src="${data.photoUrl}" alt="Post photo" style="max-width:100%;max-height:320px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:8px;">
-      </div>
-    `;
+  let photoPaths = [];
+  if (data.photoPath) {
+    try {
+      photoPaths = Array.isArray(data.photoPath)
+        ? data.photoPath
+        : (typeof data.photoPath === 'string' && data.photoPath.startsWith('['))
+          ? JSON.parse(data.photoPath)
+          : data.photoPath ? [data.photoPath] : [];
+    } catch (e) {
+      photoPaths = [];
+    }
+  }
+  if (photoPaths.length > 0) {
+    let imgsHtml = '';
+    for (const path of photoPaths) {
+      const url = await getImageUrl(path);
+      if (url) {
+        imgsHtml += `<img src="${url}" alt="Post image" style="max-width:120px;max-height:120px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:4px;">`;
+      }
+    }
+    if (imgsHtml) {
+      mediaHtml = `<div class="mb-2" style="display:flex;flex-wrap:wrap;gap:8px;">${imgsHtml}</div>`;
+    }
   }
 
-  // Show userID if present
   let userIdHtml = '';
   if (data.userID) {
     userIdHtml = `<div class="text-muted small" style="color: var(--p-color);">${data.userID}</div>`;
@@ -269,7 +395,7 @@ function renderPost(data, prepend = false) {
   }
 }
 
-// Helper to update a single post's counts in the DOM
+// Update a single post's counts in the DOM
 function updatePostCounts(postId, {likeCount, commentCount, shareCount, isLiked}) {
   const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`);
   if (!postEl) return;
@@ -316,79 +442,83 @@ async function loadAllPosts() {
     data.id = docSnap.id;
     data.likeCount = typeof data.likeCount === 'number' ? data.likeCount : 0;
     data.shareCount = typeof data.shareCount === 'number' ? data.shareCount : 0;
-    // --- Get like and share collection counts ---
+    // Get like and share collection counts
     const likesCol = collection(db, 'posts', data.id, 'likes');
     const likesSnap = await getDocs(likesCol);
     data.likeCount = likesSnap.size;
     const sharesCol = collection(db, 'posts', data.id, 'shares');
     const sharesSnap = await getDocs(sharesCol);
     data.shareCount = sharesSnap.size;
-    // --- End like/share collection counts ---
+    // Get comment count
     const commentsCol = collection(db, 'posts', data.id, 'comments');
     const commentsSnap = await getDocs(commentsCol);
     data.commentCount = commentsSnap.size;
 
-    // If photoPath exists but no photoUrl, get download URL
-    if (data.photoPath && !data.photoUrl) {
-      try {
-        data.photoUrl = await getDownloadURL(storageRef(storage, data.photoPath));
-      } catch (err) {
-        data.photoUrl = '';
-      }
-    }
-
-    // If userID is missing, set to '@anonymous' for backward compatibility
     if (!data.userID) {
       data.userID = '@anonymous';
     }
 
-    renderPost(data);
+    await renderPost(data);
   }
 }
 loadAllPosts();
 
-// --- No Auth Restriction: allow all actions ---
+// No Auth Restriction: allow all actions
 function requireAuthAction(e, actionName = "this action") {
-  // Always allow
   return true;
 }
 
-// Handle post creation, close modal, and show new post without reload
+// --- SPAM PREVENTION: Only allow 1 post per session (per page load) ---
+// Enhanced spam prevention: Only allow 1 post per 5 minutes per browser (localStorage), and 1 post per session (per page load)
+let hasPostedFeed = false;
+const FEED_POST_SPAM_KEY = 'lastFeedPostTime';
+const FEED_POST_SPAM_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
 postButton.addEventListener('click', async function (e) {
   e.preventDefault();
+
+  // Check session flag
+  if (hasPostedFeed) {
+    showNotification('You can only post 1 feed per session. Please refresh the page to post again.', 'warning', 3000);
+    return;
+  }
+
+  // Check localStorage for last post time
+  const lastPostTime = parseInt(localStorage.getItem(FEED_POST_SPAM_KEY) || '0', 10);
+  const now = Date.now();
+  if (!isNaN(lastPostTime) && now - lastPostTime < FEED_POST_SPAM_INTERVAL_MS) {
+    const mins = Math.ceil((FEED_POST_SPAM_INTERVAL_MS - (now - lastPostTime)) / 60000);
+    showNotification(`Please wait ${mins} more minute${mins > 1 ? 's' : ''} before posting again.`, 'warning', 3500);
+    return;
+  }
+
   const contentInput = document.getElementById('content');
-  const photoInput = document.getElementById('photo');
-  const photoPreview = document.getElementById('photoPreview');
   if (!contentInput) {
     console.error('Content input not found');
     return;
   }
   const contentValue = contentInput.value.trim();
-  if (!contentValue && (!photoInput || !photoInput.files || !photoInput.files[0])) {
-    // Require at least text or photo
-    showNotification('Please enter some text or select a photo.', 'warning', 1500);
+
+  const photoPathInput = document.getElementById('photoPath');
+  let photoPaths = [];
+  if (photoPathInput && photoPathInput.value) {
+    try {
+      photoPaths = JSON.parse(photoPathInput.value);
+      if (!Array.isArray(photoPaths)) photoPaths = [];
+    } catch (e) {
+      photoPaths = [];
+    }
+  }
+
+  if (!contentValue && photoPaths.length === 0) {
+    showNotification('Please enter some text or select images.', 'warning', 1500);
     return;
   }
 
-  // Use "Anonymous" for post user
   let userName = 'Anonymous';
   let userID = '@anonymous';
-  let photoUrl = '';
-  let photoPath = '';
 
   try {
-    // 1. If photo selected, upload to Firebase Storage
-    if (photoInput && photoInput.files && photoInput.files[0]) {
-      const file = photoInput.files[0];
-      const ext = file.name.split('.').pop();
-      const postId = `post_${Date.now()}_${Math.floor(Math.random()*100000)}`;
-      photoPath = `post_photos/${postId}.${ext}`;
-      const fileRef = storageRef(storage, photoPath);
-      await uploadBytes(fileRef, file);
-      photoUrl = await getDownloadURL(fileRef);
-    }
-
-    // 2. Save to Firestore and get the server timestamp
     const docRef = await addDoc(collection(db, 'posts'), {
       user: userName,
       userID: userID,
@@ -396,21 +526,10 @@ postButton.addEventListener('click', async function (e) {
       date: new Date().toISOString(),
       likeCount: 0,
       shareCount: 0,
-      ...(photoUrl ? { photoUrl, photoPath } : {})
+      ...(photoPaths.length > 0 ? { photoPath: photoPaths } : {})
     });
 
-    // If photoPath exists but no photoUrl, get download URL (shouldn't happen, but for safety)
-    let finalPhotoUrl = photoUrl;
-    if (!finalPhotoUrl && photoPath) {
-      try {
-        finalPhotoUrl = await getDownloadURL(storageRef(storage, photoPath));
-      } catch (err) {
-        finalPhotoUrl = '';
-      }
-    }
-
-    // Show the new post at the top, with photo if present
-    renderPost({
+    await renderPost({
       user: userName,
       userID: userID,
       content: contentValue,
@@ -419,18 +538,13 @@ postButton.addEventListener('click', async function (e) {
       likeCount: 0,
       commentCount: 0,
       shareCount: 0,
-      photoUrl: finalPhotoUrl
+      ...(photoPaths.length > 0 ? { photoPath: photoPaths } : {})
     }, true);
 
-    // Clear textarea and photo input/preview
     contentInput.value = '';
-    if (photoInput) photoInput.value = '';
-    if (photoPreview) {
-      photoPreview.src = '';
-      photoPreview.style.display = 'none';
-    }
+    if (photoPathInput) photoPathInput.value = '';
+    if (window._resetFeedImages) window._resetFeedImages();
 
-    // Close the modal
     const modalEl = document.getElementById('createFeedModal');
     if (modalEl) {
       let modal;
@@ -450,51 +564,38 @@ postButton.addEventListener('click', async function (e) {
       }
     }
     window.scrollTo(0, document.body.scrollHeight);
+
+    // Set flags to prevent further posts
+    hasPostedFeed = true;
+    localStorage.setItem(FEED_POST_SPAM_KEY, String(Date.now()));
   } catch (e) {
     console.error('Error adding document: ', e);
     showNotification('Failed to create post.', 'error');
   }
 });
 
-// --- Like, Comment, Share, Edit, Delete Button Logic ---
-
+// Like, Comment, Share, Edit, Delete Button Logic
 document.addEventListener('mouseover', function(e) {
-  const likeBtn = e.target.closest('.like-btn');
-  if (likeBtn) {
-    const hover = likeBtn.querySelector('.like-hover');
-    if (hover) hover.style.display = 'block';
-  }
-  const commentBtn = e.target.closest('.comment-btn');
-  if (commentBtn) {
-    const hover = commentBtn.querySelector('.comment-hover');
-    if (hover) hover.style.display = 'block';
-  }
-  const shareBtn = e.target.closest('.share-btn');
-  if (shareBtn) {
-    const hover = shareBtn.querySelector('.share-hover');
-    if (hover) hover.style.display = 'block';
-  }
+  ['like-btn', 'comment-btn', 'share-btn'].forEach(cls => {
+    const btn = e.target.closest('.' + cls);
+    if (btn) {
+      const hover = btn.querySelector(`.${cls.split('-')[0]}-hover`);
+      if (hover) hover.style.display = 'block';
+    }
+  });
 });
 document.addEventListener('mouseout', function(e) {
-  const likeBtn = e.target.closest('.like-btn');
-  if (likeBtn) {
-    const hover = likeBtn.querySelector('.like-hover');
-    if (hover) hover.style.display = 'none';
-  }
-  const commentBtn = e.target.closest('.comment-btn');
-  if (commentBtn) {
-    const hover = commentBtn.querySelector('.comment-hover');
-    if (hover) hover.style.display = 'none';
-  }
-  const shareBtn = e.target.closest('.share-btn');
-  if (shareBtn) {
-    const hover = shareBtn.querySelector('.share-hover');
-    if (hover) hover.style.display = 'none';
-  }
+  ['like-btn', 'comment-btn', 'share-btn'].forEach(cls => {
+    const btn = e.target.closest('.' + cls);
+    if (btn) {
+      const hover = btn.querySelector(`.${cls.split('-')[0]}-hover`);
+      if (hover) hover.style.display = 'none';
+    }
+  });
 });
 
 document.addEventListener('click', async function(e) {
-  // No auth restriction
+  // Like
   const likeBtn = e.target.closest('.like-btn');
   if (likeBtn) {
     const postCard = likeBtn.closest('.card-body');
@@ -502,14 +603,12 @@ document.addEventListener('click', async function(e) {
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
 
-    // Like collection logic (localStorage + Firestore collection)
     let likedPosts = JSON.parse(localStorage.getItem('likedPosts') || '[]');
     const isLiked = likedPosts.includes(postId);
 
     try {
       const likesCol = collection(db, 'posts', postId, 'likes');
       if (!isLiked) {
-        // Add a like doc (anonymous, so just a random id)
         await addDoc(likesCol, {
           user: 'Anonymous',
           userID: '@anonymous',
@@ -522,14 +621,11 @@ document.addEventListener('click', async function(e) {
         updatePostCounts(postId, { likeCount, isLiked: true });
         showNotification('You liked this post!', 'success', 1200);
       } else {
-        // Remove a like doc (remove any like by Anonymous)
         const likesSnap = await getDocs(likesCol);
-        let deleted = false;
         for (const likeDoc of likesSnap.docs) {
           const d = likeDoc.data();
           if (d.user === 'Anonymous' && d.userID === '@anonymous') {
             await deleteDoc(doc(db, 'posts', postId, 'likes', likeDoc.id));
-            deleted = true;
             break;
           }
         }
@@ -546,6 +642,7 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
+  // Share
   const shareBtn = e.target.closest('.share-btn');
   if (shareBtn) {
     const postCard = shareBtn.closest('.card-body');
@@ -553,7 +650,6 @@ document.addEventListener('click', async function(e) {
     const postId = postCard.getAttribute('data-post-id');
     if (!postId) return;
 
-    // Share collection logic (localStorage + Firestore collection)
     let sharedPosts = JSON.parse(localStorage.getItem('sharedPosts') || '[]');
     const isShared = sharedPosts.includes(postId);
     const sharesCol = collection(db, 'posts', postId, 'shares');
@@ -579,6 +675,7 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
+  // Edit
   const editBtn = e.target.closest('.edit-post-btn');
   if (editBtn) {
     const postCard = editBtn.closest('.card-body');
@@ -601,6 +698,7 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
+  // Save edit
   const saveEditBtn = e.target.closest('.save-edit-post-btn');
   if (saveEditBtn) {
     const postCard = saveEditBtn.closest('.card-body');
@@ -626,6 +724,7 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
+  // Cancel edit
   const cancelEditBtn = e.target.closest('.cancel-edit-post-btn');
   if (cancelEditBtn) {
     const postCard = cancelEditBtn.closest('.card-body');
@@ -641,6 +740,7 @@ document.addEventListener('click', async function(e) {
     return;
   }
 
+  // Delete
   const deleteBtn = e.target.closest('.delete-post-btn');
   if (deleteBtn) {
     const postCard = deleteBtn.closest('.card-body');
@@ -649,29 +749,16 @@ document.addEventListener('click', async function(e) {
     if (!postId) return;
     if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
 
-    // Delete photo from storage if present
-    getDoc(doc(db, 'posts', postId)).then(async (postDoc) => {
-      if (postDoc.exists()) {
-        const postData = postDoc.data();
-        if (postData.photoPath) {
-          try {
-            await deleteObject(storageRef(storage, postData.photoPath));
-          } catch (err) {
-            // ignore error
-          }
-        }
-      }
-      deleteDoc(doc(db, 'posts', postId))
-        .then(() => {
-          const feedPost = postCard.closest('.feed-post');
-          if (feedPost) feedPost.remove();
-          else postCard.parentElement && postCard.parentElement.removeChild(postCard);
-          showNotification('Post deleted.', 'success', 1200);
-        })
-        .catch(() => {
-          showNotification('Failed to delete post.', 'error');
-        });
-    });
+    deleteDoc(doc(db, 'posts', postId))
+      .then(() => {
+        const feedPost = postCard.closest('.feed-post');
+        if (feedPost) feedPost.remove();
+        else postCard.parentElement && postCard.parentElement.removeChild(postCard);
+        showNotification('Post deleted.', 'success', 1200);
+      })
+      .catch(() => {
+        showNotification('Failed to delete post.', 'error');
+      });
     return;
   }
 });
@@ -737,7 +824,7 @@ function createCommentPopup() {
   return commentPopup;
 }
 
-function renderPopupPost(postData) {
+async function renderPopupPost(postData) {
   const postDiv = commentPopup.querySelector('.comment-popup-post');
   let dateStr = '';
   if (postData.date) {
@@ -751,17 +838,32 @@ function renderPopupPost(postData) {
     });
   }
 
-  // --- Render photo if present ---
   let mediaHtml = '';
-  if (postData.photoUrl) {
-    mediaHtml = `
-      <div class="mb-2">
-        <img src="${postData.photoUrl}" alt="Post photo" style="max-width:100%;max-height:320px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin-bottom:8px;">
-      </div>
-    `;
+  let photoPaths = [];
+  if (postData.photoPath) {
+    try {
+      photoPaths = Array.isArray(postData.photoPath)
+        ? postData.photoPath
+        : (typeof postData.photoPath === 'string' && postData.photoPath.startsWith('['))
+          ? JSON.parse(postData.photoPath)
+          : postData.photoPath ? [postData.photoPath] : [];
+    } catch (e) {
+      photoPaths = [];
+    }
+  }
+  if (photoPaths.length > 0) {
+    let imgsHtml = '';
+    for (const path of photoPaths) {
+      const url = await getImageUrl(path);
+      if (url) {
+        imgsHtml += `<img src="${url}" alt="Post image" style="max-width:100px;max-height:100px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);margin:4px;">`;
+      }
+    }
+    if (imgsHtml) {
+      mediaHtml = `<div class="mb-2" style="display:flex;flex-wrap:wrap;gap:8px;">${imgsHtml}</div>`;
+    }
   }
 
-  // Show userID if present
   let userIdHtml = '';
   if (postData.userID) {
     userIdHtml = `<div class="text-muted small" style="color: var(--p-color);">${postData.userID}</div>`;
@@ -809,7 +911,6 @@ async function renderPopupComments(postId) {
           minute: '2-digit'
         });
       }
-      // Show userID if present
       let userIdHtml = '';
       if (c.userID) {
         userIdHtml = `<div style="font-size:0.8em; color:var(--p-color);">${c.userID}</div>`;
@@ -852,21 +953,11 @@ async function showCommentPopup(postData) {
     popupContent.style.maxWidth = '98vw';
   }
 
-  // If photoPath exists but no photoUrl, get download URL
-  if (postData.photoPath && !postData.photoUrl) {
-    try {
-      postData.photoUrl = await getDownloadURL(storageRef(storage, postData.photoPath));
-    } catch (err) {
-      postData.photoUrl = '';
-    }
-  }
-
-  // If userID is missing, set to '@anonymous' for backward compatibility
   if (!postData.userID) {
     postData.userID = '@anonymous';
   }
 
-  renderPopupPost(postData);
+  await renderPopupPost(postData);
   commentPopup.style.display = 'flex';
   commentPopup.dataset.postId = postData.id;
   await renderPopupComments(postData.id);
@@ -897,19 +988,10 @@ document.addEventListener('click', async function(e) {
       if (!postDoc.exists()) return;
       const postData = postDoc.data();
       postData.id = postId;
-      // If photoPath exists but no photoUrl, get download URL
-      if (postData.photoPath && !postData.photoUrl) {
-        try {
-          postData.photoUrl = await getDownloadURL(storageRef(storage, postData.photoPath));
-        } catch (err) {
-          postData.photoUrl = '';
-        }
-      }
-      // If userID is missing, set to '@anonymous' for backward compatibility
       if (!postData.userID) {
         postData.userID = '@anonymous';
       }
-      showCommentPopup(postData);
+      await showCommentPopup(postData);
     }
   }
   if (e.target.classList.contains('close-comment-popup')) {
@@ -929,7 +1011,6 @@ if (!window._commentPopupListenerAdded) {
       const input = commentPopup.querySelector('input[type="text"]');
       const commentText = input ? input.value.trim() : '';
       if (!postId || !commentText) return;
-      // Use "Anonymous" for comment user
       let userName = 'Anonymous';
       let userID = '@anonymous';
       try {
@@ -956,7 +1037,6 @@ if (!window._commentPopupListenerAdded) {
         const postId = commentPopup.dataset.postId;
         const commentText = input ? input.value.trim() : '';
         if (!postId || !commentText) return;
-        // Use "Anonymous" for comment user
         let userName = 'Anonymous';
         let userID = '@anonymous';
         try {
@@ -987,21 +1067,23 @@ function showNotification(message, type = 'info', duration = 3000) {
   const notif = document.createElement('div');
   notif.id = 'custom-notification';
   notif.textContent = message;
-  notif.style.position = 'fixed';
-  notif.style.top = '30px';
-  notif.style.left = '50%';
-  notif.style.transform = 'translateX(-50%)';
-  notif.style.zIndex = 99999;
-  notif.style.padding = '16px 32px';
-  notif.style.borderRadius = '12px';
-  notif.style.fontSize = '1rem';
-  notif.style.fontFamily = 'Inter, sans-serif';
-  notif.style.boxShadow = '0 4px 24px rgba(0,0,0,0.18)';
-  notif.style.color = 'var(--headline-color)';
-  notif.style.background = 'var(--main-color)';
-  notif.style.border = '1px solid var(--border-color)';
-  notif.style.opacity = '0';
-  notif.style.transition = 'opacity 0.2s';
+  Object.assign(notif.style, {
+    position: 'fixed',
+    top: '30px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 99999,
+    padding: '16px 32px',
+    borderRadius: '12px',
+    fontSize: '1rem',
+    fontFamily: 'Inter, sans-serif',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+    color: 'var(--headline-color)',
+    background: 'var(--main-color)',
+    border: '1px solid var(--border-color)',
+    opacity: '0',
+    transition: 'opacity 0.2s'
+  });
 
   const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
   notif.style.maxWidth = vw >= 600 ? '600px' : '90vw';
@@ -1037,46 +1119,48 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 let notificationList = [];
 
-// Get the notification button by id 'notif', or create it if not present
 let notifBtn = document.getElementById('notif');
 if (!notifBtn) {
   notifBtn = document.createElement('button');
   notifBtn.id = 'notif';
   notifBtn.textContent = '🔔';
-  notifBtn.style.position = 'fixed';
-  notifBtn.style.top = '30px';
-  notifBtn.style.left = '50%';
-  notifBtn.style.transform = 'translateX(-50%)';
-  notifBtn.style.zIndex = 100000;
-  notifBtn.style.background = 'var(--main-color)';
-  notifBtn.style.color = 'var(--headline-color)';
-  notifBtn.style.border = '1px solid var(--border-color)';
-  notifBtn.style.borderRadius = '50%';
-  notifBtn.style.width = '48px';
-  notifBtn.style.height = '48px';
-  notifBtn.style.fontSize = '1.5rem';
-  notifBtn.style.cursor = 'pointer';
-  notifBtn.style.boxShadow = '0 4px 24px rgba(0,0,0,0.18)';
-  notifBtn.style.display = 'flex';
-  notifBtn.style.alignItems = 'center';
-  notifBtn.style.justifyContent = 'center';
+  Object.assign(notifBtn.style, {
+    position: 'fixed',
+    top: '30px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 100000,
+    background: 'var(--main-color)',
+    color: 'var(--headline-color)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '50%',
+    width: '48px',
+    height: '48px',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
+  });
   document.body.appendChild(notifBtn);
 }
 
-// Modal fade (backdrop) for notification popup
 let notifModalFade = document.getElementById('notification-modal-fade');
 if (!notifModalFade) {
   notifModalFade = document.createElement('div');
   notifModalFade.id = 'notification-modal-fade';
-  notifModalFade.style.position = 'fixed';
-  notifModalFade.style.top = '0';
-  notifModalFade.style.left = '0';
-  notifModalFade.style.width = '100vw';
-  notifModalFade.style.height = '100vh';
-  notifModalFade.style.background = 'rgba(0,0,0,0.35)';
-  notifModalFade.style.zIndex = 100000;
-  notifModalFade.style.display = 'none';
-  notifModalFade.style.transition = 'opacity 0.2s';
+  Object.assign(notifModalFade.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    background: 'rgba(0,0,0,0.35)',
+    zIndex: 100000,
+    display: 'none',
+    transition: 'opacity 0.2s'
+  });
   document.body.appendChild(notifModalFade);
 }
 
@@ -1084,24 +1168,26 @@ let notifPopup = document.getElementById('notification-popup');
 if (!notifPopup) {
   notifPopup = document.createElement('div');
   notifPopup.id = 'notification-popup';
-  notifPopup.style.position = 'fixed';
-  notifPopup.style.top = '80px';
-  notifPopup.style.left = '50%';
-  notifPopup.style.transform = 'translateX(-50%)';
-  notifPopup.style.width = 'min(600px, 98vw)';
-  notifPopup.style.maxWidth = '98vw';
-  notifPopup.style.minWidth = '0';
-  notifPopup.style.maxHeight = '70vh';
-  notifPopup.style.overflowY = 'auto';
-  notifPopup.style.background = 'var(--main-color)';
-  notifPopup.style.border = '1px solid var(--border-color)';
-  notifPopup.style.borderRadius = '16px';
-  notifPopup.style.boxShadow = '0 8px 32px rgba(0,0,0,0.18)';
-  notifPopup.style.zIndex = 100001;
-  notifPopup.style.display = 'none';
-  notifPopup.style.padding = '0';
-  notifPopup.style.fontFamily = 'Inter, sans-serif';
-  notifPopup.style.color = 'var(--headline-color)';
+  Object.assign(notifPopup.style, {
+    position: 'fixed',
+    top: '80px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: 'min(600px, 98vw)',
+    maxWidth: '98vw',
+    minWidth: '0',
+    maxHeight: '70vh',
+    overflowY: 'auto',
+    background: 'var(--main-color)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '16px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+    zIndex: 100001,
+    display: 'none',
+    padding: '0',
+    fontFamily: 'Inter, sans-serif',
+    color: 'var(--headline-color)'
+  });
   notifPopup.innerHTML = `
     <div style="padding: 16px; font-weight: bold; border-bottom: 1px solid var(--border-color); background: var(--main-color);">
       Notifications
@@ -1176,7 +1262,6 @@ notifPopup.addEventListener('click', function(e) {
 });
 
 notifModalFade.addEventListener('mousedown', function(e) {
-  // Only close if clicking directly on the fade, not the popup
   if (notifPopup.style.display === 'block') {
     notifPopup.style.display = 'none';
     notifModalFade.style.opacity = '0';
@@ -1187,7 +1272,6 @@ notifModalFade.addEventListener('mousedown', function(e) {
 });
 
 document.addEventListener('mousedown', function(e) {
-  // If fade is visible, let its handler close the popup
   if (notifModalFade.style.display === 'block') return;
   if (notifPopup.style.display === 'block' && !notifPopup.contains(e.target) && e.target !== notifBtn) {
     notifPopup.style.display = 'none';
@@ -1203,20 +1287,22 @@ if (!scrollTopBtn) {
   scrollTopBtn = document.createElement('button');
   scrollTopBtn.id = 'feed-scroll-top-btn';
   scrollTopBtn.textContent = '↑';
-  scrollTopBtn.style.position = 'fixed';
-  scrollTopBtn.style.bottom = '40px';
-  scrollTopBtn.style.right = '40px';
-  scrollTopBtn.style.zIndex = 100002;
-  scrollTopBtn.style.display = 'none';
-  scrollTopBtn.style.background = 'var(--main-color)';
-  scrollTopBtn.style.color = 'var(--headline-color)';
-  scrollTopBtn.style.border = '1px solid var(--border-color)';
-  scrollTopBtn.style.borderRadius = '50%';
-  scrollTopBtn.style.width = '44px';
-  scrollTopBtn.style.height = '44px';
-  scrollTopBtn.style.fontSize = '1.5rem';
-  scrollTopBtn.style.cursor = 'pointer';
-  scrollTopBtn.style.boxShadow = '0 4px 24px rgba(0,0,0,0.18)';
+  Object.assign(scrollTopBtn.style, {
+    position: 'fixed',
+    bottom: '40px',
+    right: '40px',
+    zIndex: 100002,
+    display: 'none',
+    background: 'var(--main-color)',
+    color: 'var(--headline-color)',
+    border: '1px solid var(--border-color)',
+    borderRadius: '50%',
+    width: '44px',
+    height: '44px',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.18)'
+  });
   document.body.appendChild(scrollTopBtn);
 
   scrollTopBtn.addEventListener('click', function() {
