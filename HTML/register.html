@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register Page</title>
-  <link rel="stylesheet" href="./CSS/auth.css" />
+  <link rel="stylesheet" href="auth.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 </head>
@@ -15,34 +15,68 @@
         <h2 class="web-name">Web Name</h2>
         <p>Create your account to get started.</p>
         <form id="register-form">
-          <label for="fullname">Full Name</label>
-          <div class="input-group">
-            <input type="text" id="fullname" placeholder="Your Name" required />
-            <i class="bi bi-person icon"></i>
+          <div class="row" style="display: flex; gap: 12px;">
+            <div style="flex: 1;">
+              <label for="firstname">First Name</label>
+              <div class="input-group">
+                <input type="text" id="firstname" placeholder="John" required />
+                <i class="bi bi-person icon"></i>
+              </div>
+              <div class="error-message" id="firstname-error"></div>
+            </div>
+            <div style="flex: 1;">
+              <label for="lastname">Last Name</label>
+              <div class="input-group">
+                <input type="text" id="lastname" placeholder="Doe" required />
+                <i class="bi bi-person icon"></i>
+              </div>
+              <div class="error-message" id="lastname-error"></div>
+            </div>
           </div>
+          
           <label for="email">Email</label>
           <div class="input-group">
             <input type="email" id="email" placeholder="you@example.com" required />
             <i class="bi bi-envelope icon"></i>
           </div>
+          <div class="error-message" id="email-error"></div>
+          
           <label for="password">Password</label>
           <div class="input-group">
             <input type="password" id="password" placeholder="Create a password" required />
             <i class="bi bi-lock icon"></i>
           </div>
-          <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="terms" required />
-            <label class="form-check-label" for="terms">
-              I agree to the <a href="#">Terms and Conditions</a>
-            </label>
+          <div class="error-message" id="password-error"></div>
+          <!-- <div class="password-requirements" id="password-requirements">
+            <small>Password must contain:</small>
+            <ul>
+              <li id="req-length">At least 8 characters</li>
+              <li id="req-uppercase">One uppercase letter</li>
+              <li id="req-lowercase">One lowercase letter</li>
+              <li id="req-number">One number</li>
+              <li id="req-special">One special character</li>
+            </ul>
+          </div> -->
+          
+          <label for="confirmPassword">Confirm Password</label>
+          <div class="input-group">
+            <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
+            <i class="bi bi-lock-fill icon"></i>
           </div>
+          <div class="error-message" id="confirm-password-error"></div>
+          
           <button class="btn btn-primary w-100 mb-2" type="submit">Sign up</button>
           <button class="google-btn" type="button">
-            <img src="/placeholder.svg?height=22&width=22" alt="Google logo" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
             Sign up with Google
           </button>
         </form>
-        <p class="text-center">Already have an account? <a href="./login.html">Sign in</a></p>
+        <p class="text-center">Already have an account? <a href="login.html">Sign in</a></p>
       </div>
     </div>
 
@@ -50,6 +84,7 @@
     </div>
   </div>
 
+  <!-- Firebase SDKs -->
 <script type="module">
   import { auth, db } from "./firebase.js";
   import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
@@ -57,40 +92,177 @@
   import { initAuth } from "./authState.js";
   import { createUser } from "./firebase-config.js";
 
+  // Khởi tạo auth listener
   initAuth();
+
+  // Real-time validation
+  const firstNameInput = document.getElementById("firstname");
+  const lastNameInput = document.getElementById("lastname");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const confirmPasswordInput = document.getElementById("confirmPassword");
+
+  // Validation functions
+  function validateName(name, fieldName) {
+    const nameRegex = /^[a-zA-ZÀ-ỹ\s]{2,30}$/;
+    if (!name.trim()) {
+      return `${fieldName} is required`;
+    }
+    if (!nameRegex.test(name.trim())) {
+      return `${fieldName} must contain only letters and be 2-30 characters`;
+    }
+    return null;
+  }
+
+  function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return null;
+  }
+
+  function validatePassword(password) {
+    const requirements = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    };
+    
+    // Update visual requirements
+    document.getElementById("req-length").className = requirements.length ? "valid" : "invalid";
+    document.getElementById("req-uppercase").className = requirements.uppercase ? "valid" : "invalid";
+    document.getElementById("req-lowercase").className = requirements.lowercase ? "valid" : "invalid";
+    document.getElementById("req-number").className = requirements.number ? "valid" : "invalid";
+    document.getElementById("req-special").className = requirements.special ? "valid" : "invalid";
+    
+    if (!password) {
+      return "Password is required";
+    }
+    
+    const failedRequirements = [];
+    if (!requirements.length) failedRequirements.push("at least 8 characters");
+    if (!requirements.uppercase) failedRequirements.push("one uppercase letter");
+    if (!requirements.lowercase) failedRequirements.push("one lowercase letter");
+    if (!requirements.number) failedRequirements.push("one number");
+    if (!requirements.special) failedRequirements.push("one special character");
+    
+    if (failedRequirements.length > 0) {
+      return `Password must contain ${failedRequirements.join(", ")}`;
+    }
+    
+    return null;
+  }
+
+  function validateConfirmPassword(password, confirmPassword) {
+    if (!confirmPassword) {
+      return "Please confirm your password";
+    }
+    if (password !== confirmPassword) {
+      return "Passwords do not match";
+    }
+    return null;
+  }
+
+  function showError(fieldId, message) {
+    const errorElement = document.getElementById(`${fieldId}-error`);
+    const inputElement = document.getElementById(fieldId);
+    
+    if (message) {
+      errorElement.textContent = message;
+      errorElement.style.display = "block";
+      inputElement.parentElement.classList.add("error");
+    } else {
+      errorElement.textContent = "";
+      errorElement.style.display = "none";
+      inputElement.parentElement.classList.remove("error");
+    }
+  }
+
+  // Real-time validation listeners
+  firstNameInput.addEventListener("blur", () => {
+    const error = validateName(firstNameInput.value, "First name");
+    showError("firstname", error);
+  });
+
+  lastNameInput.addEventListener("blur", () => {
+    const error = validateName(lastNameInput.value, "Last name");
+    showError("lastname", error);
+  });
+
+  emailInput.addEventListener("blur", () => {
+    const error = validateEmail(emailInput.value);
+    showError("email", error);
+  });
+
+  passwordInput.addEventListener("input", () => {
+    const error = validatePassword(passwordInput.value);
+    showError("password", error);
+    
+    // Also validate confirm password if it has value
+    if (confirmPasswordInput.value) {
+      const confirmError = validateConfirmPassword(passwordInput.value, confirmPasswordInput.value);
+      showError("confirmPassword", confirmError);
+    }
+  });
+
+  confirmPasswordInput.addEventListener("input", () => {
+    const error = validateConfirmPassword(passwordInput.value, confirmPasswordInput.value);
+    showError("confirmPassword", error);
+  });
 
   document.getElementById("register-form").addEventListener("submit", async function(e) {
     e.preventDefault();
 
-    const fullName = document.getElementById("fullname").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const termsAccepted = document.getElementById("terms").checked;
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
 
-    // Validation
-    if (!fullName || !email || !password) {
-      alert("Vui lòng nhập đầy đủ thông tin!");
+    // Validate all fields
+    const firstNameError = validateName(firstName, "First name");
+    const lastNameError = validateName(lastName, "Last name");
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    const confirmPasswordError = validateConfirmPassword(password, confirmPassword);
+
+    // Show all errors
+    showError("firstname", firstNameError);
+    showError("lastname", lastNameError);
+    showError("email", emailError);
+    showError("password", passwordError);
+    showError("confirmPassword", confirmPasswordError);
+
+    // Stop if there are errors
+    if (firstNameError || lastNameError || emailError || passwordError || confirmPasswordError) {
       return;
     }
 
-    if (!termsAccepted) {
-      alert("Vui lòng đồng ý với điều khoản và điều kiện!");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("Mật khẩu phải có ít nhất 6 ký tự!");
-      return;
-    }
+    const submitButton = document.querySelector('button[type="submit"]');
+    submitButton.classList.add("loading");
+    submitButton.textContent = "Creating account...";
 
     try {
+      // Tạo tài khoản Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+
+      // Tạo user profile trong Firestore
+      const fullName = `${firstName} ${lastName}`;
       const userData = {
         username: fullName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000),
         email: email,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random&color=ffffff&bold=true`,
-        bio: `Xin chào! Tôi là ${fullName}`,
+        firstName: firstName,
+        lastName: lastName,
+        fullName: fullName,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=7f5af0&color=ffffff&bold=true&size=200`,
+        bio: `Hello! I'm ${fullName}`,
         role: "user",
         status: "active"
       };
@@ -98,38 +270,47 @@
       const result = await createUser(user.uid, userData);
       
       if (result.success) {
-        console.log("Đăng ký thành công:", user.uid);
+        console.log("Registration successful:", user.uid);
         
         // Đăng xuất user sau khi đăng ký để họ phải đăng nhập lại
         await signOut(auth);
         
-        alert("Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.");
-        window.location.href = "./login.html";
+        alert("Registration successful! Please login to continue.");
+        window.location.href = "login.html";
       } else {
         throw new Error(result.message);
       }
 
     } catch (error) {
       console.error("Register error:", error);
-      let errorMessage = "Đăng ký thất bại";
+      let errorMessage = "Registration failed";
       
       switch (error.code) {
         case "auth/email-already-in-use":
-          errorMessage = "Email đã được sử dụng bởi tài khoản khác";
+          errorMessage = "This email is already registered";
+          showError("email", errorMessage);
           break;
         case "auth/weak-password":
-          errorMessage = "Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn";
+          errorMessage = "Password is too weak";
+          showError("password", errorMessage);
           break;
         case "auth/invalid-email":
-          errorMessage = "Email không hợp lệ";
+          errorMessage = "Invalid email address";
+          showError("email", errorMessage);
           break;
         case "auth/operation-not-allowed":
-          errorMessage = "Đăng ký email/password chưa được kích hoạt";
+          errorMessage = "Email/password registration is not enabled";
           break;
         default:
-          errorMessage = `Lỗi: ${error.message}`;
+          errorMessage = `Error: ${error.message}`;
       }
-      alert(errorMessage);
+      
+      if (!error.code || !["auth/email-already-in-use", "auth/weak-password", "auth/invalid-email"].includes(error.code)) {
+        alert(errorMessage);
+      }
+    } finally {
+      submitButton.classList.remove("loading");
+      submitButton.textContent = "Sign up";
     }
   });
 </script>
