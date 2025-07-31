@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <main class="feed-container w-100 h-100 d-flex flex-column gap-4">
+    <main class="feed-container w-100 h-100 d-flex position-relative flex-column gap-4">
       <div class="indicator">
         <div class="d-flex align-items-center search-wrapper photo-1527980965255-d3b25b0236e3?w">
           <i class="bi bi-search"></i>
@@ -76,14 +76,11 @@
         </template>
       </div>
 
-      <div id="feed-create">
-        <i type="button" data-bs-toggle="modal" data-bs-target="#createFeedModal" class="bi bi-plus-circle"></i>
+      <div class="feed-create-container" id="feed-create" >
+        <i type="button" data-bs-toggle="modal" data-bs-target="#createFeedModal" class="bi bi-plus-circle h1"></i>
       </div>
 
-      <!-- Enhanced Modal -->
-      <div class="modal fade" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="true" style="z-index: 1050;">
-        <div class="modal-backdrop fade show" style="z-index: 1040; "></div>
-      <div class="modal" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="">
+      <div class="modal fade" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
           <div class="modal-content enhanced-modal">
             <div class="modal-header">
