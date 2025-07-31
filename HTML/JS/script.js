@@ -1,8 +1,7 @@
-// Sign In / Sign Up logic for #profile, "Already have account?" and go to profile.html
+// Main logic (sign in/up removed)
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 import {
   getFirestore,
   addDoc,
@@ -31,7 +30,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
 const createFeedModal = document.getElementById("createFeedModal");
@@ -40,109 +38,13 @@ const postButton = document.getElementById("postButton");
 // User State
 let currentUser = null;
 
-// UI for sign in / sign up modal
-function createAuthModal() {
-  let modal = document.getElementById("auth-modal");
-  if (modal) return modal;
-  modal = document.createElement("div");
-  modal.id = "auth-modal";
-  modal.style.position = "fixed";
-  modal.style.top = "0";
-  modal.style.left = "0";
-  modal.style.width = "100vw";
-  modal.style.height = "100vh";
-  modal.style.background = "rgba(0,0,0,0.32)";
-  modal.style.zIndex = "10010";
-  modal.style.display = "flex";
-  modal.style.alignItems = "center";
-  modal.style.justifyContent = "center";
-  modal.innerHTML = `
-    <div id="auth-modal-content" style="background:#222; color:#fff; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.25); min-width:320px; max-width:98vw; width:350px; padding:2rem 2rem 1.5rem 2rem; position:relative;">
-      <button id="auth-modal-close" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;color:#fff;cursor:pointer;">&times;</button>
-      <h3 id="auth-modal-title" style="margin-bottom:1.2rem;">Sign In</h3>
-      <form id="auth-form">
-        <div style="margin-bottom:1rem;">
-          <input type="email" id="auth-email" class="form-control" placeholder="Email" required style="width:100%;padding:0.7rem;border-radius:8px;border:1px solid #444;background:#181818;color:#fff;">
-        </div>
-        <div style="margin-bottom:1.2rem;">
-          <input type="password" id="auth-password" class="form-control" placeholder="Password" required style="width:100%;padding:0.7rem;border-radius:8px;border:1px solid #444;background:#181818;color:#fff;">
-        </div>
-        <button type="submit" id="auth-submit" class="btn btn-primary" style="width:100%;border-radius:8px;font-weight:600;">Sign In</button>
-      </form>
-      <div id="auth-switch" style="margin-top:1.2rem;text-align:center;">
-        <span>Don't have an account?</span>
-        <a href="#" id="switch-to-signup" style="color:#7f5af0;text-decoration:underline;cursor:pointer;">Sign Up</a>
-      </div>
-      <div id="auth-already" style="margin-top:1.2rem;text-align:center;display:none;">
-        <span>Already have an account?</span>
-        <a href="#" id="switch-to-signin" style="color:#7f5af0;text-decoration:underline;cursor:pointer;">Sign In</a>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  // Close modal logic
-  modal.addEventListener("mousedown", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
-  modal.querySelector("#auth-modal-close").onclick = () => { modal.style.display = "none"; };
-
-  // Switch to sign up
-  modal.querySelector("#switch-to-signup").onclick = (e) => {
-    e.preventDefault();
-    modal.querySelector("#auth-modal-title").textContent = "Sign Up";
-    modal.querySelector("#auth-submit").textContent = "Sign Up";
-    modal.querySelector("#auth-switch").style.display = "none";
-    modal.querySelector("#auth-already").style.display = "block";
-  };
-  // Switch to sign in
-  modal.querySelector("#switch-to-signin").onclick = (e) => {
-    e.preventDefault();
-    modal.querySelector("#auth-modal-title").textContent = "Sign In";
-    modal.querySelector("#auth-submit").textContent = "Sign In";
-    modal.querySelector("#auth-switch").style.display = "block";
-    modal.querySelector("#auth-already").style.display = "none";
-  };
-
-  // Form submit
-  modal.querySelector("#auth-form").onsubmit = async (e) => {
-    e.preventDefault();
-    const email = modal.querySelector("#auth-email").value.trim();
-    const password = modal.querySelector("#auth-password").value;
-    const isSignUp = modal.querySelector("#auth-submit").textContent === "Sign Up";
-    try {
-      let userCredential;
-      if (isSignUp) {
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        showNotification("Account created! Signed in.", "success", 1500);
-      } else {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-        showNotification("Signed in successfully!", "success", 1200);
-      }
-      modal.style.display = "none";
-      // After sign in/up, go to profile.html
-      window.location.href = "profile.html";
-    } catch (err) {
-      let msg = "Authentication failed.";
-      if (err.code === "auth/email-already-in-use") msg = "Email already in use.";
-      else if (err.code === "auth/invalid-email") msg = "Invalid email address.";
-      else if (err.code === "auth/weak-password") msg = "Password should be at least 6 characters.";
-      else if (err.code === "auth/user-not-found") msg = "No user found with this email.";
-      else if (err.code === "auth/wrong-password") msg = "Incorrect password.";
-      showNotification(msg, "error", 2000);
-    }
-  };
-
-  return modal;
-}
-
 // Initialize UI
 function initializeUI() {
   const username = document.getElementById("username");
   const useremail = document.getElementById("useremail");
 
-  if (username) username.textContent = currentUser && currentUser.displayName ? currentUser.displayName : "";
-  if (useremail) useremail.textContent = currentUser && currentUser.email ? currentUser.email : "";
+  if (username) username.textContent = "";
+  if (useremail) useremail.textContent = "";
 
   // Show loading spinner initially
   const loadingSpinner = document.getElementById("loading-spinner");
@@ -343,15 +245,10 @@ async function loadAllPosts() {
   }
 }
 
+// All auth actions are disabled (sign in/up removed, just show warning)
 function requireAuthAction(e, actionName = "this action") {
-  if (!currentUser || !currentUser.uid) {
-    showNotification(`Please sign in to perform ${actionName}.`, "warning", 2000);
-    // Open sign in modal
-    const modal = createAuthModal();
-    modal.style.display = "flex";
-    return false;
-  }
-  return true;
+  showNotification(`You must be signed in to perform ${actionName}.`, "warning", 2500);
+  return false;
 }
 
 // Post creation
@@ -361,115 +258,8 @@ if (postButton) {
 
     if (!requireAuthAction(e, "creating a post")) return;
 
-    const contentInput = document.getElementById("content");
-    const imageInput = document.getElementById("image");
-    const videoInput = document.getElementById("video");
-    const fileInput = document.getElementById("file");
-
-    let imageUrl = "";
-    let videoUrl = "";
-    let fileUrl = "";
-    let fileName = "";
-
-    if (!contentInput) {
-      console.error("Content input not found");
-      return;
-    }
-
-    const contentValue = contentInput.value.trim();
-    if (!contentValue) {
-      showNotification("Post content cannot be empty.", "warning", 1500);
-      return;
-    }
-
-    if (contentValue.length > 500) {
-      showNotification("Post content is too long. Maximum 500 characters.", "warning", 2000);
-      return;
-    }
-
-    if (imageInput && imageInput.value.trim()) {
-      imageUrl = imageInput.value.trim();
-    }
-    if (videoInput && videoInput.value.trim()) {
-      videoUrl = videoInput.value.trim();
-    }
-    if (fileInput && fileInput.value.trim()) {
-      fileUrl = fileInput.value.trim();
-      fileName = fileInput.getAttribute("data-filename") || "";
-    }
-
-    const userName = currentUser.displayName || currentUser.email || "User";
-
-    try {
-      const docRef = await addDoc(collection(db, "posts"), {
-        user: userName,
-        content: contentValue,
-        date: new Date().toISOString(),
-        likeCount: 0,
-        shareCount: 0,
-        ...(imageUrl && { image: imageUrl }),
-        ...(videoUrl && { video: videoUrl }),
-        ...(fileUrl && { file: fileUrl, fileName: fileName }),
-      });
-
-      renderPost(
-        {
-          user: userName,
-          content: contentValue,
-          date: new Date().toISOString(),
-          id: docRef.id,
-          likeCount: 0,
-          commentCount: 0,
-          shareCount: 0,
-          ...(imageUrl && { image: imageUrl }),
-          ...(videoUrl && { video: videoUrl }),
-          ...(fileUrl && { file: fileUrl, fileName: fileName }),
-        },
-        true,
-      );
-
-      // Clear inputs
-      contentInput.value = "";
-      if (imageInput) imageInput.value = "";
-      if (videoInput) videoInput.value = "";
-      if (fileInput) {
-        fileInput.value = "";
-        fileInput.removeAttribute("data-filename");
-      }
-
-      // Reset character counter
-      const charCount = document.getElementById("char-count");
-      if (charCount) {
-        charCount.textContent = "0";
-        charCount.style.color = "var(--p-color)";
-      }
-
-      // Close modal
-      const modalEl = document.getElementById("createFeedModal");
-      if (modalEl) {
-        let modal;
-        try {
-          modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        } catch (err) {
-          modal = null;
-        }
-        if (modal && typeof modal.hide === "function") {
-          modal.hide();
-        } else {
-          modalEl.classList.remove("show");
-          modalEl.style.display = "none";
-          document.body.classList.remove("modal-open");
-          const backdrop = document.querySelector(".modal-backdrop");
-          if (backdrop) backdrop.remove();
-        }
-      }
-
-      window.scrollTo(0, document.body.scrollHeight);
-      showNotification("Post created successfully!", "success", 1500);
-    } catch (e) {
-      console.error("Error adding document: ", e);
-      showNotification("Failed to create post.", "error", 2000);
-    }
+    // The rest of this code will never run, but left for completeness
+    // ...
   });
 }
 
@@ -479,43 +269,6 @@ document.addEventListener("click", async (e) => {
   const likeBtn = e.target.closest(".like-btn");
   if (likeBtn) {
     if (!requireAuthAction(e, "liking a post")) return;
-
-    const postCard = likeBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-
-    const user = currentUser;
-    const likeDocRef = doc(db, "posts", postId, "likes", user.uid);
-    let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-    const isLiked = likedPosts.includes(postId);
-
-    try {
-      if (!isLiked) {
-        await setDoc(likeDocRef, {
-          userId: user.uid,
-          likedAt: new Date().toISOString(),
-        });
-        await updateDoc(doc(db, "posts", postId), { likeCount: increment(1) });
-        likedPosts.push(postId);
-        localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-        const postDoc = await getDoc(doc(db, "posts", postId));
-        const likeCount = postDoc.data().likeCount || 1;
-        updatePostCounts(postId, { likeCount, isLiked: true });
-        showNotification("You liked this post!", "success", 1200);
-      } else {
-        await deleteDoc(likeDocRef);
-        await updateDoc(doc(db, "posts", postId), { likeCount: increment(-1) });
-        likedPosts = likedPosts.filter((id) => id !== postId);
-        localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-        const postDoc = await getDoc(doc(db, "posts", postId));
-        const likeCount = postDoc.data().likeCount || 0;
-        updatePostCounts(postId, { likeCount, isLiked: false });
-        showNotification("You unliked this post.", "info", 1200);
-      }
-    } catch (err) {
-      showNotification("Failed to update like.", "error");
-    }
     return;
   }
 
@@ -523,34 +276,6 @@ document.addEventListener("click", async (e) => {
   const shareBtn = e.target.closest(".share-btn");
   if (shareBtn) {
     if (!requireAuthAction(e, "sharing a post")) return;
-
-    const postCard = shareBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-
-    const user = currentUser;
-    const shareDocRef = doc(db, "posts", postId, "shares", user.uid);
-    let sharedPosts = JSON.parse(localStorage.getItem("sharedPosts") || "[]");
-    if (sharedPosts.includes(postId)) {
-      showNotification("You already shared this post.", "info", 1500);
-      return;
-    }
-    try {
-      await setDoc(shareDocRef, {
-        userId: user.uid,
-        sharedAt: new Date().toISOString(),
-      });
-      await updateDoc(doc(db, "posts", postId), { shareCount: increment(1) });
-      sharedPosts.push(postId);
-      localStorage.setItem("sharedPosts", JSON.stringify(sharedPosts));
-      const postDoc = await getDoc(doc(db, "posts", postId));
-      const shareCount = postDoc.data().shareCount || 1;
-      updatePostCounts(postId, { shareCount });
-      showNotification("Post shared!", "success", 1200);
-    } catch (err) {
-      showNotification("Failed to share post.", "error");
-    }
     return;
   }
 
@@ -558,35 +283,6 @@ document.addEventListener("click", async (e) => {
   const editBtn = e.target.closest(".edit-post-btn");
   if (editBtn) {
     if (!requireAuthAction(e, "editing a post")) return;
-
-    const postCard = editBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-    const contentDiv = postCard.querySelector(".post-content");
-    if (!contentDiv) return;
-
-    const postDoc = await getDoc(doc(db, "posts", postId));
-    if (!postDoc.exists() || postDoc.data().user !== (currentUser.displayName || currentUser.email)) {
-      showNotification("You can only edit your own posts.", "error", 2000);
-      return;
-    }
-
-    if (contentDiv.querySelector("textarea")) return;
-    const oldContent = contentDiv.textContent;
-    contentDiv.innerHTML = `
-      <textarea class="form-control edit-post-textarea enhanced-textarea" style="width:100%; min-height:80px; margin-bottom:12px;">${oldContent.replace(/"/g, "&quot;")}</textarea>
-      <div>
-        <button class="btn btn-sm btn-primary save-edit-post-btn" style="border-radius:20px; margin-right:8px;">
-          <i class="bi bi-check-circle me-1"></i>Save
-        </button>
-        <button class="btn btn-sm btn-secondary cancel-edit-post-btn" style="border-radius:20px;">
-          <i class="bi bi-x-circle me-1"></i>Cancel
-        </button>
-      </div>
-    `;
-    const textarea = contentDiv.querySelector("textarea");
-    if (textarea) textarea.focus();
     return;
   }
 
@@ -594,47 +290,12 @@ document.addEventListener("click", async (e) => {
   const saveEditBtn = e.target.closest(".save-edit-post-btn");
   if (saveEditBtn) {
     if (!requireAuthAction(e, "saving post edits")) return;
-
-    const postCard = saveEditBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-    const contentDiv = postCard.querySelector(".post-content");
-    const textarea = contentDiv.querySelector("textarea");
-    if (!textarea) return;
-    const newContent = textarea.value.trim();
-    if (!newContent) {
-      showNotification("Post content cannot be empty.", "warning", 1500);
-      return;
-    }
-    if (newContent.length > 500) {
-      showNotification("Post content is too long. Maximum 500 characters.", "warning", 2000);
-      return;
-    }
-    updateDoc(doc(db, "posts", postId), { content: newContent })
-      .then(() => {
-        contentDiv.innerHTML = newContent;
-        showNotification("Post updated!", "success", 1200);
-      })
-      .catch(() => {
-        showNotification("Failed to update post.", "error");
-      });
     return;
   }
 
   // Cancel edit button
   const cancelEditBtn = e.target.closest(".cancel-edit-post-btn");
   if (cancelEditBtn) {
-    const postCard = cancelEditBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-    getDoc(doc(db, "posts", postId)).then((postDoc) => {
-      const contentDiv = postCard.querySelector(".post-content");
-      if (contentDiv) {
-        contentDiv.innerHTML = postDoc.exists() ? postDoc.data().content || "" : "";
-      }
-    });
     return;
   }
 
@@ -642,29 +303,6 @@ document.addEventListener("click", async (e) => {
   const deleteBtn = e.target.closest(".delete-post-btn");
   if (deleteBtn) {
     if (!requireAuthAction(e, "deleting a post")) return;
-
-    const postCard = deleteBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-
-    const postDoc = await getDoc(doc(db, "posts", postId));
-    if (!postDoc.exists() || postDoc.data().user !== (currentUser.displayName || currentUser.email)) {
-      showNotification("You can only delete your own posts.", "error", 2000);
-      return;
-    }
-
-    if (!confirm("Are you sure you want to delete this post? This cannot be undone.")) return;
-    deleteDoc(doc(db, "posts", postId))
-      .then(() => {
-        const feedPost = postCard.closest(".feed");
-        if (feedPost) feedPost.remove();
-        else postCard.remove();
-        showNotification("Post deleted.", "success", 1200);
-      })
-      .catch(() => {
-        showNotification("Failed to delete post.", "error");
-      });
     return;
   }
 });
@@ -691,13 +329,14 @@ function createCommentPopup() {
       <div class="comment-popup-post"></div>
       <div class="comment-popup-comments"></div>
       <div class="comment-popup-input">
-        <input type="text" class="form-control" placeholder="Write a comment...">
-        <button class="btn btn-primary send-comment-btn">
+        <input type="text" class="form-control" placeholder="Write a comment..." disabled>
+        <button class="btn btn-primary send-comment-btn" disabled>
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
             <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
           </svg>
         </button>
       </div>
+      <div style="text-align:center; color:#ffbe0b; margin-top:0.7rem;">You must be signed in to comment.</div>
     </div>
   `;
   document.body.appendChild(commentPopup);
@@ -829,7 +468,7 @@ async function showCommentPopup(postData) {
 
   setTimeout(() => {
     const input = commentPopup.querySelector('input[type="text"]');
-    if (input) input.focus();
+    if (input) input.blur();
   }, 100);
 }
 
@@ -865,31 +504,14 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// Comment submission
+// Comment submission - disabled
 if (!window._commentPopupListenerAdded) {
   window._commentPopupListenerAdded = true;
   document.addEventListener("click", async (e) => {
     if (!commentPopup || commentPopup.style.display !== "flex") return;
     if (e.target.closest(".send-comment-btn")) {
-      if (!requireAuthAction(e, "adding a comment")) return;
-
-      const postId = commentPopup.dataset.postId;
-      const input = commentPopup.querySelector('input[type="text"]');
-      const commentText = input ? input.value.trim() : "";
-      if (!postId || !commentText) return;
-      const userName = currentUser.displayName || currentUser.email || "User";
-      try {
-        await addDoc(collection(db, "posts", postId, "comments"), {
-          user: userName,
-          content: commentText,
-          date: new Date().toISOString(),
-        });
-        input.value = "";
-        await renderPopupComments(postId);
-        showNotification("Comment added!", "success", 1200);
-      } catch (err) {
-        showNotification("Failed to add comment.", "error", 2000);
-      }
+      requireAuthAction(e, "adding a comment");
+      return;
     }
   });
 
@@ -898,25 +520,9 @@ if (!window._commentPopupListenerAdded) {
     if (e.key === "Enter" && !e.shiftKey) {
       const input = commentPopup.querySelector('input[type="text"]');
       if (document.activeElement === input) {
-        if (!requireAuthAction(e, "adding a comment")) return;
-
+        requireAuthAction(e, "adding a comment");
         e.preventDefault();
-        const postId = commentPopup.dataset.postId;
-        const commentText = input ? input.value.trim() : "";
-        if (!postId || !commentText) return;
-        const userName = currentUser.displayName || currentUser.email || "User";
-        try {
-          await addDoc(collection(db, "posts", postId, "comments"), {
-            user: userName,
-            content: commentText,
-            date: new Date().toISOString(),
-          });
-          input.value = "";
-          await renderPopupComments(postId);
-          showNotification("Comment added!", "success", 1200);
-        } catch (err) {
-          showNotification("Failed to add comment.", "error", 2000);
-        }
+        return;
       }
     }
     if (e.key === "Escape" && commentPopup && commentPopup.style.display === "flex") {
@@ -1229,39 +835,13 @@ document.querySelectorAll(".nav-item").forEach((item) => {
   });
 });
 
-// Profile button logic: sign in/up or go to profile.html if already signed in
+// Profile button logic: do nothing (sign in/up removed)
 const profileBtn = document.getElementById('profile');
 if (profileBtn) {
   profileBtn.addEventListener('click', (e) => {
-    if (currentUser && currentUser.uid) {
-      // Already signed in, go to profile.html
-      window.location.href = 'profile.html';
-    } else {
-      // Not signed in, show sign in/up modal
-      const modal = createAuthModal();
-      modal.style.display = "flex";
-      // Default to sign in view
-      modal.querySelector("#auth-modal-title").textContent = "Sign In";
-      modal.querySelector("#auth-submit").textContent = "Sign In";
-      modal.querySelector("#auth-switch").style.display = "block";
-      modal.querySelector("#auth-already").style.display = "none";
-    }
+    // No sign in/up, do nothing
   });
 }
-
-// Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = {
-      displayName: user.displayName || user.email || "User",
-      email: user.email,
-      uid: user.uid
-    };
-  } else {
-    currentUser = null;
-  }
-  initializeUI();
-});
 
 // Initialize the application
 initializeUI();
