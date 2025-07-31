@@ -42,7 +42,7 @@
             Sign up with Google
           </button>
         </form>
-        <p class="text-center">Already have an account? <a href="login.html">Sign in</a></p>
+        <p class="text-center">Already have an account? <a href="./login.html">Sign in</a></p>
       </div>
     </div>
 
@@ -109,7 +109,7 @@
         await signOut(auth);
         
         alert("Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.");
-        window.location.href = "login.html";
+        window.location.href = "./login.html";
       } else {
         throw new Error(result.message);
       }
