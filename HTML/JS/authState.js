@@ -3,7 +3,6 @@ import { auth } from "./firebase.js"
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"
 
 let currentUser = null
-
 const initAuth = () => {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, (user) => {

@@ -11,6 +11,7 @@ import {
   serverTimestamp,
   getDoc,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+
 import { db } from "./firebase.js"
 
 export const createUser = async (userId, data) => {
@@ -246,6 +247,29 @@ export const getUserRelations = async (userId, type = "followers") => {
   }
 }
 
+export const getFollowsInfo = async (userId) => {
+  try {
+    const followersCol = collection(db, "users", userId, "followers");
+    const followingCol = collection(db, "users", userId, "following");
+    const [followersSnap, followingSnap] = await Promise.all([
+      getDocs(followersCol),
+      getDocs(followingCol),
+    ]);
+    const followers = followersSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    const following = followingSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return [...followers, ...following];
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin follows:", error);
+    return [];
+  }
+};
+
 export const getUserGroups = async (userId) => {
   try {
     const groupsRef = collection(db, "users", userId, "groups")
@@ -277,7 +301,6 @@ function formatLastActive(date) {
   if (days < 7) return `${days} ngày trước`
   return `${Math.floor(days / 7)} tuần trước`
 }
-
 // ===== FOLLOWERS & FOLLOWING MANAGEMENT =====
 export const addFollowerToUser = async (userId, followerData) => {
   try {
@@ -294,15 +317,12 @@ export const addFollowerToUser = async (userId, followerData) => {
       lastInteraction: serverTimestamp(),
       interactionCount: 0,
     })
-
-    // Update follower count
     const userRef = doc(db, "users", userId)
     const currentUser = await getDoc(userRef)
     const currentCount = currentUser.data()?.followers || 0
     await updateDoc(userRef, {
       followers: currentCount + 1,
     })
-
     return { success: true, message: "Thêm follower thành công!" }
   } catch (error) {
     console.error("Error adding follower:", error)
@@ -381,7 +401,6 @@ export const getUserFollowing = async (userId) => {
     return []
   }
 }
-
 // ===== RANDOM DATA GENERATORS =====
 export const generateRandomUserData = () => {
   const firstNames = [
@@ -419,11 +438,11 @@ export const generateRandomUserData = () => {
     "Thị Quỳnh",
   ]
   const domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "example.com"]
-  const roles = ["user", "user", "user", "moderator", "admin"] // Weighted towards user
-  const statuses = ["active", "active", "active", "inactive"] // Weighted towards active
+  const roles = ["user", "user", "user", "moderator", "admin"] 
+  const statuses = ["active", "active", "active", "inactive"] 
   const categories = ["friend", "celebrity", "business", "interest", "general"]
-  const sources = ["direct", "suggested", "imported", "mutual"]
-  const priorities = ["high", "normal", "normal", "low"] // Weighted towards normal
+  const sources = [ "suggested", "mutual"]
+  const priorities = ["high", "normal", "normal", "low"]
 
   const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
@@ -456,14 +475,10 @@ export const createRandomUsers = async (count = 10) => {
     for (let i = 0; i < count; i++) {
       const userData = generateRandomUserData()
       const userId = "random_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5)
-
       const result = await createUser(userId, userData)
       results.push({ userId, success: result.success, data: userData })
-
-      // Small delay to avoid overwhelming Firebase
       await new Promise((resolve) => setTimeout(resolve, 100))
     }
-
     return { success: true, message: `Tạo ${count} users random thành công!`, results }
   } catch (error) {
     console.error("Error creating random users:", error)
@@ -474,7 +489,6 @@ export const createRandomUsers = async (count = 10) => {
 export const addRandomFollowersToUser = async (userId, count = 5) => {
   try {
     const results = []
-
     for (let i = 0; i < count; i++) {
       const followerData = generateRandomUserData()
       followerData.userId = "follower_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5)

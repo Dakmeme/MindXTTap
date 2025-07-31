@@ -1071,7 +1071,6 @@ feedContainer.addEventListener("scroll", () => {
   }
 })
 
-
 document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
@@ -1110,5 +1109,3 @@ document.getElementById('profile').addEventListener('click', () => {
 
 initializeUI()
 loadAllPosts()
-
-

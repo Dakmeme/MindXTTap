@@ -1,33 +1,12 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 import {
   doc,
-  setDoc,
   getDoc,
   getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   collection,
-  query,
-  orderBy,
-  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+import { db } from "./firebase.js"
+import { getAllUsers, } from "./firebase-config.js"
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
-  authDomain: "ttmindx.firebaseapp.com",
-  projectId: "ttmindx",
-  storageBucket: "ttmindx.firebasestorage.app",
-  messagingSenderId: "499689288083",
-  appId: "1:499689288083:web:394be22db426aa48b93866",
-  measurementId: "G-Y0NCNLB337",
-}
-
-const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
-
-console.log("Firebase đã được khởi tạo thành công!")
 
 let allUsers = []
 const userCardTemplate = document.querySelector("[data-user-template]")
@@ -52,23 +31,7 @@ export const getUserInfo = async (userId) => {
   }
 };
 
-const getAllUsers = async () => {
-  try {
-    const usersRef = collection(db, "users");
-    const querySnapshot = await getDocs(usersRef);
-    const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
-    return users;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return [];
-  }
-};
+
 const getAllPosts = async () => {
   try {
     const PostsRef = collection(db, "posts");
