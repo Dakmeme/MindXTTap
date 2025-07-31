@@ -1,177 +1,74 @@
-import {
-  doc,
-  getDoc,
-  getDocs,
-  collection,
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
-import { db } from "./firebase.js"
-import { getAllUsers, } from "./firebase-config.js"
+// import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
+// import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+// import {
+//   doc,
+//   getDoc,
+//   getDocs,
+//   collection,
+// } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+// import { db } from "./firebase.js"
 
+import { getUserInfo, getUserPosts, getAllUsers,createRandomStoriesWithInteractions, getUserRelations, createRandomUsers, assignFollowersAndFollowingWithSubcollections, createRandomPostsWithInteractions } from "./firebase-config.js"
+const userId = "1MJf8DXzCcbXw0uUSMuGpSBLE9o1"
 
-let allUsers = []
-const userCardTemplate = document.querySelector("[data-user-template]")
-const userCardContainer = document.querySelector("[data-user-cards-container]")
-const searchInput = document.querySelector("[data-search]")
+// let allUsers = []
+// const userCardTemplate = document.querySelector("[data-user-template]")
+// const userCardContainer = document.querySelector("[data-user-cards-container]")
+// const searchInput = document.querySelector("[data-search]")
+// const initializeSearch = async () => {
+//   if (!userCardTemplate || !userCardContainer || !searchInput) {
+//     console.warn("Search elements not found");
+//     return;
+//   }
 
-export const getUserInfo = async (userId) => {
-  try {
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return {
-        id: userSnap.id,
-        ...userSnap.data(),
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin người dùng:", error);
-    return null;
-  }
-};
-
-
-const getAllPosts = async () => {
-  try {
-    const PostsRef = collection(db, "posts");
-    const PostSnapshot = await getDocs(PostsRef);
-    const posts = [];
-    PostSnapshot.forEach((doc) => {
-      posts.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
-    return posts;
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    return [];
-  }
-};
-const initializeSearch = async () => {
-  if (!userCardTemplate || !userCardContainer || !searchInput) {
-    console.warn("Search elements not found");
-    return;
-  }
-
-  allUsers = await getAllUsers();
+//   allUsers = await getAllUsers();
   
-  allUsers.forEach(user => {
-    const card = userCardTemplate.content.cloneNode(true).children[0];
-    const header = card.querySelector("[data-header]");
-    const body = card.querySelector("[data-body]");
+//   allUsers.forEach(user => {
+//     const card = userCardTemplate.content.cloneNode(true).children[0];
+//     const header = card.querySelector("[data-header]");
+//     const body = card.querySelector("[data-body]");
     
-    header.textContent = user.username || user.name || "Unknown User";
-    body.textContent = user.email || "No email";
-    card.addEventListener('click', () => {
-      console.log(`Navigating to user: ${user.username || user.name}`);
-      // window.location.href = `profile.html?userId=${user.id}`;
-    });
+//     header.textContent = user.username || user.name || "Unknown User";
+//     body.textContent = user.email || "No email";
+//     card.addEventListener('click', () => {
+//       console.log(`Navigating to user: ${user.username || user.name}`);
+//       // window.location.href = `profile.html?userId=${user.id}`;
+//     });
     
-    userCardContainer.append(card);
-    user.element = card;
-  });
+//     userCardContainer.append(card);
+//     user.element = card;
+//   });
 
 
-  searchInput.addEventListener("input", (e) => {
-    const value = e.target.value.toLowerCase();
-    allUsers.forEach(user => {
-      const name = (user.username || user.name || "").toLowerCase();
-      const email = (user.email || "").toLowerCase();
-      const isVisible = name.includes(value) || email.includes(value);
-      user.element.classList.toggle("hide", !isVisible);
-    });
-  });
+//   searchInput.addEventListener("input", (e) => {
+//     const value = e.target.value.toLowerCase();
+//     allUsers.forEach(user => {
+//       const name = (user.username || user.name || "").toLowerCase();
+//       const email = (user.email || "").toLowerCase();
+//       const isVisible = name.includes(value) || email.includes(value);
+//       user.element.classList.toggle("hide", !isVisible);
+//     });
+//   });
 
-  searchInput.addEventListener('focus', () => {
-    userCardContainer.classList.remove('hide');
-  });
+//   searchInput.addEventListener('focus', () => {
+//     userCardContainer.classList.remove('hide');
+//   });
 
-  searchInput.addEventListener('blur', (e) => {
-    setTimeout(() => {
-      userCardContainer.classList.add('hide');
-    }, 200);
-  });
-};
+//   searchInput.addEventListener('blur', (e) => {
+//     setTimeout(() => {
+//       userCardContainer.classList.add('hide');
+//     }, 200);
+//   });
+// };
 
-const mockUserData = {
-  username: "John Doe",
-  email: "john.doe@example.com",
-  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-}
 
-const mockPosts = [
-  {
-    id: 1,
-    content: "lmao I'm cooked",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop",
-    timestamp: "2 hours ago",
-    likes: 24,
-    comments: 5,
-    shares: 2,
-  },
-  {
-    id: 2,
-    content: "Mot buoi sang dep troi va dan con tho.",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-    timestamp: "1 day ago",
-    likes: 47,
-    comments: 12,
-    shares: 8,
-  },
-  {
-    id: 3,
-    content: "OH MY PCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-    timestamp: "3 days ago",
-    likes: 18,
-    comments: 3,
-    shares: 1,
-  },
-]
-
-const mockFriends = [
-  {
-    name: "Alice Johnson",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Bob Smith",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Carol Brown",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "David Wilson",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Emma Davis",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Frank Miller",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-  },
-]
-
-const mockPhotos = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1515378791036-0648a814c963?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
-]
-
-const UserData = await getUserInfo("random_1753691292193_ujapz")
-const PostsData = await getAllPosts()
-console.log(PostsData)
+const UserData = await getUserInfo(userId)
+const UserPostData = await getUserPosts(userId)
+const UserRelations = await getUserRelations(userId)
+console.log(UserPostData)
 console.log(UserData)
 
-getUserInfo("random_1753691292193_ujapz")
+getUserInfo(userId)
   .then(user => {
     if (!user) {
       console.log("Sai userID r ba");
@@ -198,41 +95,41 @@ getUserInfo("random_1753691292193_ujapz")
     
     loadPosts();
     loadFriends();
-    loadPhotos();
+    // loadPhotos();
     initScrollEffects();
-    initializeSearch();
+    // initializeSearch();
   })
   .catch(error => {
     console.error("Error loading user:", error);
-    initializeFallback();
+    // initializeFallback();
   });
 
   
-const initializeFallback = () => {
-  const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
-  const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
-  const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
-  const coverEls = document.querySelectorAll(".cover-img");
+// const initializeFallback = () => {
+//   const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
+//   const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
+//   const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
+//   const coverEls = document.querySelectorAll(".cover-img");
   
-  usernameEls.forEach((el) => (el.textContent = mockUserData.username));
-  emailEls.forEach((el) => (el.textContent = mockUserData.email));
-  avatarEls.forEach((el) => {
-    el.style.backgroundImage = `url("${mockUserData.avatar}")`;
-    el.style.backgroundSize = "cover";
-    el.style.backgroundPosition = "center";
-  });
-  coverEls.forEach((el) => {
-    if (el.classList.contains("cover-section")) {
-      el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-    }
-  });
+//   usernameEls.forEach((el) => (el.textContent = mockUserData.username));
+//   emailEls.forEach((el) => (el.textContent = mockUserData.email));
+//   avatarEls.forEach((el) => {
+//     el.style.backgroundImage = `url("${mockUserData.avatar}")`;
+//     el.style.backgroundSize = "cover";
+//     el.style.backgroundPosition = "center";
+//   });
+//   coverEls.forEach((el) => {
+//     if (el.classList.contains("cover-section")) {
+//       el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
+//     }
+//   });
   
-  loadPosts();
-  loadFriends();
-  loadPhotos();
-  initScrollEffects();
-  initializeSearch();
-};
+//   loadPosts();
+//   loadFriends();
+//   loadPhotos();
+//   initScrollEffects();
+//   initializeSearch();
+// };
 
 function initScrollEffects() {
   const tabContent = document.querySelector(".tab-content");
@@ -300,7 +197,7 @@ function loadPosts() {
   const postsContainer = document.getElementById("posts-container");
   if (!postsContainer) return;
   
-  postsContainer.innerHTML = PostsData
+  postsContainer.innerHTML = UserPostData
     .map(
       (post) => `
         <div class="post-card">
@@ -336,44 +233,30 @@ function loadFriends() {
   const friendsGrid = document.getElementById("friends-grid");
   if (!friendsGrid) return;
   
-  friendsGrid.innerHTML = mockFriends
+  friendsGrid.innerHTML = UserRelations
     .map(
       (friend) => `
-        <div class="friend-card" onclick="navigateToFriend('${friend.name}')">
+        <div class="friend-card" onclick="navigateToFriend('${friend.username}')">
           <div class="friend-avatar" style="background-image: url('${friend.avatar}')"></div>
-          <div class="friend-name">${friend.name}</div>
+          <div class="friend-name">${friend.username}</div>
         </div>
       `
     )
     .join("");
 }
 
-function loadPhotos() {
-  const photosGrid = document.getElementById("photos-grid");
-  if (!photosGrid) return;
+// function loadPhotos() {
+//   const photosGrid = document.getElementById("photos-grid");
+//   if (!photosGrid) return;
   
-  photosGrid.innerHTML = mockPhotos
-    .map(
-      (photo) => `
-        <div class="photo-item" style="background-image: url('${photo}')" onclick="openPhoto('${photo}')"></div>
-      `
-    )
-    .join("");
-}
-
-window.toggleLike = function(postId) {
-  const postAction = event.target.closest(".post-action");
-  const icon = postAction.querySelector("i");
-  const isLiked = postAction.classList.contains("liked");
-
-  if (isLiked) {
-    postAction.classList.remove("liked");
-    icon.className = "bi bi-heart";
-  } else {
-    postAction.classList.add("liked");
-    icon.className = "bi bi-heart-fill";
-  }
-};
+//   photosGrid.innerHTML = mockPhotos
+//     .map(
+//       (photo) => `
+//         <div class="photo-item" style="background-image: url('${photo}')" onclick="openPhoto('${photo}')"></div>
+//       `
+//     )
+//     .join("");
+// }
 
 window.openPhoto = function(photoUrl) {
   console.log("Opening photo:", photoUrl);
@@ -442,3 +325,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, 600);
 });
+
+
+// const RandomUser= await createRandomUsers(50)
+// console.log(RandomUser)
+// const users = await getAllUsers()
+// const test = await assignFollowersAndFollowingWithSubcollections(users)
+// const test2 = await createRandomPostsWithInteractions(50)
+// test3= await createRandomStoriesWithInteractions(20)

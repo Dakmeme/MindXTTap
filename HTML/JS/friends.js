@@ -61,65 +61,6 @@ export const getFollowsInfo = async (userId) => {
 };
 
 
-const friendsData = [
-    { id: 1, name: "Alice Johnson", avatar: "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=150&h=150&fit=crop&crop=face", status: "Active 2 minutes ago", online: true, mutual: 15 },
-    { id: 2, name: "Bob Smith", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face", status: "Active 1 hour ago", online: false, mutual: 8 },
-    { id: 3, name: "Carol Brown", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face", status: "Online", online: true, mutual: 23 },
-    { id: 4, name: "David Wilson", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face", status: "Active 3 days ago", online: false, mutual: 5 },
-    { id: 5, name: "Emma Davis", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face", status: "Online", online: true, mutual: 12 },
-    { id: 6, name: "Frank Miller", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face", status: "Active 1 day ago", online: false, mutual: 19 }
-];
-
-const groupsData = [
-    {
-        id: 1,
-        name: "Web Developers United",
-        description: "A community for passionate web developers sharing knowledge and projects.",
-        members: 1248,
-        lastActivity: "2 hours ago",
-        memberAvatars: [
-            "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
-        ]
-    },
-    {
-        id: 2,
-        name: "Photography Enthusiasts",
-        description: "Share your best shots and learn from fellow photographers.",
-        members: 892,
-        lastActivity: "5 minutes ago",
-        memberAvatars: [
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face"
-        ]
-    },
-    {
-        id: 3,
-        name: "Tech Startups Network",
-        description: "Connect with entrepreneurs and share startup experiences.",
-        members: 2156,
-        lastActivity: "1 day ago",
-        memberAvatars: [
-            "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=50&h=50&fit=crop&crop=face"
-        ]
-    },
-    {
-        id: 4,
-        name: "Book Club Society",
-        description: "Monthly book discussions and literary conversations.",
-        members: 456,
-        lastActivity: "3 hours ago",
-        memberAvatars: [
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=50&h=50&fit=crop&crop=face",
-            "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=50&h=50&fit=crop&crop=face"
-        ]
-    }
-];
 
 // const userInfo = await getAllUsers(userId)
 // const followsInfo = await getFollowsInfo(userId)
