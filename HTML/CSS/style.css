@@ -551,7 +551,6 @@ body {
 .feed-scroll-container {
   height: auto;
   overflow-y: auto;
-  margin-bottom: 30px;
   padding-right: 8px;
 }
 
@@ -731,10 +730,6 @@ body {
   padding: 8px 16px;
   background-color: var(--background-color);
   color: var(--headline-color);
-}
-
-.comment-popup-content .comment-popup-input .form-control::placeholder {
-  color: var(--p-color);
 }
 
 .comment-popup-content .comment-popup-input .send-comment-btn {
