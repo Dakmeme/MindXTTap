@@ -27,6 +27,7 @@ const firebaseConfig = {
   measurementId: "G-Y0NCNLB337",
 }
 
+
 const app = initializeApp(firebaseConfig)
 const analytics = getAnalytics(app)
 const auth = getAuth(app)
@@ -825,120 +826,231 @@ if (!window._commentPopupListenerAdded) {
 
 // Notification System
 function showNotification(message, type = "info", duration = 3000) {
-  const existing = document.getElementById("custom-notification")
-  if (existing) existing.remove()
-
-  const notif = document.createElement("div")
-  notif.id = "custom-notification"
-  notif.textContent = message
-  notif.className = "custom-notification-base"
-
-  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
-  notif.style.maxWidth = vw >= 600 ? "600px" : "90vw"
-  notif.style.width = "auto"
-
+  const existing = document.getElementById("custom-notification");
+  if (existing) existing.remove();
+  const notif = document.createElement("div");
+  notif.id = "custom-notification";
+  notif.textContent = message;
+  notif.className = "custom-notification-base";
+  // Center and fix notification at top, with fade
+  notif.style.position = "fixed";
+  notif.style.left = "50%";
+  notif.style.top = "32px";
+  notif.style.transform = "translateX(-50%)";
+  notif.style.zIndex = "9999";
+  notif.style.textAlign = "center";
+  notif.style.opacity = "0";
+  notif.style.transition = "opacity 0.35s cubic-bezier(.4,0,.2,1)";
+  notif.style.pointerEvents = "none";
+  notif.style.boxShadow = "0 4px 16px rgba(0,0,0,0.18)";
+  notif.style.padding = "1rem 2rem";
+  notif.style.borderRadius = "12px";
+  notif.style.fontSize = "1.1rem";
+  notif.style.fontWeight = "500";
+  notif.style.letterSpacing = "0.01em";
+  notif.style.background = "var(--card-bg, #282828)";
+  notif.style.color = "var(--headline-color, #fff)";
+  notif.style.border = "1px solid var(--card-border, rgba(255,255,255,0.1))";
+  notif.style.maxWidth = "90vw";
+  notif.style.width = "auto";
+  notif.style.minWidth = "40rem";
+  notif.style.boxSizing = "border-box";
+  notif.style.pointerEvents = "auto";
+  // Responsive max width
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+  notif.style.maxWidth = vw >= 600 ? "600px" : "90vw";
+  // Type-based color
   if (type === "success") {
-    notif.classList.add("success")
+    notif.style.background = "var(--success-color, #2CB67D)";
+    notif.style.color = "#fff";
+    notif.style.border = "none";
   } else if (type === "error") {
-    notif.classList.add("error")
+    notif.style.background = "var(--error-color, #D90429)";
+    notif.style.color = "#fff";
+    notif.style.border = "none";
   } else if (type === "warning") {
-    notif.classList.add("warning")
+    notif.style.background = "var(--warning-color, #FFBE0B)";
+    notif.style.color = "var(--warning-text-color, #222)";
+    notif.style.border = "none";
   } else {
-    notif.classList.add("info")
+    notif.style.background = "var(--b-color, #7F5AF0)";
+    notif.style.color = "var(--b-text-color, #fff)";
+    notif.style.border = "none";
   }
-
-  document.body.appendChild(notif)
-
+  document.body.appendChild(notif);
   setTimeout(() => {
-    notif.style.opacity = "1"
-  }, 10)
-
+    notif.style.opacity = "1";
+  }, 10);
+  // Fade out
   setTimeout(() => {
-    notif.style.opacity = "0"
+    notif.style.opacity = "0";
     setTimeout(() => {
-      notif.remove()
-    }, 300)
-  }, duration)
+      notif.remove();
+    }, 350);
+  }, duration);
 }
-
-// Notification Popup System
-let notificationList = []
-
-let notifBtn = document.getElementById("notification-dropdown")
+// Notification Popup System (modal fade)
+let notificationList = [];
+// Use id="notif" for the notification button
+let notifBtn = document.getElementById("notif");
 if (!notifBtn) {
-  notifBtn = document.createElement("button")
-  notifBtn.id = "notification-btn"
-  notifBtn.innerHTML = '<i class="bi bi-bell"></i>'
-  notifBtn.className = "notification-btn-base"
-  document.body.appendChild(notifBtn)
+  notifBtn = document.createElement("button");
+  notifBtn.id = "notif";
+  notifBtn.innerHTML = '<i class="bi bi-bell"></i>';
+  notifBtn.className = "notification-btn-base";
+  notifBtn.style.position = "fixed";
+  notifBtn.style.top = "32px";
+  notifBtn.style.right = "32px";
+  notifBtn.style.zIndex = "10000";
+  notifBtn.style.background = "var(--card-bg, #282828)";
+  notifBtn.style.color = "var(--headline-color, #fff)";
+  notifBtn.style.border = "none";
+  notifBtn.style.borderRadius = "50%";
+  notifBtn.style.width = "44px";
+  notifBtn.style.height = "44px";
+  notifBtn.style.display = "flex";
+  notifBtn.style.alignItems = "center";
+  notifBtn.style.justifyContent = "center";
+  notifBtn.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
+  notifBtn.style.cursor = "pointer";
+  document.body.appendChild(notifBtn);
 }
-
-let notifPopup = document.getElementById("notification-popup")
+let notifModalOverlay = document.getElementById("notification-modal-overlay");
+let notifPopup = document.getElementById("notification-popup");
+if (!notifModalOverlay) {
+  notifModalOverlay = document.createElement("div");
+  notifModalOverlay.id = "notification-modal-overlay";
+  notifModalOverlay.style.position = "fixed";
+  notifModalOverlay.style.top = "0";
+  notifModalOverlay.style.left = "0";
+  notifModalOverlay.style.width = "100vw";
+  notifModalOverlay.style.height = "100vh";
+  notifModalOverlay.style.background = "rgba(0,0,0,0.32)";
+  notifModalOverlay.style.zIndex = "10000";
+  notifModalOverlay.style.display = "none";
+  notifModalOverlay.style.opacity = "0";
+  notifModalOverlay.style.transition = "opacity 0.35s cubic-bezier(.4,0,.2,1)";
+  document.body.appendChild(notifModalOverlay);
+}
 if (!notifPopup) {
-  notifPopup = document.createElement("div")
-  notifPopup.id = "notification-popup"
-  notifPopup.className = "notification-popup-base"
+  notifPopup = document.createElement("div");
+  notifPopup.id = "notification-popup";
+  notifPopup.className = "notification-popup-base";
   notifPopup.innerHTML = `
-    <div class="notification-header">
-      Notifications
-      <button id="close-notif-popup">&times;</button>
+    <div class="notification-header" style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1.2rem 0.7rem 1.2rem;font-weight:600;font-size:1.1rem;border-bottom:1px solid var(--card-border,rgba(255,255,255,0.1));">
+      <span>Notifications</span>
+      <button id="close-notif-popup" style="background:none;border:none;font-size:1.5rem;line-height:1;color:var(--headline-color,#fff);cursor:pointer;">&times;</button>
     </div>
-    <div id="notification-list"></div>
-  `
-  document.body.appendChild(notifPopup)
-
+    <div id="notification-list" style="max-height:320px;overflow-y:auto;padding:0.7rem 1.2rem;"></div>
+  `;
+  notifPopup.style.position = "fixed";
+  notifPopup.style.left = "50%";
+  notifPopup.style.top = "50%";
+  notifPopup.style.transform = "translate(-50%, -50%)";
+  notifPopup.style.zIndex = "10001";
+  notifPopup.style.background = "var(--card-bg, #282828)";
+  notifPopup.style.color = "var(--headline-color, #fff)";
+  notifPopup.style.border = "1px solid var(--card-border, rgba(255,255,255,0.1))";
+  notifPopup.style.borderRadius = "16px";
+  notifPopup.style.boxShadow = "0 8px 32px rgba(0,0,0,0.25)";
+  notifPopup.style.display = "none";
+  notifPopup.style.minWidth = "40rem";
+  notifPopup.style.maxWidth = "98vw";
+  notifPopup.style.width = "min(400px, 98vw)";
+  notifPopup.style.boxSizing = "border-box";
+  notifPopup.style.padding = "0";
+  notifPopup.style.opacity = "0";
+  notifPopup.style.transition = "opacity 0.35s cubic-bezier(.4,0,.2,1)";
+  document.body.appendChild(notifPopup);
   function resizeNotifPopup() {
-    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
-    notifPopup.style.width = vw >= 600 ? "min(600px, 98vw)" : "98vw"
-    notifPopup.style.maxWidth = "98vw"
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+    notifPopup.style.width = vw >= 600 ? "min(400px, 98vw)" : "98vw";
+    notifPopup.style.maxWidth = "98vw";
   }
-  window.addEventListener("resize", resizeNotifPopup)
+  window.addEventListener("resize", resizeNotifPopup);
 }
-
 function renderNotificationPopup() {
-  const notifListDiv = notifPopup.querySelector("#notification-list")
-  notifListDiv.innerHTML = ""
+  const notifListDiv = notifPopup.querySelector("#notification-list");
+  notifListDiv.innerHTML = "";
   if (notificationList.length === 0) {
-    notifListDiv.innerHTML = '<div class="no-notifications-message">No notifications.</div>'
-    return
+    notifListDiv.innerHTML = '<div class="no-notifications-message" style="text-align:center;color:var(--p-color,#94A1B2);padding:1.5rem 0;">No notifications.</div>';
+    return;
   }
   notificationList.slice(0, 10).forEach((notif, idx) => {
-    const notifItem = document.createElement("div")
-    notifItem.className = `notification-item ${notif.type}`
-    notifItem.textContent = notif.message
-    notifListDiv.appendChild(notifItem)
-  })
+    const notifItem = document.createElement("div");
+    notifItem.className = `notification-item ${notif.type}`;
+    notifItem.textContent = notif.message;
+    notifItem.style.margin = "0.5rem 0";
+    notifItem.style.padding = "1rem 1rem";
+    notifItem.style.borderRadius = "8px";
+    notifItem.style.background = "rgba(127,90,240,0.08)";
+    notifItem.style.color = "var(--headline-color,#fff)";
+    notifItem.style.fontSize = "1rem";
+    notifItem.style.wordBreak = "break-word";
+    if (notif.type === "success") {
+      notifItem.style.background = "rgba(44,182,125,0.13)";
+      notifItem.style.color = "#2CB67D";
+    } else if (notif.type === "error") {
+      notifItem.style.background = "rgba(217,4,41,0.13)";
+      notifItem.style.color = "#D90429";
+    } else if (notif.type === "warning") {
+      notifItem.style.background = "rgba(255,190,11,0.13)";
+      notifItem.style.color = "#FFBE0B";
+    } else {
+      notifItem.style.background = "rgba(127,90,240,0.08)";
+      notifItem.style.color = "var(--headline-color,#fff)";
+    }
+    notifListDiv.appendChild(notifItem);
+  });
 }
-
-const _originalShowNotification = showNotification
+const _originalShowNotification = showNotification;
 showNotification = (message, type = "info", duration = 3000) => {
-  notificationList.unshift({ message, type, date: new Date() })
-  if (notificationList.length > 10) notificationList = notificationList.slice(0, 10)
-  renderNotificationPopup()
-  _originalShowNotification(message, type, duration)
+  notificationList.unshift({ message, type, date: new Date() });
+  if (notificationList.length > 10) notificationList = notificationList.slice(0, 10);
+  renderNotificationPopup();
+  _originalShowNotification(message, type, duration);
+};
+function openNotifModal() {
+  renderNotificationPopup();
+  notifModalOverlay.style.display = "block";
+  notifPopup.style.display = "block";
+  // Fade in
+  setTimeout(() => {
+    notifModalOverlay.style.opacity = "1";
+    notifPopup.style.opacity = "1";
+  }, 10);
 }
-
+function closeNotifModal() {
+  notifModalOverlay.style.opacity = "0";
+  notifPopup.style.opacity = "0";
+  setTimeout(() => {
+    notifModalOverlay.style.display = "none";
+    notifPopup.style.display = "none";
+  }, 350);
+}
 notifBtn.addEventListener("click", () => {
-  if (notifPopup.style.display === "none" || notifPopup.style.display === "") {
-    renderNotificationPopup()
-    notifPopup.style.display = "block"
+  if (notifModalOverlay.style.display === "none" || notifModalOverlay.style.display === "") {
+    openNotifModal();
   } else {
-    notifPopup.style.display = "none"
+    closeNotifModal();
   }
-})
-
+});
 notifPopup.addEventListener("click", (e) => {
   if (e.target && e.target.id === "close-notif-popup") {
-    notifPopup.style.display = "none"
+    closeNotifModal();
   }
-})
-
-document.addEventListener("mousedown", (e) => {
-  if (notifPopup.style.display === "block" && !notifPopup.contains(e.target) && e.target !== notifBtn) {
-    notifPopup.style.display = "none"
+});
+notifModalOverlay.addEventListener("mousedown", (e) => {
+  // Only close if click is outside the popup
+  if (!notifPopup.contains(e.target)) {
+    closeNotifModal();
   }
-})
-
+});
+document.addEventListener("keydown", (e) => {
+  if (notifModalOverlay.style.display === "block" && e.key === "Escape") {
+    closeNotifModal();
+  }
+});
 // Scroll to top button
 let scrollTopBtn = document.getElementById("feed-scroll-top-btn")
 if (!scrollTopBtn) {
@@ -997,5 +1109,8 @@ document.getElementById('profile').addEventListener('click', () => {
   window.location.href = 'profile.html';
 });
 // Initialize the application
+
 initializeUI()
 loadAllPosts()
+
+

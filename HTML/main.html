@@ -61,7 +61,7 @@
       </div>
     </div>
 
-    <main class="feed-container w-100 h-100 d-flex flex-column gap-4">
+    <main class="feed-container w-100 h-100 d-flex position-relative flex-column gap-4">
       <div class="indicator">
         <div class="d-flex align-items-center search-wrapper photo-1527980965255-d3b25b0236e3?w">
           <i class="bi bi-search"></i>
@@ -76,30 +76,9 @@
         </template>
       </div>
 
-      <!-- Enhanced Post Creation Card -->
-      <!-- <div class="card mb-4 w-100 post-card create-post-card" id="feed-create" style="max-width: 740px;">
-        <div class="card-body d-flex align-items-center feed-create-container">
-          <div class="profile-img-small">
-            <i class="bi bi-person-fill"></i>
-          </div>
-          <div class="flex-grow-1">
-            <button class="form-control text-start mb-3 create-post-input" data-bs-toggle="modal" data-bs-target="#createFeedModal">
-              What's on your mind today?
-            </button>
-            <div class="media-buttons-container">
-              <button class="btn media-button" id="media-btn-image">
-                <i class="bi bi-image me-2"></i>Photo
-              </button>
-              <button class="btn media-button" id="media-btn-video">
-                <i class="bi bi-camera-video me-2"></i>Video
-              </button>
-              <button class="btn media-button" id="media-btn-file">
-                <i class="bi bi-paperclip me-2"></i>File
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> -->
+      <div class="feed-create-container" id="feed-create" >
+        <i type="button" data-bs-toggle="modal" data-bs-target="#createFeedModal" class="bi bi-plus-circle h1"></i>
+      </div>
 
       <div class="modal fade" id="createFeedModal" tabindex="-1" aria-labelledby="createFeedModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">

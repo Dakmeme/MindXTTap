@@ -207,17 +207,6 @@ body {
 
 
 
-.create-post-input {
-  background-color: var(--background-color);
-  color: var(--p-color);
-  border: 2px solid var(--border-color);
-  border-radius: 25px;
-  cursor: pointer;
-  padding: 12px 20px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
 
 
 .media-buttons-container {
@@ -370,7 +359,6 @@ body {
   position: absolute;
   bottom: 0;
   right:0;
-  transform: translate(-100%, -100%);
 }
 /* Enhanced Post Card Styles */
 .post-card {
