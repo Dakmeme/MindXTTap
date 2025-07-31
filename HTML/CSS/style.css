@@ -733,10 +733,6 @@ body {
   color: var(--headline-color);
 }
 
-.comment-popup-content .comment-popup-input .form-control::placeholder {
-  color: var(--p-color);
-}
-
 .comment-popup-content .comment-popup-input .send-comment-btn {
   border-radius: 50%;
   width: 40px;
