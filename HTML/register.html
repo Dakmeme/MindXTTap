@@ -50,7 +50,6 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
 <script type="module">
   import { auth, db } from "./firebase.js";
   import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
@@ -58,7 +57,6 @@
   import { initAuth } from "./authState.js";
   import { createUser } from "./firebase-config.js";
 
-  // Khởi tạo auth listener
   initAuth();
 
   document.getElementById("register-form").addEventListener("submit", async function(e) {
@@ -86,11 +84,8 @@
     }
 
     try {
-      // Tạo tài khoản Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Tạo user profile trong Firestore bằng function từ firebase-config.js
       const userData = {
         username: fullName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000),
         email: email,

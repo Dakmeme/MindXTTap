@@ -1400,7 +1400,7 @@ function getPriorityColor(priority) {
   return colors[priority] || "primary"
 }
 
-// Make functions globally available
+
 window.showTab = showTab
 window.addPost = addPost
 window.editUser = editUser
