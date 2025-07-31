@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register Page</title>
-  <link rel="stylesheet" href="CSS/auth.css" />
+  <link rel="stylesheet" href="auth.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 </head>
@@ -51,40 +51,92 @@
   </div>
 
   <!-- Firebase SDKs -->
-  <script type="module">
-    import { auth, db } from "./firebase.js"; // Import auth and db from firebase.js
-    import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+<script type="module">
+  import { auth, db } from "./firebase.js";
+  import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import { initAuth } from "./authState.js";
+  import { createUser } from "./firebase-config.js";
 
-    // Xử lý đăng ký
-    document.getElementById("register-form").addEventListener("submit", async function(e) {
-      e.preventDefault();
+  // Khởi tạo auth listener
+  initAuth();
 
-      const fullName = document.getElementById("fullname").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
+  document.getElementById("register-form").addEventListener("submit", async function(e) {
+    e.preventDefault();
 
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+    const fullName = document.getElementById("fullname").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const termsAccepted = document.getElementById("terms").checked;
 
-        // Save user data to Firestore
-        await setDoc(doc(db, 'users', user.uid), {
-          name: fullName,
-          email: email,
-          uid: user.uid,
-          role: "user", // Default role
-          createdAt: new Date(),
-          lastActive: new Date()
-        });
+    // Validation
+    if (!fullName || !email || !password) {
+      alert("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
 
-        alert("Đăng ký thành công!");
-        window.location.href = "login.html"; // Redirect to login page
-      } catch (error) {
-        alert("Lỗi: " + error.message);
-        console.error("Registration error:", error);
+    if (!termsAccepted) {
+      alert("Vui lòng đồng ý với điều khoản và điều kiện!");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Mật khẩu phải có ít nhất 6 ký tự!");
+      return;
+    }
+
+    try {
+      // Tạo tài khoản Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Tạo user profile trong Firestore bằng function từ firebase-config.js
+      const userData = {
+        username: fullName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000),
+        email: email,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=random&color=ffffff&bold=true`,
+        bio: `Xin chào! Tôi là ${fullName}`,
+        role: "user",
+        status: "active"
+      };
+
+      const result = await createUser(user.uid, userData);
+      
+      if (result.success) {
+        console.log("Đăng ký thành công:", user.uid);
+        
+        // Đăng xuất user sau khi đăng ký để họ phải đăng nhập lại
+        await signOut(auth);
+        
+        alert("Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.");
+        window.location.href = "login.html";
+      } else {
+        throw new Error(result.message);
       }
-    });
-  </script>
+
+    } catch (error) {
+      console.error("Register error:", error);
+      let errorMessage = "Đăng ký thất bại";
+      
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          errorMessage = "Email đã được sử dụng bởi tài khoản khác";
+          break;
+        case "auth/weak-password":
+          errorMessage = "Mật khẩu quá yếu. Vui lòng chọn mật khẩu mạnh hơn";
+          break;
+        case "auth/invalid-email":
+          errorMessage = "Email không hợp lệ";
+          break;
+        case "auth/operation-not-allowed":
+          errorMessage = "Đăng ký email/password chưa được kích hoạt";
+          break;
+        default:
+          errorMessage = `Lỗi: ${error.message}`;
+      }
+      alert(errorMessage);
+    }
+  });
+</script>
 </body>
 </html>
