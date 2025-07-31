@@ -552,7 +552,6 @@ body {
 .feed-scroll-container {
   height: auto;
   overflow-y: auto;
-  margin-bottom: 30px;
   padding-right: 8px;
 }
 
