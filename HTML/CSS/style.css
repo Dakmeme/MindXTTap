@@ -370,7 +370,7 @@ body {
   position: absolute;
   bottom: 0;
   right:0;
-  transform: translate(50%, -100%);
+  transform: translate(-100%, -100%);
 }
 /* Enhanced Post Card Styles */
 .post-card {
