@@ -1,8 +1,6 @@
-// Sign In / Sign Up logic for #profile, "Already have account?" and go to profile.html
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js"
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js"
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js"
 import {
   getFirestore,
   addDoc,
@@ -16,9 +14,9 @@ import {
   increment,
   deleteDoc,
   setDoc,
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"
+import * as bootstrap from "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
 
-// Initialize Firebase  
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
   authDomain: "ttmindx.firebaseapp.com",
@@ -27,181 +25,85 @@ const firebaseConfig = {
   messagingSenderId: "499689288083",
   appId: "1:499689288083:web:394be22db426aa48b93866",
   measurementId: "G-Y0NCNLB337",
-};
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const createFeedModal = document.getElementById("createFeedModal");
-const postButton = document.getElementById("postButton");
-
-// User State
-let currentUser = null;
-
-// UI for sign in / sign up modal
-function createAuthModal() {
-  let modal = document.getElementById("auth-modal");
-  if (modal) return modal;
-  modal = document.createElement("div");
-  modal.id = "auth-modal";
-  modal.style.position = "fixed";
-  modal.style.top = "0";
-  modal.style.left = "0";
-  modal.style.width = "100vw";
-  modal.style.height = "100vh";
-  modal.style.background = "rgba(0,0,0,0.32)";
-  modal.style.zIndex = "10010";
-  modal.style.display = "flex";
-  modal.style.alignItems = "center";
-  modal.style.justifyContent = "center";
-  modal.innerHTML = `
-    <div id="auth-modal-content" style="background:#222; color:#fff; border-radius:16px; box-shadow:0 8px 32px rgba(0,0,0,0.25); min-width:320px; max-width:98vw; width:350px; padding:2rem 2rem 1.5rem 2rem; position:relative;">
-      <button id="auth-modal-close" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;color:#fff;cursor:pointer;">&times;</button>
-      <h3 id="auth-modal-title" style="margin-bottom:1.2rem;">Sign In</h3>
-      <form id="auth-form">
-        <div style="margin-bottom:1rem;">
-          <input type="email" id="auth-email" class="form-control" placeholder="Email" required style="width:100%;padding:0.7rem;border-radius:8px;border:1px solid #444;background:#181818;color:#fff;">
-        </div>
-        <div style="margin-bottom:1.2rem;">
-          <input type="password" id="auth-password" class="form-control" placeholder="Password" required style="width:100%;padding:0.7rem;border-radius:8px;border:1px solid #444;background:#181818;color:#fff;">
-        </div>
-        <button type="submit" id="auth-submit" class="btn btn-primary" style="width:100%;border-radius:8px;font-weight:600;">Sign In</button>
-      </form>
-      <div id="auth-switch" style="margin-top:1.2rem;text-align:center;">
-        <span>Don't have an account?</span>
-        <a href="#" id="switch-to-signup" style="color:#7f5af0;text-decoration:underline;cursor:pointer;">Sign Up</a>
-      </div>
-      <div id="auth-already" style="margin-top:1.2rem;text-align:center;display:none;">
-        <span>Already have an account?</span>
-        <a href="#" id="switch-to-signin" style="color:#7f5af0;text-decoration:underline;cursor:pointer;">Sign In</a>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  // Close modal logic
-  modal.addEventListener("mousedown", (e) => {
-    if (e.target === modal) modal.style.display = "none";
-  });
-  modal.querySelector("#auth-modal-close").onclick = () => { modal.style.display = "none"; };
-
-  // Switch to sign up
-  modal.querySelector("#switch-to-signup").onclick = (e) => {
-    e.preventDefault();
-    modal.querySelector("#auth-modal-title").textContent = "Sign Up";
-    modal.querySelector("#auth-submit").textContent = "Sign Up";
-    modal.querySelector("#auth-switch").style.display = "none";
-    modal.querySelector("#auth-already").style.display = "block";
-  };
-  // Switch to sign in
-  modal.querySelector("#switch-to-signin").onclick = (e) => {
-    e.preventDefault();
-    modal.querySelector("#auth-modal-title").textContent = "Sign In";
-    modal.querySelector("#auth-submit").textContent = "Sign In";
-    modal.querySelector("#auth-switch").style.display = "block";
-    modal.querySelector("#auth-already").style.display = "none";
-  };
-
-  // Form submit
-  modal.querySelector("#auth-form").onsubmit = async (e) => {
-    e.preventDefault();
-    const email = modal.querySelector("#auth-email").value.trim();
-    const password = modal.querySelector("#auth-password").value;
-    const isSignUp = modal.querySelector("#auth-submit").textContent === "Sign Up";
-    try {
-      let userCredential;
-      if (isSignUp) {
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        showNotification("Account created! Signed in.", "success", 1500);
-      } else {
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-        showNotification("Signed in successfully!", "success", 1200);
-      }
-      modal.style.display = "none";
-      // After sign in/up, go to profile.html
-      window.location.href = "profile.html";
-    } catch (err) {
-      let msg = "Authentication failed.";
-      if (err.code === "auth/email-already-in-use") msg = "Email already in use.";
-      else if (err.code === "auth/invalid-email") msg = "Invalid email address.";
-      else if (err.code === "auth/weak-password") msg = "Password should be at least 6 characters.";
-      else if (err.code === "auth/user-not-found") msg = "No user found with this email.";
-      else if (err.code === "auth/wrong-password") msg = "Incorrect password.";
-      showNotification(msg, "error", 2000);
-    }
-  };
-
-  return modal;
 }
+
+const app = initializeApp(firebaseConfig)
+const analytics = getAnalytics(app)
+const auth = getAuth(app)
+const db = getFirestore(app)
+
+const createFeedModal = document.getElementById("createFeedModal")
+const postButton = document.getElementById("postButton")
+
+// User State - Demo Mode
+const currentUser = { displayName: "Demo User", email: "demo@example.com", uid: "demo-user-id" }
 
 // Initialize UI
 function initializeUI() {
-  const username = document.getElementById("username");
-  const useremail = document.getElementById("useremail");
+  const username = document.getElementById("username")
+  const useremail = document.getElementById("useremail")
 
-  if (username) username.textContent = currentUser && currentUser.displayName ? currentUser.displayName : "";
-  if (useremail) useremail.textContent = currentUser && currentUser.email ? currentUser.email : "";
+  if (username) username.textContent = currentUser.displayName
+  if (useremail) useremail.textContent = currentUser.email
 
   // Show loading spinner initially
-  const loadingSpinner = document.getElementById("loading-spinner");
+  const loadingSpinner = document.getElementById("loading-spinner")
   if (loadingSpinner) {
-    loadingSpinner.style.display = "flex";
+    loadingSpinner.style.display = "flex"
     setTimeout(() => {
-      loadingSpinner.style.display = "none";
-    }, 1500);
+      loadingSpinner.style.display = "none"
+    }, 1500)
   }
 }
 
 // Character counter for textarea
-const contentTextarea = document.getElementById("content");
+const contentTextarea = document.getElementById("content")
 if (contentTextarea) {
-  const charCount = document.getElementById("char-count");
+  const charCount = document.getElementById("char-count")
   if (charCount) {
     contentTextarea.addEventListener("input", () => {
-      const count = contentTextarea.value.length;
-      charCount.textContent = count;
+      const count = contentTextarea.value.length
+      charCount.textContent = count
 
       if (count > 450) {
-        charCount.style.color = "var(--error-color)";
+        charCount.style.color = "var(--error-color)"
       } else if (count > 350) {
-        charCount.style.color = "var(--warning-color)";
+        charCount.style.color = "var(--warning-color)"
       } else {
-        charCount.style.color = "var(--p-color)";
+        charCount.style.color = "var(--p-color)"
       }
-    });
+    })
   }
 }
 
-let feedContainer = document.getElementById("feed");
+let feedContainer = document.getElementById("feed")
 if (!feedContainer) {
-  feedContainer = document.createElement("div");
-  feedContainer.id = "feed";
-  document.body.appendChild(feedContainer);
+  feedContainer = document.createElement("div")
+  feedContainer.id = "feed"
+  document.body.appendChild(feedContainer)
 }
-feedContainer.style.maxHeight = "80vh";
-feedContainer.style.minHeight = "200px";
-feedContainer.style.paddingRight = "8px";
+feedContainer.style.maxHeight = "80vh"
+feedContainer.style.minHeight = "200px"
+feedContainer.style.paddingRight = "8px"
 
 function renderPost(data, prepend = false) {
-  let dateStr = "";
+  let dateStr = ""
   if (data.date) {
-    const dateObj = new Date(data.date);
+    const dateObj = new Date(data.date)
     dateStr = dateObj.toLocaleString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    });
+    })
   }
 
-  const likeCount = data.likeCount || 0;
-  const commentCount = data.commentCount || 0;
-  const shareCount = data.shareCount || 0;
-  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-  const isLiked = likedPosts.includes(data.id);
+  const likeCount = data.likeCount || 0
+  const commentCount = data.commentCount || 0
+  const shareCount = data.shareCount || 0
+  const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]")
+  const isLiked = likedPosts.includes(data.id)
 
   const menuHtml = `
     <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
@@ -221,24 +123,24 @@ function renderPost(data, prepend = false) {
         </li>
       </ul>
     </div>
-  `;
+  `
 
-  let mediaHtml = "";
+  let mediaHtml = ""
   if (data.image) {
-    mediaHtml += `<div class="mb-3 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);" loading="lazy"></div>`;
+    mediaHtml += `<div class="mb-3 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);" loading="lazy"></div>`
   }
   if (data.video) {
-    mediaHtml += `<div class="mb-3 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);"></video></div>`;
+    mediaHtml += `<div class="mb-3 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);"></video></div>`
   }
   if (data.file) {
     mediaHtml += `<div class="mb-3 media-btn-file" style="background-color: var(--secondary-color); color: var(--main-color); border-color: var(--border-color); border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 12px; min-height:70px;">
       <i class="bi bi-paperclip me-1" style="font-size:1.8rem; color:var(--b-color);"></i>
       <a href="${data.file}" target="_blank" style="color: var(--b-color); word-break:break-all; text-decoration: underline; font-weight: 500;">${data.fileName || "Download file"}</a>
-    </div>`;
+    </div>`
   }
 
-  const feed = document.createElement("div");
-  feed.className = "feed";
+  const feed = document.createElement("div")
+  feed.className = "feed"
   feed.innerHTML = `
     <div class="card-body mb-4 post-card" data-post-id="${data.id || ""}">
       <div class="d-flex align-items-center mb-3">
@@ -289,116 +191,112 @@ function renderPost(data, prepend = false) {
         </div>
       </div>
     </div>
-  `;
+  `
 
   if (prepend && feedContainer.firstChild) {
-    feedContainer.insertBefore(feed, feedContainer.firstChild);
+    feedContainer.insertBefore(feed, feedContainer.firstChild)
   } else {
-    feedContainer.appendChild(feed);
+    feedContainer.appendChild(feed)
   }
 }
 
 function updatePostCounts(postId, { likeCount, commentCount, shareCount, isLiked }) {
-  const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`);
-  if (!postEl) return;
+  const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`)
+  if (!postEl) return
 
   if (typeof likeCount === "number") {
-    const likeCountEl = postEl.querySelector(".like-count");
-    if (likeCountEl) likeCountEl.textContent = likeCount;
-    const likeBtn = postEl.querySelector(".like-btn");
+    const likeCountEl = postEl.querySelector(".like-count")
+    if (likeCountEl) likeCountEl.textContent = likeCount
+    const likeBtn = postEl.querySelector(".like-btn")
     if (likeBtn) {
-      likeBtn.setAttribute("data-liked", isLiked ? "1" : "0");
-      const icon = likeBtn.querySelector("i");
+      likeBtn.setAttribute("data-liked", isLiked ? "1" : "0")
+      const icon = likeBtn.querySelector("i")
       if (icon) {
-        icon.className = "bi bi-heart" + (isLiked ? "-fill" : "");
+        icon.className = "bi bi-heart" + (isLiked ? "-fill" : "")
       }
     }
   }
   if (typeof commentCount === "number") {
-    const commentCountEl = postEl.querySelector(".comment-count");
-    if (commentCountEl) commentCountEl.textContent = commentCount;
+    const commentCountEl = postEl.querySelector(".comment-count")
+    if (commentCountEl) commentCountEl.textContent = commentCount
   }
   if (typeof shareCount === "number") {
-    const shareCountEl = postEl.querySelector(".share-count");
-    if (shareCountEl) shareCountEl.textContent = shareCount;
+    const shareCountEl = postEl.querySelector(".share-count")
+    if (shareCountEl) shareCountEl.textContent = shareCount
   }
 }
 
 async function loadAllPosts() {
-  // Remove sample post
-  const samplePost = document.querySelector(".sample-post");
-  if (samplePost) samplePost.remove();
+  const samplePost = document.querySelector(".sample-post")
+  if (samplePost) samplePost.remove()
 
-  feedContainer.innerHTML = "";
-  const querySnapshot = await getDocs(collection(db, "posts"));
+  feedContainer.innerHTML = ""
+  const querySnapshot = await getDocs(collection(db, "posts"))
   for (const docSnap of querySnapshot.docs) {
-    const data = docSnap.data();
-    data.id = docSnap.id;
-    data.likeCount = typeof data.likeCount === "number" ? data.likeCount : 0;
-    data.shareCount = typeof data.shareCount === "number" ? data.shareCount : 0;
-    const commentsCol = collection(db, "posts", data.id, "comments");
-    const commentsSnap = await getDocs(commentsCol);
-    data.commentCount = commentsSnap.size;
-    renderPost(data);
+    const data = docSnap.data()
+    data.id = docSnap.id
+    data.likeCount = typeof data.likeCount === "number" ? data.likeCount : 0
+    data.shareCount = typeof data.shareCount === "number" ? data.shareCount : 0
+    const commentsCol = collection(db, "posts", data.id, "comments")
+    const commentsSnap = await getDocs(commentsCol)
+    data.commentCount = commentsSnap.size
+    renderPost(data)
   }
 }
 
 function requireAuthAction(e, actionName = "this action") {
   if (!currentUser || !currentUser.uid) {
-    showNotification(`Please sign in to perform ${actionName}.`, "warning", 2000);
-    // Open sign in modal
-    const modal = createAuthModal();
-    modal.style.display = "flex";
-    return false;
+    showNotification(`Please sign in to perform ${actionName}.`, "warning", 2000)
+    return false
   }
-  return true;
+  return true
 }
 
 // Post creation
 if (postButton) {
   postButton.addEventListener("click", async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    if (!requireAuthAction(e, "creating a post")) return;
+    if (!requireAuthAction(e, "creating a post")) return
 
-    const contentInput = document.getElementById("content");
-    const imageInput = document.getElementById("image");
-    const videoInput = document.getElementById("video");
-    const fileInput = document.getElementById("file");
+    const contentInput = document.getElementById("content")
+    const imageInput = document.getElementById("image")
+    const videoInput = document.getElementById("video")
+    const fileInput = document.getElementById("file")
 
-    let imageUrl = "";
-    let videoUrl = "";
-    let fileUrl = "";
-    let fileName = "";
+    let imageUrl = ""
+    let videoUrl = ""
+    let fileUrl = ""
+    let fileName = ""
 
     if (!contentInput) {
-      console.error("Content input not found");
-      return;
+      console.error("Content input not found")
+      return
     }
 
-    const contentValue = contentInput.value.trim();
+    const contentValue = contentInput.value.trim()
     if (!contentValue) {
-      showNotification("Post content cannot be empty.", "warning", 1500);
-      return;
+      showNotification("Post content cannot be empty.", "warning", 1500)
+      return
     }
 
     if (contentValue.length > 500) {
-      showNotification("Post content is too long. Maximum 500 characters.", "warning", 2000);
-      return;
+      showNotification("Post content is too long. Maximum 500 characters.", "warning", 2000)
+      return
     }
 
     if (imageInput && imageInput.value.trim()) {
-      imageUrl = imageInput.value.trim();
+      imageUrl = imageInput.value.trim()
     }
     if (videoInput && videoInput.value.trim()) {
-      videoUrl = videoInput.value.trim();
+      videoUrl = videoInput.value.trim()
     }
     if (fileInput && fileInput.value.trim()) {
-      fileUrl = fileInput.value.trim();
-      fileName = fileInput.getAttribute("data-filename") || "";
+      fileUrl = fileInput.value.trim()
+      fileName = fileInput.getAttribute("data-filename") || ""
     }
 
-    const userName = currentUser.displayName || currentUser.email || "User";
+    const userName = currentUser.displayName || currentUser.email || "User"
 
     try {
       const docRef = await addDoc(collection(db, "posts"), {
@@ -410,7 +308,7 @@ if (postButton) {
         ...(imageUrl && { image: imageUrl }),
         ...(videoUrl && { video: videoUrl }),
         ...(fileUrl && { file: fileUrl, fileName: fileName }),
-      });
+      })
 
       renderPost(
         {
@@ -426,154 +324,154 @@ if (postButton) {
           ...(fileUrl && { file: fileUrl, fileName: fileName }),
         },
         true,
-      );
+      )
 
       // Clear inputs
-      contentInput.value = "";
-      if (imageInput) imageInput.value = "";
-      if (videoInput) videoInput.value = "";
+      contentInput.value = ""
+      if (imageInput) imageInput.value = ""
+      if (videoInput) videoInput.value = ""
       if (fileInput) {
-        fileInput.value = "";
-        fileInput.removeAttribute("data-filename");
+        fileInput.value = ""
+        fileInput.removeAttribute("data-filename")
       }
 
       // Reset character counter
-      const charCount = document.getElementById("char-count");
+      const charCount = document.getElementById("char-count")
       if (charCount) {
-        charCount.textContent = "0";
-        charCount.style.color = "var(--p-color)";
+        charCount.textContent = "0"
+        charCount.style.color = "var(--p-color)"
       }
 
       // Close modal
-      const modalEl = document.getElementById("createFeedModal");
+      const modalEl = document.getElementById("createFeedModal")
       if (modalEl) {
-        let modal;
+        let modal
         try {
-          modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal = bootstrap.Modal.getOrCreateInstance(modalEl)
         } catch (err) {
-          modal = null;
+          modal = null
         }
         if (modal && typeof modal.hide === "function") {
-          modal.hide();
+          modal.hide()
         } else {
-          modalEl.classList.remove("show");
-          modalEl.style.display = "none";
-          document.body.classList.remove("modal-open");
-          const backdrop = document.querySelector(".modal-backdrop");
-          if (backdrop) backdrop.remove();
+          modalEl.classList.remove("show")
+          modalEl.style.display = "none"
+          document.body.classList.remove("modal-open")
+          const backdrop = document.querySelector(".modal-backdrop")
+          if (backdrop) backdrop.remove()
         }
       }
 
-      window.scrollTo(0, document.body.scrollHeight);
-      showNotification("Post created successfully!", "success", 1500);
+      window.scrollTo(0, document.body.scrollHeight)
+      showNotification("Post created successfully!", "success", 1500)
     } catch (e) {
-      console.error("Error adding document: ", e);
-      showNotification("Failed to create post.", "error", 2000);
+      console.error("Error adding document: ", e)
+      showNotification("Failed to create post.", "error", 2000)
     }
-  });
+  })
 }
 
 // Event delegation for post interactions
 document.addEventListener("click", async (e) => {
   // Like button
-  const likeBtn = e.target.closest(".like-btn");
+  const likeBtn = e.target.closest(".like-btn")
   if (likeBtn) {
-    if (!requireAuthAction(e, "liking a post")) return;
+    if (!requireAuthAction(e, "liking a post")) return
 
-    const postCard = likeBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
+    const postCard = likeBtn.closest(".card-body")
+    if (!postCard) return
+    const postId = postCard.getAttribute("data-post-id")
+    if (!postId) return
 
-    const user = currentUser;
-    const likeDocRef = doc(db, "posts", postId, "likes", user.uid);
-    let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]");
-    const isLiked = likedPosts.includes(postId);
+    const user = currentUser
+    const likeDocRef = doc(db, "posts", postId, "likes", user.uid)
+    let likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]")
+    const isLiked = likedPosts.includes(postId)
 
     try {
       if (!isLiked) {
         await setDoc(likeDocRef, {
           userId: user.uid,
           likedAt: new Date().toISOString(),
-        });
-        await updateDoc(doc(db, "posts", postId), { likeCount: increment(1) });
-        likedPosts.push(postId);
-        localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-        const postDoc = await getDoc(doc(db, "posts", postId));
-        const likeCount = postDoc.data().likeCount || 1;
-        updatePostCounts(postId, { likeCount, isLiked: true });
-        showNotification("You liked this post!", "success", 1200);
+        })
+        await updateDoc(doc(db, "posts", postId), { likeCount: increment(1) })
+        likedPosts.push(postId)
+        localStorage.setItem("likedPosts", JSON.stringify(likedPosts))
+        const postDoc = await getDoc(doc(db, "posts", postId))
+        const likeCount = postDoc.data().likeCount || 1
+        updatePostCounts(postId, { likeCount, isLiked: true })
+        showNotification("You liked this post!", "success", 1200)
       } else {
-        await deleteDoc(likeDocRef);
-        await updateDoc(doc(db, "posts", postId), { likeCount: increment(-1) });
-        likedPosts = likedPosts.filter((id) => id !== postId);
-        localStorage.setItem("likedPosts", JSON.stringify(likedPosts));
-        const postDoc = await getDoc(doc(db, "posts", postId));
-        const likeCount = postDoc.data().likeCount || 0;
-        updatePostCounts(postId, { likeCount, isLiked: false });
-        showNotification("You unliked this post.", "info", 1200);
+        await deleteDoc(likeDocRef)
+        await updateDoc(doc(db, "posts", postId), { likeCount: increment(-1) })
+        likedPosts = likedPosts.filter((id) => id !== postId)
+        localStorage.setItem("likedPosts", JSON.stringify(likedPosts))
+        const postDoc = await getDoc(doc(db, "posts", postId))
+        const likeCount = postDoc.data().likeCount || 0
+        updatePostCounts(postId, { likeCount, isLiked: false })
+        showNotification("You unliked this post.", "info", 1200)
       }
     } catch (err) {
-      showNotification("Failed to update like.", "error");
+      showNotification("Failed to update like.", "error")
     }
-    return;
+    return
   }
 
   // Share button
-  const shareBtn = e.target.closest(".share-btn");
+  const shareBtn = e.target.closest(".share-btn")
   if (shareBtn) {
-    if (!requireAuthAction(e, "sharing a post")) return;
+    if (!requireAuthAction(e, "sharing a post")) return
 
-    const postCard = shareBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
+    const postCard = shareBtn.closest(".card-body")
+    if (!postCard) return
+    const postId = postCard.getAttribute("data-post-id")
+    if (!postId) return
 
-    const user = currentUser;
-    const shareDocRef = doc(db, "posts", postId, "shares", user.uid);
-    let sharedPosts = JSON.parse(localStorage.getItem("sharedPosts") || "[]");
+    const user = currentUser
+    const shareDocRef = doc(db, "posts", postId, "shares", user.uid)
+    const sharedPosts = JSON.parse(localStorage.getItem("sharedPosts") || "[]")
     if (sharedPosts.includes(postId)) {
-      showNotification("You already shared this post.", "info", 1500);
-      return;
+      showNotification("You already shared this post.", "info", 1500)
+      return
     }
     try {
       await setDoc(shareDocRef, {
         userId: user.uid,
         sharedAt: new Date().toISOString(),
-      });
-      await updateDoc(doc(db, "posts", postId), { shareCount: increment(1) });
-      sharedPosts.push(postId);
-      localStorage.setItem("sharedPosts", JSON.stringify(sharedPosts));
-      const postDoc = await getDoc(doc(db, "posts", postId));
-      const shareCount = postDoc.data().shareCount || 1;
-      updatePostCounts(postId, { shareCount });
-      showNotification("Post shared!", "success", 1200);
+      })
+      await updateDoc(doc(db, "posts", postId), { shareCount: increment(1) })
+      sharedPosts.push(postId)
+      localStorage.setItem("sharedPosts", JSON.stringify(sharedPosts))
+      const postDoc = await getDoc(doc(db, "posts", postId))
+      const shareCount = postDoc.data().shareCount || 1
+      updatePostCounts(postId, { shareCount })
+      showNotification("Post shared!", "success", 1200)
     } catch (err) {
-      showNotification("Failed to share post.", "error");
+      showNotification("Failed to share post.", "error")
     }
-    return;
+    return
   }
 
   // Edit button
-  const editBtn = e.target.closest(".edit-post-btn");
+  const editBtn = e.target.closest(".edit-post-btn")
   if (editBtn) {
-    if (!requireAuthAction(e, "editing a post")) return;
+    if (!requireAuthAction(e, "editing a post")) return
 
-    const postCard = editBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-    const contentDiv = postCard.querySelector(".post-content");
-    if (!contentDiv) return;
+    const postCard = editBtn.closest(".card-body")
+    if (!postCard) return
+    const postId = postCard.getAttribute("data-post-id")
+    if (!postId) return
+    const contentDiv = postCard.querySelector(".post-content")
+    if (!contentDiv) return
 
-    const postDoc = await getDoc(doc(db, "posts", postId));
-    if (!postDoc.exists() || postDoc.data().user !== (currentUser.displayName || currentUser.email)) {
-      showNotification("You can only edit your own posts.", "error", 2000);
-      return;
+    const postDoc = await getDoc(doc(db, "posts", postId))
+    if (!postDoc.exists() || postDoc.data().user !== currentUser.displayName) {
+      showNotification("You can only edit your own posts.", "error", 2000)
+      return
     }
 
-    if (contentDiv.querySelector("textarea")) return;
-    const oldContent = contentDiv.textContent;
+    if (contentDiv.querySelector("textarea")) return
+    const oldContent = contentDiv.textContent
     contentDiv.innerHTML = `
       <textarea class="form-control edit-post-textarea enhanced-textarea" style="width:100%; min-height:80px; margin-bottom:12px;">${oldContent.replace(/"/g, "&quot;")}</textarea>
       <div>
@@ -584,105 +482,105 @@ document.addEventListener("click", async (e) => {
           <i class="bi bi-x-circle me-1"></i>Cancel
         </button>
       </div>
-    `;
-    const textarea = contentDiv.querySelector("textarea");
-    if (textarea) textarea.focus();
-    return;
+    `
+    const textarea = contentDiv.querySelector("textarea")
+    if (textarea) textarea.focus()
+    return
   }
 
   // Save edit button
-  const saveEditBtn = e.target.closest(".save-edit-post-btn");
+  const saveEditBtn = e.target.closest(".save-edit-post-btn")
   if (saveEditBtn) {
-    if (!requireAuthAction(e, "saving post edits")) return;
+    if (!requireAuthAction(e, "saving post edits")) return
 
-    const postCard = saveEditBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
-    const contentDiv = postCard.querySelector(".post-content");
-    const textarea = contentDiv.querySelector("textarea");
-    if (!textarea) return;
-    const newContent = textarea.value.trim();
+    const postCard = saveEditBtn.closest(".card-body")
+    if (!postCard) return
+    const postId = postCard.getAttribute("data-post-id")
+    if (!postId) return
+    const contentDiv = postCard.querySelector(".post-content")
+    const textarea = contentDiv.querySelector("textarea")
+    if (!textarea) return
+    const newContent = textarea.value.trim()
     if (!newContent) {
-      showNotification("Post content cannot be empty.", "warning", 1500);
-      return;
+      showNotification("Post content cannot be empty.", "warning", 1500)
+      return
     }
     if (newContent.length > 500) {
-      showNotification("Post content is too long. Maximum 500 characters.", "warning", 2000);
-      return;
+      showNotification("Post content is too long. Maximum 500 characters.", "warning", 2000)
+      return
     }
     updateDoc(doc(db, "posts", postId), { content: newContent })
       .then(() => {
-        contentDiv.innerHTML = newContent;
-        showNotification("Post updated!", "success", 1200);
+        contentDiv.innerHTML = newContent
+        showNotification("Post updated!", "success", 1200)
       })
       .catch(() => {
-        showNotification("Failed to update post.", "error");
-      });
-    return;
+        showNotification("Failed to update post.", "error")
+      })
+    return
   }
 
   // Cancel edit button
-  const cancelEditBtn = e.target.closest(".cancel-edit-post-btn");
+  const cancelEditBtn = e.target.closest(".cancel-edit-post-btn")
   if (cancelEditBtn) {
-    const postCard = cancelEditBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
+    const postCard = cancelEditBtn.closest(".card-body")
+    if (!postCard) return
+    const postId = postCard.getAttribute("data-post-id")
+    if (!postId) return
     getDoc(doc(db, "posts", postId)).then((postDoc) => {
-      const contentDiv = postCard.querySelector(".post-content");
+      const contentDiv = postCard.querySelector(".post-content")
       if (contentDiv) {
-        contentDiv.innerHTML = postDoc.exists() ? postDoc.data().content || "" : "";
+        contentDiv.innerHTML = postDoc.exists() ? postDoc.data().content || "" : ""
       }
-    });
-    return;
+    })
+    return
   }
 
   // Delete button
-  const deleteBtn = e.target.closest(".delete-post-btn");
+  const deleteBtn = e.target.closest(".delete-post-btn")
   if (deleteBtn) {
-    if (!requireAuthAction(e, "deleting a post")) return;
+    if (!requireAuthAction(e, "deleting a post")) return
 
-    const postCard = deleteBtn.closest(".card-body");
-    if (!postCard) return;
-    const postId = postCard.getAttribute("data-post-id");
-    if (!postId) return;
+    const postCard = deleteBtn.closest(".card-body")
+    if (!postCard) return
+    const postId = postCard.getAttribute("data-post-id")
+    if (!postId) return
 
-    const postDoc = await getDoc(doc(db, "posts", postId));
-    if (!postDoc.exists() || postDoc.data().user !== (currentUser.displayName || currentUser.email)) {
-      showNotification("You can only delete your own posts.", "error", 2000);
-      return;
+    const postDoc = await getDoc(doc(db, "posts", postId))
+    if (!postDoc.exists() || postDoc.data().user !== currentUser.displayName) {
+      showNotification("You can only delete your own posts.", "error", 2000)
+      return
     }
 
-    if (!confirm("Are you sure you want to delete this post? This cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete this post? This cannot be undone.")) return
     deleteDoc(doc(db, "posts", postId))
       .then(() => {
-        const feedPost = postCard.closest(".feed");
-        if (feedPost) feedPost.remove();
-        else postCard.remove();
-        showNotification("Post deleted.", "success", 1200);
+        const feedPost = postCard.closest(".feed")
+        if (feedPost) feedPost.remove()
+        else postCard.remove()
+        showNotification("Post deleted.", "success", 1200)
       })
       .catch(() => {
-        showNotification("Failed to delete post.", "error");
-      });
-    return;
+        showNotification("Failed to delete post.", "error")
+      })
+    return
   }
-});
+})
 
 // Comment Popup Logic
-let commentPopup = null;
+let commentPopup = null
 function createCommentPopup() {
-  if (commentPopup) return commentPopup;
-  commentPopup = document.createElement("div");
-  commentPopup.id = "commentPopup";
-  commentPopup.className = "comment-popup-overlay";
+  if (commentPopup) return commentPopup
+  commentPopup = document.createElement("div")
+  commentPopup.id = "commentPopup"
+  commentPopup.className = "comment-popup-overlay"
 
   function getPopupWidth() {
-    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    if (vw >= 1200) return "900px";
-    if (vw >= 900) return "700px";
-    if (vw >= 600) return "90vw";
-    return "98vw";
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    if (vw >= 1200) return "900px"
+    if (vw >= 900) return "700px"
+    if (vw >= 600) return "90vw"
+    return "98vw"
   }
 
   commentPopup.innerHTML = `
@@ -699,45 +597,45 @@ function createCommentPopup() {
         </button>
       </div>
     </div>
-  `;
-  document.body.appendChild(commentPopup);
+  `
+  document.body.appendChild(commentPopup)
 
   function resizePopup() {
-    const popupContent = commentPopup.querySelector(".comment-popup-content");
+    const popupContent = commentPopup.querySelector(".comment-popup-content")
     if (popupContent) {
-      popupContent.style.width = getPopupWidth();
-      popupContent.style.maxWidth = "98vw";
+      popupContent.style.width = getPopupWidth()
+      popupContent.style.maxWidth = "98vw"
     }
   }
-  window.addEventListener("resize", resizePopup);
+  window.addEventListener("resize", resizePopup)
 
-  return commentPopup;
+  return commentPopup
 }
 
 function renderPopupPost(postData) {
-  const postDiv = commentPopup.querySelector(".comment-popup-post");
-  let dateStr = "";
+  const postDiv = commentPopup.querySelector(".comment-popup-post")
+  let dateStr = ""
   if (postData.date) {
-    const dateObj = new Date(postData.date);
+    const dateObj = new Date(postData.date)
     dateStr = dateObj.toLocaleString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    });
+    })
   }
 
-  let mediaHtml = "";
+  let mediaHtml = ""
   if (postData.image) {
-    mediaHtml = `<div class="mb-2"><img src="${postData.image}" alt="Post image" class="popup-media-image" loading="lazy"></div>`;
+    mediaHtml = `<div class="mb-2"><img src="${postData.image}" alt="Post image" class="popup-media-image" loading="lazy"></div>`
   } else if (postData.video) {
-    mediaHtml = `<div class="mb-2"><video src="${postData.video}" controls class="popup-media-video"></video></div>`;
+    mediaHtml = `<div class="mb-2"><video src="${postData.video}" controls class="popup-media-video"></video></div>`
   } else if (postData.file) {
     mediaHtml = `<div class="mb-2 file-attachment">
       <i class="bi bi-paperclip"></i>
       <a href="${postData.file}" target="_blank">${postData.fileName || "Download file"}</a>
-    </div>`;
+    </div>`
   }
 
   postDiv.innerHTML = `
@@ -752,39 +650,39 @@ function renderPopupPost(postData) {
     </div>
     <div class="mb-2" style="color: var(--p-color);">${postData.content ? postData.content : ""}</div>
     ${mediaHtml}
-  `;
+  `
 }
 
 async function renderPopupComments(postId) {
-  const commentsDiv = commentPopup.querySelector(".comment-popup-comments");
-  commentsDiv.innerHTML = '<div class="loading-message">Loading comments...</div>';
+  const commentsDiv = commentPopup.querySelector(".comment-popup-comments")
+  commentsDiv.innerHTML = '<div class="loading-message">Loading comments...</div>'
   try {
-    const commentsCol = collection(db, "posts", postId, "comments");
-    const q = query(commentsCol, orderBy("date", "asc"));
-    const snapshot = await getDocs(q);
+    const commentsCol = collection(db, "posts", postId, "comments")
+    const q = query(commentsCol, orderBy("date", "asc"))
+    const snapshot = await getDocs(q)
     if (snapshot.empty) {
-      commentsDiv.innerHTML = '<div class="no-comments-message">No comments yet.</div>';
-      updatePostCounts(postId, { commentCount: 0 });
-      return;
+      commentsDiv.innerHTML = '<div class="no-comments-message">No comments yet.</div>'
+      updatePostCounts(postId, { commentCount: 0 })
+      return
     }
-    commentsDiv.innerHTML = "";
-    let count = 0;
+    commentsDiv.innerHTML = ""
+    let count = 0
     snapshot.forEach((docSnap) => {
-      count++;
-      const c = docSnap.data();
-      let dateStr = "";
+      count++
+      const c = docSnap.data()
+      let dateStr = ""
       if (c.date) {
-        const dateObj = new Date(c.date);
+        const dateObj = new Date(c.date)
         dateStr = dateObj.toLocaleString(undefined, {
           year: "numeric",
           month: "short",
           day: "numeric",
           hour: "2-digit",
           minute: "2-digit",
-        });
+        })
       }
-      const commentEl = document.createElement("div");
-      commentEl.className = "comment mb-2";
+      const commentEl = document.createElement("div")
+      commentEl.className = "comment mb-2"
       commentEl.innerHTML = `
         <div class="d-flex align-items-center">
           <div class="profile-img-tiny me-2">
@@ -796,411 +694,278 @@ async function renderPopupComments(postId) {
             <div>${dateStr}</div>
           </div>
         </div>
-      `;
-      commentsDiv.appendChild(commentEl);
-    });
-    updatePostCounts(postId, { commentCount: count });
-    commentsDiv.scrollTop = commentsDiv.scrollHeight;
+      `
+      commentsDiv.appendChild(commentEl)
+    })
+    updatePostCounts(postId, { commentCount: count })
+    commentsDiv.scrollTop = commentsDiv.scrollHeight
   } catch (err) {
-    commentsDiv.innerHTML = '<div class="error-message">Failed to load comments.</div>';
+    commentsDiv.innerHTML = '<div class="error-message">Failed to load comments.</div>'
   }
 }
 
 async function showCommentPopup(postData) {
-  createCommentPopup();
+  createCommentPopup()
 
   function getPopupWidth() {
-    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    if (vw >= 1200) return "900px";
-    if (vw >= 900) return "700px";
-    if (vw >= 600) return "90vw";
-    return "98vw";
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    if (vw >= 1200) return "900px"
+    if (vw >= 900) return "700px"
+    if (vw >= 600) return "90vw"
+    return "98vw"
   }
-  const popupContent = commentPopup.querySelector(".comment-popup-content");
+  const popupContent = commentPopup.querySelector(".comment-popup-content")
   if (popupContent) {
-    popupContent.style.width = getPopupWidth();
-    popupContent.style.maxWidth = "98vw";
+    popupContent.style.width = getPopupWidth()
+    popupContent.style.maxWidth = "98vw"
   }
 
-  renderPopupPost(postData);
-  commentPopup.style.display = "flex";
-  commentPopup.dataset.postId = postData.id;
-  await renderPopupComments(postData.id);
+  renderPopupPost(postData)
+  commentPopup.style.display = "flex"
+  commentPopup.dataset.postId = postData.id
+  await renderPopupComments(postData.id)
 
   setTimeout(() => {
-    const input = commentPopup.querySelector('input[type="text"]');
-    if (input) input.focus();
-  }, 100);
+    const input = commentPopup.querySelector('input[type="text"]')
+    if (input) input.focus()
+  }, 100)
 }
 
 function hideCommentPopup() {
   if (commentPopup) {
-    commentPopup.style.display = "none";
-    commentPopup.dataset.postId = "";
-    commentPopup.querySelector(".comment-popup-comments").innerHTML = "";
-    commentPopup.querySelector('input[type="text"]').value = "";
+    commentPopup.style.display = "none"
+    commentPopup.dataset.postId = ""
+    commentPopup.querySelector(".comment-popup-comments").innerHTML = ""
+    commentPopup.querySelector('input[type="text"]').value = ""
   }
 }
 
 // Comment popup event listeners
 document.addEventListener("click", async (e) => {
-  const commentBtn = e.target.closest(".open-comment-popup");
+  const commentBtn = e.target.closest(".open-comment-popup")
   if (commentBtn) {
-    const postCard = commentBtn.closest(".card-body");
+    const postCard = commentBtn.closest(".card-body")
     if (postCard) {
-      const postId = postCard.getAttribute("data-post-id");
-      if (!postId) return;
-      const postDoc = await getDoc(doc(db, "posts", postId));
-      if (!postDoc.exists()) return;
-      const postData = postDoc.data();
-      postData.id = postId;
-      showCommentPopup(postData);
+      const postId = postCard.getAttribute("data-post-id")
+      if (!postId) return
+      const postDoc = await getDoc(doc(db, "posts", postId))
+      if (!postDoc.exists()) return
+      const postData = postDoc.data()
+      postData.id = postId
+      showCommentPopup(postData)
     }
   }
   if (e.target.classList.contains("close-comment-popup")) {
-    hideCommentPopup();
+    hideCommentPopup()
   }
   if (commentPopup && e.target === commentPopup) {
-    hideCommentPopup();
+    hideCommentPopup()
   }
-});
+})
 
 // Comment submission
 if (!window._commentPopupListenerAdded) {
-  window._commentPopupListenerAdded = true;
+  window._commentPopupListenerAdded = true
   document.addEventListener("click", async (e) => {
-    if (!commentPopup || commentPopup.style.display !== "flex") return;
+    if (!commentPopup || commentPopup.style.display !== "flex") return
     if (e.target.closest(".send-comment-btn")) {
-      if (!requireAuthAction(e, "adding a comment")) return;
+      if (!requireAuthAction(e, "adding a comment")) return
 
-      const postId = commentPopup.dataset.postId;
-      const input = commentPopup.querySelector('input[type="text"]');
-      const commentText = input ? input.value.trim() : "";
-      if (!postId || !commentText) return;
-      const userName = currentUser.displayName || currentUser.email || "User";
+      const postId = commentPopup.dataset.postId
+      const input = commentPopup.querySelector('input[type="text"]')
+      const commentText = input ? input.value.trim() : ""
+      if (!postId || !commentText) return
+      const userName = currentUser.displayName || currentUser.email || "User"
       try {
         await addDoc(collection(db, "posts", postId, "comments"), {
           user: userName,
           content: commentText,
           date: new Date().toISOString(),
-        });
-        input.value = "";
-        await renderPopupComments(postId);
-        showNotification("Comment added!", "success", 1200);
+        })
+        input.value = ""
+        await renderPopupComments(postId)
+        showNotification("Comment added!", "success", 1200)
       } catch (err) {
-        showNotification("Failed to add comment.", "error", 2000);
+        showNotification("Failed to add comment.", "error", 2000)
       }
     }
-  });
+  })
 
   document.addEventListener("keydown", async (e) => {
-    if (!commentPopup || commentPopup.style.display !== "flex") return;
+    if (!commentPopup || commentPopup.style.display !== "flex") return
     if (e.key === "Enter" && !e.shiftKey) {
-      const input = commentPopup.querySelector('input[type="text"]');
+      const input = commentPopup.querySelector('input[type="text"]')
       if (document.activeElement === input) {
-        if (!requireAuthAction(e, "adding a comment")) return;
+        if (!requireAuthAction(e, "adding a comment")) return
 
-        e.preventDefault();
-        const postId = commentPopup.dataset.postId;
-        const commentText = input ? input.value.trim() : "";
-        if (!postId || !commentText) return;
-        const userName = currentUser.displayName || currentUser.email || "User";
+        e.preventDefault()
+        const postId = commentPopup.dataset.postId
+        const commentText = input ? input.value.trim() : ""
+        if (!postId || !commentText) return
+        const userName = currentUser.displayName || currentUser.email || "User"
         try {
           await addDoc(collection(db, "posts", postId, "comments"), {
             user: userName,
             content: commentText,
             date: new Date().toISOString(),
-          });
-          input.value = "";
-          await renderPopupComments(postId);
-          showNotification("Comment added!", "success", 1200);
+          })
+          input.value = ""
+          await renderPopupComments(postId)
+          showNotification("Comment added!", "success", 1200)
         } catch (err) {
-          showNotification("Failed to add comment.", "error", 2000);
+          showNotification("Failed to add comment.", "error", 2000)
         }
       }
     }
     if (e.key === "Escape" && commentPopup && commentPopup.style.display === "flex") {
-      hideCommentPopup();
+      hideCommentPopup()
     }
-  });
+  })
 }
 
 // Notification System
-// Notification System (centered, fixed CSS, modal fade)
 function showNotification(message, type = "info", duration = 3000) {
-  const existing = document.getElementById("custom-notification");
-  if (existing) existing.remove();
+  const existing = document.getElementById("custom-notification")
+  if (existing) existing.remove()
 
-  const notif = document.createElement("div");
-  notif.id = "custom-notification";
-  notif.textContent = message;
-  notif.className = "custom-notification-base";
+  const notif = document.createElement("div")
+  notif.id = "custom-notification"
+  notif.textContent = message
+  notif.className = "custom-notification-base"
 
-  // Center and fix notification at top, with fade
-  notif.style.position = "fixed";
-  notif.style.left = "50%";
-  notif.style.top = "32px";
-  notif.style.transform = "translateX(-50%)";
-  notif.style.zIndex = "9999";
-  notif.style.textAlign = "center";
-  notif.style.opacity = "0";
-  notif.style.transition = "opacity 0.35s cubic-bezier(.4,0,.2,1)";
-  notif.style.pointerEvents = "none";
-  notif.style.boxShadow = "0 4px 16px rgba(0,0,0,0.18)";
-  notif.style.padding = "1rem 2rem";
-  notif.style.borderRadius = "12px";
-  notif.style.fontSize = "1.1rem";
-  notif.style.fontWeight = "500";
-  notif.style.letterSpacing = "0.01em";
-  notif.style.background = "var(--card-bg, #282828)";
-  notif.style.color = "var(--headline-color, #fff)";
-  notif.style.border = "1px solid var(--card-border, rgba(255,255,255,0.1))";
-  notif.style.maxWidth = "90vw";
-  notif.style.width = "auto";
-  notif.style.minWidth = "40rem";
-  notif.style.boxSizing = "border-box";
-  notif.style.pointerEvents = "auto";
+  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+  notif.style.maxWidth = vw >= 600 ? "600px" : "90vw"
+  notif.style.width = "auto"
 
-  // Responsive max width
-  const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-  notif.style.maxWidth = vw >= 600 ? "600px" : "90vw";
-
-  // Type-based color
   if (type === "success") {
-    notif.style.background = "var(--success-color, #2cb67d)";
-    notif.style.color = "#fff";
-    notif.style.border = "none";
+    notif.classList.add("success")
   } else if (type === "error") {
-    notif.style.background = "var(--error-color, #d90429)";
-    notif.style.color = "#fff";
-    notif.style.border = "none";
+    notif.classList.add("error")
   } else if (type === "warning") {
-    notif.style.background = "var(--warning-color, #ffbe0b)";
-    notif.style.color = "var(--warning-text-color, #222)";
-    notif.style.border = "none";
+    notif.classList.add("warning")
   } else {
-    notif.style.background = "var(--b-color, #7f5af0)";
-    notif.style.color = "var(--b-text-color, #fff)";
-    notif.style.border = "none";
+    notif.classList.add("info")
   }
 
-  document.body.appendChild(notif);
+  document.body.appendChild(notif)
 
-  // Fade in
   setTimeout(() => {
-    notif.style.opacity = "1";
-  }, 10);
+    notif.style.opacity = "1"
+  }, 10)
 
-  // Fade out
   setTimeout(() => {
-    notif.style.opacity = "0";
+    notif.style.opacity = "0"
     setTimeout(() => {
-      notif.remove();
-    }, 350);
-  }, duration);
+      notif.remove()
+    }, 300)
+  }, duration)
 }
 
-// Notification Popup System (modal fade)
-let notificationList = [];
+// Notification Popup System
+let notificationList = []
 
-// Use id="notif" for the notification button
-let notifBtn = document.getElementById("notif");
+let notifBtn = document.getElementById("notification-dropdown")
 if (!notifBtn) {
-  notifBtn = document.createElement("button");
-  notifBtn.id = "notif";
-  notifBtn.innerHTML = '<i class="bi bi-bell"></i>';
-  notifBtn.className = "notification-btn-base";
-  notifBtn.style.position = "fixed";
-  notifBtn.style.top = "32px";
-  notifBtn.style.right = "32px";
-  notifBtn.style.zIndex = "10000";
-  notifBtn.style.background = "var(--card-bg, #282828)";
-  notifBtn.style.color = "var(--headline-color, #fff)";
-  notifBtn.style.border = "none";
-  notifBtn.style.borderRadius = "50%";
-  notifBtn.style.width = "44px";
-  notifBtn.style.height = "44px";
-  notifBtn.style.display = "flex";
-  notifBtn.style.alignItems = "center";
-  notifBtn.style.justifyContent = "center";
-  notifBtn.style.boxShadow = "0 2px 8px rgba(0,0,0,0.18)";
-  notifBtn.style.cursor = "pointer";
-  document.body.appendChild(notifBtn);
+  notifBtn = document.createElement("button")
+  notifBtn.id = "notification-btn"
+  notifBtn.innerHTML = '<i class="bi bi-bell"></i>'
+  notifBtn.className = "notification-btn-base"
+  document.body.appendChild(notifBtn)
 }
 
-let notifModalOverlay = document.getElementById("notification-modal-overlay");
-let notifPopup = document.getElementById("notification-popup");
-if (!notifModalOverlay) {
-  notifModalOverlay = document.createElement("div");
-  notifModalOverlay.id = "notification-modal-overlay";
-  notifModalOverlay.style.position = "fixed";
-  notifModalOverlay.style.top = "0";
-  notifModalOverlay.style.left = "0";
-  notifModalOverlay.style.width = "100vw";
-  notifModalOverlay.style.height = "100vh";
-  notifModalOverlay.style.background = "rgba(0,0,0,0.32)";
-  notifModalOverlay.style.zIndex = "10000";
-  notifModalOverlay.style.display = "none";
-  notifModalOverlay.style.opacity = "0";
-  notifModalOverlay.style.transition = "opacity 0.35s cubic-bezier(.4,0,.2,1)";
-  document.body.appendChild(notifModalOverlay);
-}
-
+let notifPopup = document.getElementById("notification-popup")
 if (!notifPopup) {
-  notifPopup = document.createElement("div");
-  notifPopup.id = "notification-popup";
-  notifPopup.className = "notification-popup-base";
+  notifPopup = document.createElement("div")
+  notifPopup.id = "notification-popup"
+  notifPopup.className = "notification-popup-base"
   notifPopup.innerHTML = `
-    <div class="notification-header" style="display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1.2rem 0.7rem 1.2rem;font-weight:600;font-size:1.1rem;border-bottom:1px solid var(--card-border,rgba(255,255,255,0.1));">
-      <span>Notifications</span>
-      <button id="close-notif-popup" style="background:none;border:none;font-size:1.5rem;line-height:1;color:var(--headline-color,#fff);cursor:pointer;">&times;</button>
+    <div class="notification-header">
+      Notifications
+      <button id="close-notif-popup">&times;</button>
     </div>
-    <div id="notification-list" style="max-height:320px;overflow-y:auto;padding:0.7rem 1.2rem;"></div>
-  `;
-  notifPopup.style.position = "fixed";
-  notifPopup.style.left = "50%";
-  notifPopup.style.top = "50%";
-  notifPopup.style.transform = "translate(-50%, -50%)";
-  notifPopup.style.zIndex = "10001";
-  notifPopup.style.background = "var(--card-bg, #282828)";
-  notifPopup.style.color = "var(--headline-color, #fff)";
-  notifPopup.style.border = "1px solid var(--card-border, rgba(255,255,255,0.1))";
-  notifPopup.style.borderRadius = "16px";
-  notifPopup.style.boxShadow = "0 8px 32px rgba(0,0,0,0.25)";
-  notifPopup.style.display = "none";
-  notifPopup.style.minWidth = "40rem";
-  notifPopup.style.maxWidth = "98vw";
-  notifPopup.style.width = "min(400px, 98vw)";
-  notifPopup.style.boxSizing = "border-box";
-  notifPopup.style.padding = "0";
-  notifPopup.style.opacity = "0";
-  notifPopup.style.transition = "opacity 0.35s cubic-bezier(.4,0,.2,1)";
-  document.body.appendChild(notifPopup);
+    <div id="notification-list"></div>
+  `
+  document.body.appendChild(notifPopup)
 
   function resizeNotifPopup() {
-    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    notifPopup.style.width = vw >= 600 ? "min(400px, 98vw)" : "98vw";
-    notifPopup.style.maxWidth = "98vw";
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    notifPopup.style.width = vw >= 600 ? "min(600px, 98vw)" : "98vw"
+    notifPopup.style.maxWidth = "98vw"
   }
-  window.addEventListener("resize", resizeNotifPopup);
+  window.addEventListener("resize", resizeNotifPopup)
 }
 
 function renderNotificationPopup() {
-  const notifListDiv = notifPopup.querySelector("#notification-list");
-  notifListDiv.innerHTML = "";
+  const notifListDiv = notifPopup.querySelector("#notification-list")
+  notifListDiv.innerHTML = ""
   if (notificationList.length === 0) {
-    notifListDiv.innerHTML = '<div class="no-notifications-message" style="text-align:center;color:var(--p-color,#94a1b2);padding:1.5rem 0;">No notifications.</div>';
-    return;
+    notifListDiv.innerHTML = '<div class="no-notifications-message">No notifications.</div>'
+    return
   }
   notificationList.slice(0, 10).forEach((notif, idx) => {
-    const notifItem = document.createElement("div");
-    notifItem.className = `notification-item ${notif.type}`;
-    notifItem.textContent = notif.message;
-    notifItem.style.margin = "0.5rem 0";
-    notifItem.style.padding = "1rem 1rem";
-    notifItem.style.borderRadius = "8px";
-    notifItem.style.background = "rgba(127,90,240,0.08)";
-    notifItem.style.color = "var(--headline-color,#fff)";
-    notifItem.style.fontSize = "1rem";
-    notifItem.style.wordBreak = "break-word";
-    if (notif.type === "success") {
-      notifItem.style.background = "rgba(44,182,125,0.13)";
-      notifItem.style.color = "#2cb67d";
-    } else if (notif.type === "error") {
-      notifItem.style.background = "rgba(217,4,41,0.13)";
-      notifItem.style.color = "#d90429";
-    } else if (notif.type === "warning") {
-      notifItem.style.background = "rgba(255,190,11,0.13)";
-      notifItem.style.color = "#ffbe0b";
-    } else {
-      notifItem.style.background = "rgba(127,90,240,0.08)";
-      notifItem.style.color = "var(--headline-color,#fff)";
-    }
-    notifListDiv.appendChild(notifItem);
-  });
+    const notifItem = document.createElement("div")
+    notifItem.className = `notification-item ${notif.type}`
+    notifItem.textContent = notif.message
+    notifListDiv.appendChild(notifItem)
+  })
 }
 
-const _originalShowNotification = showNotification;
+const _originalShowNotification = showNotification
 showNotification = (message, type = "info", duration = 3000) => {
-  notificationList.unshift({ message, type, date: new Date() });
-  if (notificationList.length > 10) notificationList = notificationList.slice(0, 10);
-  renderNotificationPopup();
-  _originalShowNotification(message, type, duration);
-};
-
-function openNotifModal() {
-  renderNotificationPopup();
-  notifModalOverlay.style.display = "block";
-  notifPopup.style.display = "block";
-  // Fade in
-  setTimeout(() => {
-    notifModalOverlay.style.opacity = "1";
-    notifPopup.style.opacity = "1";
-  }, 10);
-}
-
-function closeNotifModal() {
-  notifModalOverlay.style.opacity = "0";
-  notifPopup.style.opacity = "0";
-  setTimeout(() => {
-    notifModalOverlay.style.display = "none";
-    notifPopup.style.display = "none";
-  }, 350);
+  notificationList.unshift({ message, type, date: new Date() })
+  if (notificationList.length > 10) notificationList = notificationList.slice(0, 10)
+  renderNotificationPopup()
+  _originalShowNotification(message, type, duration)
 }
 
 notifBtn.addEventListener("click", () => {
-  if (notifModalOverlay.style.display === "none" || notifModalOverlay.style.display === "") {
-    openNotifModal();
+  if (notifPopup.style.display === "none" || notifPopup.style.display === "") {
+    renderNotificationPopup()
+    notifPopup.style.display = "block"
   } else {
-    closeNotifModal();
+    notifPopup.style.display = "none"
   }
-});
+})
 
 notifPopup.addEventListener("click", (e) => {
   if (e.target && e.target.id === "close-notif-popup") {
-    closeNotifModal();
+    notifPopup.style.display = "none"
   }
-});
+})
 
-notifModalOverlay.addEventListener("mousedown", (e) => {
-  // Only close if click is outside the popup
-  if (!notifPopup.contains(e.target)) {
-    closeNotifModal();
+document.addEventListener("mousedown", (e) => {
+  if (notifPopup.style.display === "block" && !notifPopup.contains(e.target) && e.target !== notifBtn) {
+    notifPopup.style.display = "none"
   }
-});
-
-document.addEventListener("keydown", (e) => {
-  if (notifModalOverlay.style.display === "block" && e.key === "Escape") {
-    closeNotifModal();
-  }
-});
+})
 
 // Scroll to top button
-let scrollTopBtn = document.getElementById("feed-scroll-top-btn");
+let scrollTopBtn = document.getElementById("feed-scroll-top-btn")
 if (!scrollTopBtn) {
-  scrollTopBtn = document.createElement("button");
-  scrollTopBtn.id = "feed-scroll-top-btn";
-  scrollTopBtn.innerHTML = '<i class="bi bi-arrow-up"></i>';
-  scrollTopBtn.className = "scroll-top-btn-base";
-  document.body.appendChild(scrollTopBtn);
+  scrollTopBtn = document.createElement("button")
+  scrollTopBtn.id = "feed-scroll-top-btn"
+  scrollTopBtn.innerHTML = '<i class="bi bi-arrow-up"></i>'
+  scrollTopBtn.className = "scroll-top-btn-base"
+  document.body.appendChild(scrollTopBtn)
 
   scrollTopBtn.addEventListener("click", () => {
-    if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: "smooth" });
-  });
+    if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: "smooth" })
+  })
 }
 
 feedContainer.addEventListener("scroll", () => {
   if (feedContainer.scrollTop > 200) {
-    scrollTopBtn.style.display = "block";
+    scrollTopBtn.style.display = "block"
   } else {
-    scrollTopBtn.style.display = "none";
+    scrollTopBtn.style.display = "none"
   }
-});
+})
+
 
 document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
-    switch (id) {
+    switch(id) {
       case "feed-nav":
         console.log("Navigating to Feed...");
         window.location.href = 'main.html';
@@ -1228,41 +993,9 @@ document.querySelectorAll(".nav-item").forEach((item) => {
     }
   });
 });
-
-// Profile button logic: sign in/up or go to profile.html if already signed in
-const profileBtn = document.getElementById('profile');
-if (profileBtn) {
-  profileBtn.addEventListener('click', (e) => {
-    if (currentUser && currentUser.uid) {
-      // Already signed in, go to profile.html
-      window.location.href = 'profile.html';
-    } else {
-      // Not signed in, show sign in/up modal
-      const modal = createAuthModal();
-      modal.style.display = "flex";
-      // Default to sign in view
-      modal.querySelector("#auth-modal-title").textContent = "Sign In";
-      modal.querySelector("#auth-submit").textContent = "Sign In";
-      modal.querySelector("#auth-switch").style.display = "block";
-      modal.querySelector("#auth-already").style.display = "none";
-    }
-  });
-}
-
-// Listen for auth state changes
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    currentUser = {
-      displayName: user.displayName || user.email || "User",
-      email: user.email,
-      uid: user.uid
-    };
-  } else {
-    currentUser = null;
-  }
-  initializeUI();
+document.getElementById('profile').addEventListener('click', () => {
+  window.location.href = 'profile.html';
 });
-
 // Initialize the application
-initializeUI();
-loadAllPosts();
+initializeUI()
+loadAllPosts()
