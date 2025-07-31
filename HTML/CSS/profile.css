@@ -118,9 +118,6 @@ body {
 }
 
 
-.hide{
-  display: none;
-}
 .search-wrapper{
   background-color: var(--main-color) ;
   width:100%;

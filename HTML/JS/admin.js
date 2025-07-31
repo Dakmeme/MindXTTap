@@ -26,12 +26,9 @@ const bootstrap = window.bootstrap
 
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("DOM Content Loaded - Starting app...")
-
-  // Check authentication
   if (!checkAuthentication()) {
-    return // Stop execution if not authenticated
+    return
   }
-
   showLoadingState()
   await initializeApp()
   setupEventListeners()
@@ -40,13 +37,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function checkAuthentication() {
   const userData = localStorage.getItem("currentUser")
-
   if (!userData) {
     console.log("No user data found, redirecting to login...")
     window.location.href = "login.html"
     return false
   }
-
   try {
     currentUser = JSON.parse(userData)
     console.log("Current user authenticated:", currentUser.uid || currentUser.email)

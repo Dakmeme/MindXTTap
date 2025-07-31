@@ -2,16 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 import {
   doc,
-  setDoc,
   getDoc,
   getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   collection,
-  query,
-  orderBy,
-  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 
 const firebaseConfig = {
@@ -23,17 +16,9 @@ const firebaseConfig = {
   appId: "1:499689288083:web:394be22db426aa48b93866",
   measurementId: "G-Y0NCNLB337",
 }
-
+// import {userId} from "./"
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
-
-console.log("Firebase đã được khởi tạo thành công!")
-
-let allUsers = []
-
-const userCardTemplate = document.querySelector("[data-user-template]")
-const userCardContainer = document.querySelector("[data-user-cards-container]")
-const searchInput = document.querySelector("[data-search]")
 
 export const getUserInfo = async (userId) => {
   try {
@@ -53,47 +38,56 @@ export const getUserInfo = async (userId) => {
   }
 };
 
-const getAllUsers = async () => {
+
+export const getFollowsInfo = async (userId) => {
   try {
-    const usersRef = collection(db, "users");
-    const querySnapshot = await getDocs(usersRef);
-    const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
-    return users;
+    const followersCol = collection(db, "users", userId, "followers");
+    const followingCol = collection(db, "users", userId, "following");
+    const [followersSnap, followingSnap] = await Promise.all([
+      getDocs(followersCol),
+      getDocs(followingCol),
+    ]);
+    const followers = followersSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    const following = followingSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return [...followers, ...following];
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Lỗi khi lấy thông tin follows:", error);
     return [];
   }
 };
 
+// const userInfo = await getAllUsers(userId)
+// const followsInfo = await getFollowsInfo(userId)
+const userInfo = await getUserInfo( "random_1753897757130_q60r6")
+console.log(userInfo)
+const followsInfo = await getFollowsInfo("random_1753897757130_q60r6")
+console.log(followsInfo)
+
+
+const userCardTemplate = document.querySelector("[data-user-template]")
+const userCardContainer = document.querySelector("[data-user-cards-container]")
+const searchInput = document.querySelector("[data-search]")
 const initializeSearch = async () => {
   if (!userCardTemplate || !userCardContainer || !searchInput) {
     console.warn("Search elements not found");
     return;
   }
-
-  allUsers = await getAllUsers();
-  
-  allUsers.forEach(user => {
+  followsInfo.forEach(user => {
     const card = userCardTemplate.content.cloneNode(true).children[0];
     const header = card.querySelector("[data-header]");
     const body = card.querySelector("[data-body]");
-    
     header.textContent = user.username || user.name || "Unknown User";
-    body.textContent = user.email || "No email";
-    
-    // Add click handler to navigate to user profile
+    body.textContent = user.email
     card.addEventListener('click', () => {
-      console.log(`Navigating to user: ${user.username || user.name}`);
-      // Implement navigation logic here
+
       // window.location.href = `profile.html?userId=${user.id}`;
     });
-    
     userCardContainer.append(card);
     user.element = card;
   });
@@ -101,18 +95,16 @@ const initializeSearch = async () => {
 
   searchInput.addEventListener("input", (e) => {
     const value = e.target.value.toLowerCase();
-    allUsers.forEach(user => {
+    followsInfo.forEach(user => {
       const name = (user.username || user.name || "").toLowerCase();
-      const email = (user.email || "").toLowerCase();
+      const email = (user.userID || "").toLowerCase();
       const isVisible = name.includes(value) || email.includes(value);
       user.element.classList.toggle("hide", !isVisible);
     });
   });
-
   searchInput.addEventListener('focus', () => {
     userCardContainer.classList.remove('hide');
   });
-
   searchInput.addEventListener('blur', (e) => {
     setTimeout(() => {
       userCardContainer.classList.add('hide');
@@ -120,113 +112,9 @@ const initializeSearch = async () => {
   });
 };
 
-const mockUserData = {
-  username: "John Doe",
-  email: "john.doe@example.com",
-  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-};
 
-const mockPosts = [
-  {
-    id: 1,
-    content: "lmao I'm cooked",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=400&fit=crop",
-    timestamp: "2 hours ago",
-    likes: 24,
-    comments: 5,
-    shares: 2,
-  },
-  {
-    id: 2,
-    content: "Mot buoi sang dep troi va dan con tho.",
-    image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop",
-    timestamp: "1 day ago",
-    likes: 47,
-    comments: 12,
-    shares: 8,
-  },
-  {
-    id: 3,
-    content: "OH MY PCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-    timestamp: "3 days ago",
-    likes: 18,
-    comments: 3,
-    shares: 1,
-  },
-];
 
-const mockFriends = [
-  {
-    name: "Alice Johnson",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b9a1ee27?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Bob Smith",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Carol Brown",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "David Wilson",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Emma Davis",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-  },
-  {
-    name: "Frank Miller",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-  },
-];
-
-const mockPhotos = [
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1517077304055-6e89abbf09b0?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1515378791036-0648a814c963?w=300&h=300&fit=crop",
-  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop",
-];
-const Users = await getAllUsers()
-
-getUserInfo("random_1753691292193_ujapz")
-  .then(user => {
-    console.log(user);
-    if (!user) {
-      console.log("Sai userID r ba");
-      return;
-    }
-
-    const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
-    const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
-    const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
-    const coverEls = document.querySelectorAll(".cover-img");
-    
-    usernameEls.forEach((el) => (el.textContent = user.username));
-    emailEls.forEach((el) => (el.textContent = user.email));
-    avatarEls.forEach((el) => {
-      el.style.backgroundImage = `url("${user.avatar}")`;
-      el.style.backgroundSize = "cover";
-      el.style.backgroundPosition = "center";
-    });
-    coverEls.forEach((el) => {
-      if (el.classList.contains("cover-section")) {
-        el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-      }
-    });
-    
-    loadPosts();
-    loadFriends();
-    loadPhotos();
-    initializeSearch();
-  })
-  .catch(error => {
-    console.error("Error loading user:", error);
-    initializeFallback();
-  });
+document.getElementById('collapsed-avatar').style.backgroundImage = `url("${userInfo.avatar}")`;
 
 const initializeFallback = () => {
   const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
@@ -247,7 +135,6 @@ const initializeFallback = () => {
     }
   });
   
-  loadPosts();
   loadFriends();
   loadPhotos();
   initializeSearch();
@@ -267,47 +154,12 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
   });
 });
 
-function loadPosts() {
-  const postsContainer = document.getElementById("posts-container");
-  if (!postsContainer) return;
-  
-  postsContainer.innerHTML = mockPosts
-    .map(
-      (post) => `
-        <div class="post-card">
-          <div class="post-header">
-            <div class="post-avatar" style="background-image: url('${users.avatar}')"></div>
-            <div class="post-info">
-              <h6>${mockUserData.username}</h6>
-              <div class="post-time">${post.timestamp}</div>
-            </div>
-          </div>
-          <div class="post-content">
-            ${post.content}
-          </div>
-          ${post.image ? `<div class="post-image" style="background-image: url('${post.image}')"></div>` : ""}
-          <div class="post-actions">
-            <button class="post-action" onclick="toggleLike(${post.id})">
-              <i class="bi bi-heart"></i> ${post.likes} Like
-            </button>
-            <button class="post-action">
-              <i class="bi bi-chat"></i> ${post.comments} Comment
-            </button>
-            <button class="post-action">
-              <i class="bi bi-share"></i> ${post.shares} Share
-            </button>
-          </div>
-        </div>
-      `
-    )
-    .join("");
-}
 
 function loadFriends() {
   const friendsGrid = document.getElementById("friends-grid");
   if (!friendsGrid) return;
   
-  friendsGrid.innerHTML = Users
+  friendsGrid.innerHTML = followsInfo
     .map(
       (user) => `
         <div class="friend-card" onclick="navigateToFriend('${user.username}')">
@@ -332,30 +184,20 @@ function loadPhotos() {
     .join("");
 }
 
-window.toggleLike = function(postId) {
-  const postAction = event.target.closest(".post-action");
-  const icon = postAction.querySelector("i");
-  const isLiked = postAction.classList.contains("liked");
-  if (isLiked) {
-    postAction.classList.remove("liked");
-    icon.className = "bi bi-heart";
-  } else {
-    postAction.classList.add("liked");
-    icon.className = "bi bi-heart-fill";
-  }
-}
+
 
 window.openPhoto = function(photoUrl) {
   console.log("Opening photo:", photoUrl);
-  // You can implement a modal or lightbox here
+  //modal or lightbox here
   alert(`Photo viewer would open for: ${photoUrl}`);
 }
 
 window.navigateToFriend = function(friendName) {
   console.log("Navigating to friend:", friendName);
-  // You can implement friend profile navigation here
+  //friend's chatbox profile navigation here
   alert(`Would navigate to ${friendName}'s profile`);
 };
+
 
 document.querySelectorAll(".nav-item-collapsed").forEach((item) => {
   item.addEventListener("click", () => {

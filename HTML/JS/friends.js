@@ -2,16 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 import {
   doc,
-  setDoc,
   getDoc,
   getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   collection,
-  query,
-  orderBy,
-  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 
 const firebaseConfig = {
@@ -25,9 +18,47 @@ const firebaseConfig = {
 }
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
-console.log("Firebase đã được khởi tạo thành công!")
 
+export const getUserInfo = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      return {
+        id: userSnap.id,
+        ...userSnap.data(),
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin người dùng:", error);
+    return null;
+  }
+};
 
+export const getFollowsInfo = async (userId) => {
+  try {
+    const followersCol = collection(db, "users", userId, "followers");
+    const followingCol = collection(db, "users", userId, "following");
+    const [followersSnap, followingSnap] = await Promise.all([
+      getDocs(followersCol),
+      getDocs(followingCol),
+    ]);
+    const followers = followersSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    const following = followingSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return [...followers, ...following];
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin follows:", error);
+    return [];
+  }
+};
 
 
 const friendsData = [
@@ -90,50 +121,16 @@ const groupsData = [
     }
 ];
 
-const mockUserData = {
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face"
-};
-
-export const getUserInfo = async (userId) => {
-  try {
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return {
-        id: userSnap.id,
-        ...userSnap.data(),
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin người dùng:", error);
-    return null;
-  }
-};
-
-const getAllUsers = async () => {
-  try {
-    const usersRef = collection(db, "users");
-    const querySnapshot = await getDocs(usersRef);
-    const users = [];
-    querySnapshot.forEach((doc) => {
-      users.push({
-        id: doc.id,
-        ...doc.data()
-      });
-    });
-    return users;
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return [];
-  }
-};
-const AllUsers = await getAllUsers()
-const UserData = await getUserInfo("HQk5dXtHghXgIKRRwSeul9jV6Ot1")
+// const userInfo = await getAllUsers(userId)
+// const followsInfo = await getFollowsInfo(userId)
+const userInfo = await getUserInfo( "random_1753897757130_q60r6")
+console.log(userInfo)
+const followsInfo = await getFollowsInfo("random_1753897757130_q60r6")
+console.log(followsInfo)
 
 
-document.getElementById('collapsed-avatar').style.backgroundImage = `url("${UserData.avatar}")`;
+document.getElementById('collapsed-avatar').style.backgroundImage = `url("${userInfo.avatar}")`;
+
 function toggleRequests() {
     const dropdown = document.getElementById('requests-dropdown');
     dropdown.classList.toggle('active');
@@ -160,18 +157,20 @@ function declineRequest(id) {
     countElement.textContent = Math.max(0, currentCount - 1);
     event.target.closest('.request-item').remove();
 }
+
+
 function loadFriends(filter = 'all') {
     const friendsGrid = document.getElementById('friends-grid');
-    let filteredFriends = AllUsers;
+    let filteredFriends = followsInfo;
 
     if (filter === 'online') {
-        filteredFriends = AllUsers.filter(f => f.online);
+        filteredFriends = followsInfo.filter(f => f.online);
     } else if (filter === 'recent') {
-        filteredFriends = AllUsers.filter(f =>
+        filteredFriends = followsInfo.filter(f =>
             f.status.includes('minutes') || f.status.includes('hour')
         );
     } else if (filter === 'mutual') {
-        filteredFriends = AllUsers.filter(f => f.mutual > 10);
+        filteredFriends = followsInfo.filter(f => f.mutual > 10);
     }
 
     friendsGrid.innerHTML = filteredFriends.map(friend => `
@@ -197,6 +196,7 @@ function loadFriends(filter = 'all') {
                 </div>
             `).join('');
 }
+
 
 function loadGroups() {
     const groupsGrid = document.getElementById('groups-grid');
@@ -225,6 +225,7 @@ function loadGroups() {
                 </div>
             `).join('');
 }
+
 
 
 document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -290,6 +291,7 @@ document.querySelectorAll(".nav-item-collapsed").forEach((item) => {
 document.getElementById('collapsed-avatar').addEventListener('click', () => {
   window.location.href = 'profile.html';
 });
+
 
 function viewFriend(id) { console.log(`Viewing friend ${id}`); }
 function viewProfile(id) { console.log(`Viewing profile ${id}`); }

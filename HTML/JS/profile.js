@@ -244,6 +244,7 @@ getUserInfo("random_1753691292193_ujapz")
     initializeFallback();
   });
 
+  
 const initializeFallback = () => {
   const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
   const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
