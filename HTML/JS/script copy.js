@@ -25,19 +25,6 @@ const firebaseConfig = {
   messagingSenderId: "499689288083",
   appId: "1:499689288083:web:394be22db426aa48b93866",
   measurementId: "G-Y0NCNLB337",
-<<<<<<< HEAD
-};
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-const db = getFirestore(app);
-
-const createFeedModal = document.getElementById("createFeedModal");
-const postButton = document.getElementById("postButton");
-
-// User State
-let currentUser = null;
-=======
 }
 
 
@@ -51,20 +38,14 @@ const postButton = document.getElementById("postButton")
 
 // User State - Demo Mode
 const currentUser = { displayName: "Demo User", email: "demo@example.com", uid: "demo-user-id" }
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
 
 // Initialize UI
 function initializeUI() {
   const username = document.getElementById("username")
   const useremail = document.getElementById("useremail")
 
-<<<<<<< HEAD
-  if (username) username.textContent = "";
-  if (useremail) useremail.textContent = "";
-=======
   if (username) username.textContent = currentUser.displayName
   if (useremail) useremail.textContent = currentUser.email
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
 
   // Show loading spinner initially
   const loadingSpinner = document.getElementById("loading-spinner")
@@ -264,18 +245,12 @@ async function loadAllPosts() {
   }
 }
 
-// All auth actions are disabled (sign in/up removed, just show warning)
 function requireAuthAction(e, actionName = "this action") {
-<<<<<<< HEAD
-  showNotification(`You must be signed in to perform ${actionName}.`, "warning", 2500);
-  return false;
-=======
   if (!currentUser || !currentUser.uid) {
     showNotification(`Please sign in to perform ${actionName}.`, "warning", 2000)
     return false
   }
   return true
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
 }
 
 // Post creation
@@ -285,11 +260,6 @@ if (postButton) {
 
     if (!requireAuthAction(e, "creating a post")) return
 
-<<<<<<< HEAD
-    // The rest of this code will never run, but left for completeness
-    // ...
-  });
-=======
     const contentInput = document.getElementById("content")
     const imageInput = document.getElementById("image")
     const videoInput = document.getElementById("video")
@@ -400,7 +370,6 @@ if (postButton) {
       showNotification("Failed to create post.", "error", 2000)
     }
   })
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
 }
 
 // Event delegation for post interactions
@@ -408,10 +377,6 @@ document.addEventListener("click", async (e) => {
   // Like button
   const likeBtn = e.target.closest(".like-btn")
   if (likeBtn) {
-<<<<<<< HEAD
-    if (!requireAuthAction(e, "liking a post")) return;
-    return;
-=======
     if (!requireAuthAction(e, "liking a post")) return
 
     const postCard = likeBtn.closest(".card-body")
@@ -451,16 +416,11 @@ document.addEventListener("click", async (e) => {
       showNotification("Failed to update like.", "error")
     }
     return
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
   }
 
   // Share button
   const shareBtn = e.target.closest(".share-btn")
   if (shareBtn) {
-<<<<<<< HEAD
-    if (!requireAuthAction(e, "sharing a post")) return;
-    return;
-=======
     if (!requireAuthAction(e, "sharing a post")) return
 
     const postCard = shareBtn.closest(".card-body")
@@ -491,16 +451,11 @@ document.addEventListener("click", async (e) => {
       showNotification("Failed to share post.", "error")
     }
     return
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
   }
 
   // Edit button
   const editBtn = e.target.closest(".edit-post-btn")
   if (editBtn) {
-<<<<<<< HEAD
-    if (!requireAuthAction(e, "editing a post")) return;
-    return;
-=======
     if (!requireAuthAction(e, "editing a post")) return
 
     const postCard = editBtn.closest(".card-body")
@@ -532,16 +487,11 @@ document.addEventListener("click", async (e) => {
     const textarea = contentDiv.querySelector("textarea")
     if (textarea) textarea.focus()
     return
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
   }
 
   // Save edit button
   const saveEditBtn = e.target.closest(".save-edit-post-btn")
   if (saveEditBtn) {
-<<<<<<< HEAD
-    if (!requireAuthAction(e, "saving post edits")) return;
-    return;
-=======
     if (!requireAuthAction(e, "saving post edits")) return
 
     const postCard = saveEditBtn.closest(".card-body")
@@ -569,15 +519,11 @@ document.addEventListener("click", async (e) => {
         showNotification("Failed to update post.", "error")
       })
     return
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
   }
 
   // Cancel edit button
   const cancelEditBtn = e.target.closest(".cancel-edit-post-btn")
   if (cancelEditBtn) {
-<<<<<<< HEAD
-    return;
-=======
     const postCard = cancelEditBtn.closest(".card-body")
     if (!postCard) return
     const postId = postCard.getAttribute("data-post-id")
@@ -589,16 +535,11 @@ document.addEventListener("click", async (e) => {
       }
     })
     return
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
   }
 
   // Delete button
   const deleteBtn = e.target.closest(".delete-post-btn")
   if (deleteBtn) {
-<<<<<<< HEAD
-    if (!requireAuthAction(e, "deleting a post")) return;
-    return;
-=======
     if (!requireAuthAction(e, "deleting a post")) return
 
     const postCard = deleteBtn.closest(".card-body")
@@ -624,7 +565,6 @@ document.addEventListener("click", async (e) => {
         showNotification("Failed to delete post.", "error")
       })
     return
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
   }
 })
 
@@ -650,14 +590,13 @@ function createCommentPopup() {
       <div class="comment-popup-post"></div>
       <div class="comment-popup-comments"></div>
       <div class="comment-popup-input">
-        <input type="text" class="form-control" placeholder="Write a comment..." disabled>
-        <button class="btn btn-primary send-comment-btn" disabled>
+        <input type="text" class="form-control" placeholder="Write a comment...">
+        <button class="btn btn-primary send-comment-btn">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
             <path d="M15.854.146a.5.5 0 0 0-.527-.116l-15 6a.5.5 0 0 0 .019.938l6.57 2.19 2.19 6.57a.5.5 0 0 0 .938.019l6-15a.5.5 0 0 0-.116-.527zm-2.89 2.89-4.482 4.482-5.197-1.733 9.679-3.749zm-4.13 5.744 4.482-4.482-3.749 9.679-1.733-5.197z"/>
           </svg>
         </button>
       </div>
-      <div style="text-align:center; color:#ffbe0b; margin-top:0.7rem;">You must be signed in to comment.</div>
     </div>
   `
   document.body.appendChild(commentPopup)
@@ -788,15 +727,9 @@ async function showCommentPopup(postData) {
   await renderPopupComments(postData.id)
 
   setTimeout(() => {
-<<<<<<< HEAD
-    const input = commentPopup.querySelector('input[type="text"]');
-    if (input) input.blur();
-  }, 100);
-=======
     const input = commentPopup.querySelector('input[type="text"]')
     if (input) input.focus()
   }, 100)
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
 }
 
 function hideCommentPopup() {
@@ -831,16 +764,12 @@ document.addEventListener("click", async (e) => {
   }
 })
 
-// Comment submission - disabled
+// Comment submission
 if (!window._commentPopupListenerAdded) {
   window._commentPopupListenerAdded = true
   document.addEventListener("click", async (e) => {
     if (!commentPopup || commentPopup.style.display !== "flex") return
     if (e.target.closest(".send-comment-btn")) {
-<<<<<<< HEAD
-      requireAuthAction(e, "adding a comment");
-      return;
-=======
       if (!requireAuthAction(e, "adding a comment")) return
 
       const postId = commentPopup.dataset.postId
@@ -860,7 +789,6 @@ if (!window._commentPopupListenerAdded) {
       } catch (err) {
         showNotification("Failed to add comment.", "error", 2000)
       }
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
     }
   })
 
@@ -869,11 +797,6 @@ if (!window._commentPopupListenerAdded) {
     if (e.key === "Enter" && !e.shiftKey) {
       const input = commentPopup.querySelector('input[type="text"]')
       if (document.activeElement === input) {
-<<<<<<< HEAD
-        requireAuthAction(e, "adding a comment");
-        e.preventDefault();
-        return;
-=======
         if (!requireAuthAction(e, "adding a comment")) return
 
         e.preventDefault()
@@ -893,7 +816,6 @@ if (!window._commentPopupListenerAdded) {
         } catch (err) {
           showNotification("Failed to add comment.", "error", 2000)
         }
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
       }
     }
     if (e.key === "Escape" && commentPopup && commentPopup.style.display === "flex") {
@@ -1183,22 +1105,12 @@ document.querySelectorAll(".nav-item").forEach((item) => {
     }
   });
 });
-<<<<<<< HEAD
-
-// Profile button logic: do nothing (sign in/up removed)
-const profileBtn = document.getElementById('profile');
-if (profileBtn) {
-  profileBtn.addEventListener('click', (e) => {
-    // No sign in/up, do nothing
-  });
-}
-
-=======
 document.getElementById('profile').addEventListener('click', () => {
   window.location.href = 'profile.html';
 });
->>>>>>> 196dc31dbe750567a29fe09a33139a4be336d07b
 // Initialize the application
 
 initializeUI()
 loadAllPosts()
+
+
