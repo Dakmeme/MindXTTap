@@ -1,13 +1,3 @@
-// import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
-// import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
-// import {
-//   doc,
-//   getDoc,
-//   getDocs,
-//   collection,
-// } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
-// import { db } from "./firebase.js"
-
 import { getUserInfo, getUserPosts, getAllUsers,createRandomStoriesWithInteractions, getUserRelations, createRandomUsers, assignFollowersAndFollowingWithSubcollections, createRandomPostsWithInteractions } from "./firebase-config.js"
 const userId = "1MJf8DXzCcbXw0uUSMuGpSBLE9o1"
 
@@ -270,41 +260,49 @@ window.navigateToFriend = function(friendName) {
   alert(`Would navigate to ${friendName}'s profile`);
 };
 
-document.querySelectorAll(".nav-item").forEach((item) => {
-  item.addEventListener("click", () => {
+function initPageNavigation() {
+  console.log('initPageNavigation invoked');
+
+  const navMap = {
+    'feed-nav': 'main.html',
+    'friends-nav': 'friends.html',
+    'messages-nav': 'messages.html',
+    'profile': 'profile.html',
+  };
+
+  // Sanity logging
+  console.log('found nav-items:', document.querySelectorAll('.nav-item').length);
+  console.log('profile element:', document.getElementById('profile'));
+
+  document.body.addEventListener('click', (e) => {
+    const item = e.target.closest('.nav-item, #profile');
+    if (!item) return;
+
     const id = item.id;
-    switch(id) {
-      case "feed-nav":
-        console.log("Navigating to Feed...");
-        window.location.href = 'main.html';
-        break;
-      case "friends-nav":
-        console.log("Navigating to Friends page...");
-        window.location.href = 'friends.html';
-        break;
-      case "messages-nav":
-        console.log("Opening Messages...");
-        window.location.href = 'messages.html';
-        break;
-      case "notif":
-        console.log("Opening Notifications...");
-        // window.location.href = 'notifications.html';
-        alert("Would open Notifications");
-        break;
-      case "settings":
-        console.log("Opening Settings...");
-        // window.location.href = 'settings.html';
-        alert("Would open Settings");
-        break;
-      default:
-        console.log(`Clicked on: ${id}`);
-        break;
+    console.log('clicked:', id);
+
+    if (id === 'notif') {
+      console.log('Opening Notifications...');
+      alert('Would open Notifications');
+      return;
+    }
+    if (id === 'settings') {
+      console.log('Opening Settings...');
+      alert('Would open Settings');
+      return;
+    }
+
+    if (navMap[id]) {
+      console.log(`Navigating to ${navMap[id]}...`);
+      window.location.href = navMap[id];
+    } else {
+      console.log(`Unhandled click id: ${id}`);
     }
   });
-});
-document.getElementById('profile').addEventListener('click', () => {
-  window.location.href = 'profile.html';
-});
+}
+
+
+document.addEventListener('DOMContentLoaded', initPageNavigation);
 
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
