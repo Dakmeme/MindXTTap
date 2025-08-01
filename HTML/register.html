@@ -80,11 +80,11 @@
 
   <!-- Firebase SDKs -->
 <script type="module">
-  import { auth, db } from "./firebase.js";
+  import { auth, db } from "./JS/firebase.js";
   import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
   import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-  import { initAuth } from "./authState.js";
-  import { createUser } from "./firebase-config.js";
+  import { initAuth } from "./JS/authState.js";
+  import { createUser } from "./JS/firebase-config.js";
 
   // Khởi tạo auth listener
   initAuth();

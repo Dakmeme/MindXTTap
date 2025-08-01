@@ -210,10 +210,6 @@ export const updateUser = async (userId) => {
     return { success: false, message: "Lỗi: " + error.message };
   }
 };
-
-
-
-
 export const updatePost = async (postId, data) => {
   try {
     const postRef = doc(db, "posts", postId)
