@@ -67,7 +67,7 @@ document.querySelectorAll(".nav-item-collapsed").forEach((item) => {
     switch(id) {
       case "feed-nav":
         console.log("Navigating to Feed...");
-        window.location.href = 'main.html';
+        window.location.href = 'index.html';
         break;
       case "friends-nav":
         console.log("Navigating to Friends page...");
