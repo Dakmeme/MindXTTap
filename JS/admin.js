@@ -10,8 +10,6 @@ import {
   getUserFollowers,
   getUserFollowing,
   createRandomUsers,
-  addRandomFollowersToUser,
-  addRandomFollowingToUser,
 } from "./firebase-config.js"
 
 let filteredUsers = []
