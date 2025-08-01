@@ -83,7 +83,7 @@ document.querySelectorAll(".nav-item-collapsed").forEach((item) => {
         break;
       case "settings":
         console.log("Opening Settings...");
-        alert("Would open Settings");
+            window.location.href = 'admin.html';
         break;
       default:
         console.log(`Clicked on: ${id}`);

@@ -245,8 +245,7 @@ document.querySelectorAll(".nav-item").forEach((item) => {
         break;
       case "settings":
         console.log("Opening Settings...");
-        // window.location.href = 'settings.html';
-        alert("Would open Settings");
+          window.location.href = 'admin.html';
         break;
       default:
         console.log(`Clicked on: ${id}`);
