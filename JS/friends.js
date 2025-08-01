@@ -12,7 +12,7 @@ const UserRelations = await getUserRelations(userId)
 
 
 document.getElementById('collapsed-avatar').style.backgroundImage = `url("${UserData.avatar}")`;
-
+document.querySelector('.count-badge').textContent = UserRelations.length;
 function loadFriends() {
     const friendsGrid = document.getElementById('friends-grid');
     let filteredFriends = UserRelations;
