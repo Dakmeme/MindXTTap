@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Register Page</title>
-  <link rel="stylesheet" href="./CSS/auth.css" />
+  <link rel="stylesheet" href="CSS/auth.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
 </head>
@@ -42,10 +42,24 @@
             </div>
             <div class="error-message" id="email-error"></div>
           </div>
-          <label for="confirmPassword">Confirm Password</label>
-          <div class="input-group">
-            <input type="password" id="confirmPassword" placeholder="Confirm your password" required />
-            <i class="bi bi-lock-fill icon"></i>
+          
+          <div class="form-field">
+            <label for="password">Password</label>
+            <div class="input-group">
+              <input type="password" id="password" placeholder="Create a password" required />
+              <i class="bi bi-lock icon"></i>
+            </div>
+            <div class="error-message" id="password-error"></div>
+            <div class="password-requirements" id="password-requirements">
+              <small>Password must contain:</small>
+              <ul>
+                <li id="req-length">At least 8 characters</li>
+                <li id="req-uppercase">One uppercase letter</li>
+                <li id="req-lowercase">One lowercase letter</li>
+                <li id="req-number">One number</li>
+                <li id="req-special">One special character</li>
+              </ul>
+            </div>
           </div>
           
           <div class="form-field">
