@@ -1,8 +1,9 @@
-import { getUserInfo, getUserPosts, getUserRelations,updateUser, getUserMedia} from "./firebase-config.js"
-import {getCurrentUser, initAuth} from "./authState.js"
+import { getUserInfo, getUserPosts, getUserRelations, updateUser, getUserMedia } from "./firebase-config.js"
+import { getCurrentUser, initAuth } from "./authState.js"
 await initAuth()
-const userId =  getCurrentUser()
+const userId = getCurrentUser()
 await updateUser(userId)
+
 const UserData = await getUserInfo(userId)
 const UserRelations = await getUserRelations(userId)
 const UserPostData = await getUserPosts(userId)
@@ -19,19 +20,19 @@ const UserMedia = await getUserMedia(userId)
 //   }
 
 //   allUsers = await getAllUsers();
-  
+
 //   allUsers.forEach(user => {
 //     const card = userCardTemplate.content.cloneNode(true).children[0];
 //     const header = card.querySelector("[data-header]");
 //     const body = card.querySelector("[data-body]");
-    
+
 //     header.textContent = user.username || user.name || "Unknown User";
 //     body.textContent = user.email || "No email";
 //     card.addEventListener('click', () => {
 //       console.log(`Navigating to user: ${user.username || user.name}`);
 //       // window.location.href = `profile.html?userId=${user.id}`;
 //     });
-    
+
 //     userCardContainer.append(card);
 //     user.element = card;
 //   });
@@ -63,7 +64,7 @@ const UserMedia = await getUserMedia(userId)
 
 
 getUserInfo(userId)
-.then(user => {
+  .then(user => {
     if (!user) {
       console.log("Sai userID r ba");
       return;
@@ -73,13 +74,13 @@ getUserInfo(userId)
     const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
     const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
     const coverEls = document.querySelectorAll(".cover-img");
-const FollowersEls = document.querySelectorAll(".usersFollowers");
-const FollowingsEls = document.querySelectorAll(".usersFollowing");
+    const FollowersEls = document.querySelectorAll(".usersFollowers");
+    const FollowingsEls = document.querySelectorAll(".usersFollowing");
 
     usernameEls.forEach((el) => (el.textContent = user.username));
     emailEls.forEach((el) => (el.textContent = user.email));
-    FollowersEls.forEach((el) => (el.textContent=user.followers));
-    FollowingsEls.forEach((el) => (el.textContent=user.following));
+    FollowersEls.forEach((el) => (el.textContent = user.followers));
+    FollowingsEls.forEach((el) => (el.textContent = user.following));
 
     avatarEls.forEach((el) => {
       el.style.backgroundImage = `url("${user.avatar}")`;
@@ -91,7 +92,7 @@ const FollowingsEls = document.querySelectorAll(".usersFollowing");
         el.style.backgroundImage = `url("${user.coverImage}")`;
       }
     });
-    
+
 
     loadFriends();
     loadPosts();
@@ -110,7 +111,7 @@ const initializeFallback = () => {
   const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
   const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
   const coverEls = document.querySelectorAll(".cover-img");
-  
+
   usernameEls.forEach((el) => (el.textContent = mockUserData.username));
   emailEls.forEach((el) => (el.textContent = mockUserData.email));
   avatarEls.forEach((el) => {
@@ -123,7 +124,7 @@ const initializeFallback = () => {
       el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
     }
   });
-  
+
   loadPosts();
   loadFriends();
   loadPhotos();
@@ -156,10 +157,10 @@ function initScrollEffects() {
     statsContainer,
     actionButtons,
   ].filter(Boolean);
-  const ADD_ON_DOWN = 500;      
-  const REMOVE_ON_UP = 0;       
-  const OPACITY_START = 30;    
-  const OPACITY_END = 180;     
+  const ADD_ON_DOWN = 500;
+  const REMOVE_ON_UP = 0;
+  const OPACITY_START = 30;
+  const OPACITY_END = 180;
   const BASE_OPACITY = 0.3;
   const MAX_OPACITY = 0.7;
 
@@ -228,10 +229,10 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
   });
 });
 
- export function loadPosts() {
+ function loadPosts() {
   const postsContainer = document.getElementById("posts-container");
   if (!postsContainer) return;
-  
+
   postsContainer.innerHTML = UserPostData
     .map(
       (post) => `
@@ -267,7 +268,7 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
 function loadFriends() {
   const friendsGrid = document.getElementById("friends-grid");
   if (!friendsGrid) return;
-  
+
   friendsGrid.innerHTML = UserRelations
     .map(
       (friend) => `
@@ -283,7 +284,7 @@ function loadFriends() {
 function loadPhotos() {
   const photosGrid = document.getElementById("photos-grid");
   if (!photosGrid) return;
-  
+
   photosGrid.innerHTML = UserMedia
     .map(
       (photo) => `
@@ -293,12 +294,13 @@ function loadPhotos() {
     .join("");
 }
 
-window.openPhoto = function(photoUrl) {
+window.openPhoto = function (photoUrl) {
   console.log("Opening photo:", photoUrl);
+
   alert(`Photo viewer would open for: ${photoUrl}`);
 };
 
-window.navigateToFriend = function(friendName) {
+window.navigateToFriend = function (friendName) {
   console.log("Navigating to friend:", friendName);
   alert(`Would navigate to ${friendName}'s profile`);
 };
@@ -306,7 +308,7 @@ window.navigateToFriend = function(friendName) {
 document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     const id = item.id;
-    switch(id) {
+    switch (id) {
       case "feed-nav":
         console.log("Navigating to Feed...");
         window.location.href = 'main.html';
@@ -347,7 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Edit Profile functionality would open here");
       });
     }
-    
+
     const settingsBtn = document.querySelector(".btn-secondary-custom");
     if (settingsBtn) {
       settingsBtn.addEventListener("click", () => {

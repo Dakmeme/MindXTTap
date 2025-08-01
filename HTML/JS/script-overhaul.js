@@ -1,4 +1,4 @@
-import { getUserInfo, getAllPosts,updateUser, getUserMedia, loadPosts} from "./firebase-config.js"
+import { getUserInfo, getAllPosts,updateUser} from "./firebase-config.js"
 import {getCurrentUser, initAuth} from "./authState.js"
 await initAuth()
 const userId =  getCurrentUser()
@@ -92,13 +92,12 @@ if (data.file) {
 }
 
 const mediaHtml = mediaHtmlParts.join("");
-  console.log("Media HTML:", mediaHtml)
   const feed = document.createElement("div")
   feed.className = "feed"
   feed.innerHTML = `
     <div class="card-body mb-4 post-card" data-post-id="${data.id || ""}">
       <div class="d-flex align-items-center mb-3">
-        <div class="profile-img-small me-3" style="background-img:url('${data.profileImg}');">
+        <div class="profile-img-small me-3" style="background:url('${data.avatar}');">
         </div>
         <div class="flex-grow-1">
           <h6 class="mb-0 post-author">${data.username ? data.username : "Unknown User"}</h6>
@@ -132,7 +131,7 @@ const mediaHtml = mediaHtmlParts.join("");
         </div>
         
         <div class="comment-input-section">
-          <div class="profile-img-tiny" style ="background-img:url('${userId.profileImg}');">
+          <div class="profile-img-tiny" style ="background:url('${UserData.avatar}');">
           </div>
           <div class="comment-input-wrapper">
             <input type="text" class="form-control comment-input" placeholder="Write a comment..." />
@@ -289,6 +288,7 @@ document.addEventListener("click", async (e) => {
     if (textarea) textarea.focus()
     return
   }
+
   const saveEditBtn = e.target.closest(".save-edit-post-btn")
   if (saveEditBtn) {
     if (!requireAuthAction(e, "saving post edits")) return
@@ -368,8 +368,6 @@ document.addEventListener("click", async (e) => {
 })
 
 let commentPopup = null
-
-
 function createCommentPopup() {
   if (commentPopup) return commentPopup
   commentPopup = document.createElement("div")
