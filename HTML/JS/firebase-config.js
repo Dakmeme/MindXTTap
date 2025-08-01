@@ -164,8 +164,6 @@ export const getUserPosts = async (userId) => {
         const processedUserPost = {
           id: doc.id,
           ...userPostData,
-          // joinDate: userData.createdAt?.toDate().toISOString().split("T")[0] || "",
-          // lastActive: formatLastActive(userData.lastActive?.toDate()),
         }
         usersPostList.push(processedUserPost)
       } catch (error) {
@@ -380,7 +378,7 @@ export const addFollowerToUser = async (userId, followerData) => {
       followedAt: serverTimestamp(),
       status: "active",
       mutualFollows: followerData.mutualFollows || false,
-      source: followerData.source || "direct", // direct, suggested, imported
+      source: followerData.source || "direct",
       notes: followerData.notes || "",
       lastInteraction: serverTimestamp(),
       interactionCount: 0,
@@ -444,14 +442,12 @@ export const addFollowingToUser = async (userId, followingData) => {
       followedAt: serverTimestamp(),
       status: "active",
       mutualFollows: followingData.mutualFollows || false,
-      category: followingData.category || "general", // friend, celebrity, business, interest
+      category: followingData.category || "general",
       notifications: followingData.notifications || true,
-      priority: followingData.priority || "normal", // high, normal, low
+      priority: followingData.priority || "normal",
       lastSeen: serverTimestamp(),
       interactionCount: 0,
     })
-
-    // Update following count
     const userRef = doc(db, "users", userId)
     const currentUser = await getDoc(userRef)
     const currentCount = currentUser.data()?.following || 0
@@ -636,56 +632,6 @@ export const createRandomUsers = async (count) => {
 }
 
 
-// export const addRandomGroupToUser = async (userId, storyData) => {
-//   try {
-//     const storiesRef = collection(db, "users", userId, "stories")
-//     await addDoc(storiesRef, {
-//       bg: storyData.bg || "",
-//       bgMusic: storyData.bgMusic || "",
-//       caption: storyData.caption || "",
-//       duration: storyData.duration || 60,
-//       postTime: serverTimestamp(),
-//       expTime: new Date(Date.now() + 86400000),
-//       reactions: {},
-//       viewState: {
-//         friendsOnly: storyData.friendsOnly || true,
-//         hidden: storyData.hidden || false,
-//         public: storyData.public || true,
-//         restricted: storyData.restricted || false,
-//       },
-//     })
-//     return { success: true, message: "Thêm story thành công!" }
-//   } catch (error) {
-//     console.error("Error adding story:", error)
-//     return { success: false, message: "Lỗi khi thêm story: " + error.message }
-//   }
-// }
-// export const addRandomVideoToUser = async (userId, storyData) => {
-//   try {
-//     const storiesRef = collection(db, "users", userId, "stories")
-//     await addDoc(storiesRef, {
-//       bg: storyData.bg || "",
-//       bgMusic: storyData.bgMusic || "",
-//       caption: storyData.caption || "",
-//       duration: storyData.duration || 60,
-//       postTime: serverTimestamp(),
-//       expTime: new Date(Date.now() + 86400000),
-//       reactions: {},
-//       viewState: {
-//         friendsOnly: storyData.friendsOnly || true,
-//         hidden: storyData.hidden || false,
-//         public: storyData.public || true,
-//         restricted: storyData.restricted || false,
-//       },
-//     })
-//     return { success: true, message: "Thêm story thành công!" }
-//   } catch (error) {
-//     console.error("Error adding story:", error)
-//     return { success: false, message: "Lỗi khi thêm story: " + error.message }
-//   }
-// }
-
-
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -841,21 +787,16 @@ export const createRandomPostsWithInteractions = async (count) => {
     const results = [];
 
     for (let i = 0; i < count; i++) {
-      // choose a random author
       const author = users[Math.floor(Math.random() * users.length)];
       const postId = `P31-${crypto.randomUUID()}`;
       const postRef = doc(db, "posts", postId);
 
-      // base post
       const basePost = generateRandomPostData(author);
-
-      // decide random interaction participants (excluding the author)
       const others = users.filter((u) => u.id !== author.id);
       const likeUsers = getRandomUniqueElements(others, getRandomInt(0, Math.min(10, others.length)));
       const shareUsers = getRandomUniqueElements(others, getRandomInt(0, Math.min(5, others.length)));
       const commentUsers = getRandomUniqueElements(others, getRandomInt(0, Math.min(8, others.length)));
 
-      // finalize counters
       const postData = {
         ...basePost,
         likeCounter: likeUsers.length,
@@ -991,15 +932,15 @@ const generateRandomStoryData = (author, ttlHours = 24) => {
   return {
     userId: author.id,
     username: author.username,
-    createdAt, // ISO string
+    createdAt, 
     content,
     image: imageUrl,
     "bg-music": bgMusic,
     "bg-choice": null,
     useravatar: author.avatar || null,
-    likesCounter: 0, // will be updated
+    likesCounter: 0,
     viewCount,
-    expiresAt, // JS Date will be stored as Firestore timestamp
+    expiresAt, 
   };
 };
 
@@ -1022,20 +963,16 @@ export const createRandomStoriesWithInteractions = async (count) => {
       const storyId = `S31-${crypto.randomUUID()}`;
       const storyRef = doc(db, "stories", storyId);
 
-      // base story with TTL and viewCount
       const baseStory = generateRandomStoryData(author);
 
-      // choose random likers (exclude author)
       const others = users.filter((u) => u.id !== author.id);
       const likeUsers = getRandomUniqueElements(others, getRandomInt(0, Math.min(10, others.length)));
 
-      // finalize story document
       const storyData = {
         ...baseStory,
         likesCounter: likeUsers.length,
       };
 
-      // write main story document
       await setDoc(storyRef, storyData);
       const authorStoryRef = doc(collection(doc(db, "users", author.id), "stories"), storyId);
       await setDoc(authorStoryRef, {
@@ -1055,9 +992,7 @@ export const createRandomStoriesWithInteractions = async (count) => {
         createdAt: baseStory.createdAt,
       });
 
-      // process likes
       for (const liker of likeUsers) {
-        // story side: like entry
         const likeRef = doc(collection(storyRef, "likes"), liker.id);
         await setDoc(likeRef, {
           userId: liker.id,
@@ -1084,27 +1019,25 @@ export const createRandomStoriesWithInteractions = async (count) => {
     };
   }
 };
-export const cleanupExpiredStories = async () => {
-  try {
-    const now = new Date();
-    const q = query(collection(db, "stories"), where("expiresAt", "<=", now));
-    const expiredSnap = await getDocs(q);
-    let deleted = 0;
+// export const cleanupExpiredStories = async () => {
+//   try {
+//     const now = new Date();
+//     const q = query(collection(db, "stories"), where("expiresAt", "<=", now));
+//     const expiredSnap = await getDocs(q);
+//     let deleted = 0;
 
-    for (const docSnap of expiredSnap.docs) {
-      const storyId = docSnap.id;
-      const storyData = docSnap.data();
-      const authorId = storyData.userId;
-      // delete main story
-      await setDoc(doc(db, "stories", storyId), {}, { merge: false }); // or use deleteDoc if imported
-      // delete mirror under user
-      await setDoc(doc(collection(doc(db, "users", authorId), "stories"), storyId), {}, { merge: false });
-      deleted++;
-    }
+//     for (const docSnap of expiredSnap.docs) {
+//       const storyId = docSnap.id;
+//       const storyData = docSnap.data();
+//       const authorId = storyData.userId;
+//       await setDoc(doc(db, "stories", storyId), {}, { merge: false }); // or use deleteDoc if imported
+//       await setDoc(doc(collection(doc(db, "users", authorId), "stories"), storyId), {}, { merge: false });
+//       deleted++;
+//     }
 
-    return { success: true, message: `Cleaned up ${deleted} expired story(ies).` };
-  } catch (e) {
-    console.error("Error cleaning expired stories:", e);
-    return { success: false, message: e.message };
-  }
-};
+//     return { success: true, message: `Cleaned up ${deleted} expired story(ies).` };
+//   } catch (e) {
+//     console.error("Error cleaning expired stories:", e);
+//     return { success: false, message: e.message };
+//   }
+// };

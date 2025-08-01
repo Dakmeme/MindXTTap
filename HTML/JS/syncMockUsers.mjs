@@ -4,12 +4,8 @@ import { fileURLToPath } from "url";
 import { dirname, resolve } from "node:path";
 
 const COMMON_PASSWORD = "MockUser123!";
-
-// Derive __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Assume serviceAccountKey.json sits next to this .mjs file
 const keyPath = resolve(__dirname, "serviceAccountKey.json");
 console.log("Looking for service account key at:", keyPath);
 

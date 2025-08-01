@@ -1,4 +1,4 @@
-import { getUserInfo, getUserPosts, getAllPosts, getUserRelations,updateUser, getUserMedia, loadPosts} from "./firebase-config.js"
+import { getUserInfo, getAllPosts,updateUser, getUserMedia, loadPosts} from "./firebase-config.js"
 import {getCurrentUser, initAuth} from "./authState.js"
 await initAuth()
 const userId =  getCurrentUser()
@@ -98,8 +98,7 @@ const mediaHtml = mediaHtmlParts.join("");
   feed.innerHTML = `
     <div class="card-body mb-4 post-card" data-post-id="${data.id || ""}">
       <div class="d-flex align-items-center mb-3">
-        <div class="profile-img-small me-3">
-          <i class="bi bi-person-fill"></i>
+        <div class="profile-img-small me-3" style="background-img:url('${data.profileImg}');">
         </div>
         <div class="flex-grow-1">
           <h6 class="mb-0 post-author">${data.username ? data.username : "Unknown User"}</h6>
@@ -133,8 +132,7 @@ const mediaHtml = mediaHtmlParts.join("");
         </div>
         
         <div class="comment-input-section">
-          <div class="profile-img-tiny">
-            <i class="bi bi-person-fill"></i>
+          <div class="profile-img-tiny" style ="background-img:url('${userId.profileImg}');">
           </div>
           <div class="comment-input-wrapper">
             <input type="text" class="form-control comment-input" placeholder="Write a comment..." />
@@ -147,7 +145,6 @@ const mediaHtml = mediaHtmlParts.join("");
     </div>
   `
   feed.className = "feed";
-
   if (prepend && feedContainer.firstChild) {
     feedContainer.insertBefore(feed, feedContainer.firstChild);
   } else {
@@ -155,9 +152,6 @@ const mediaHtml = mediaHtmlParts.join("");
   }
 }
 renderPost(PostData, true)
-
-
-
 
 function updatePostCounts(postId, { likeCount, commentCount, shareCount, isLiked }) {
   const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`)
@@ -228,8 +222,6 @@ document.addEventListener("click", async (e) => {
     }
     return
   }
-
-  // Share button
   const shareBtn = e.target.closest(".share-btn")
   if (shareBtn) {
     if (!requireAuthAction(e, "sharing a post")) return
@@ -263,8 +255,6 @@ document.addEventListener("click", async (e) => {
     }
     return
   }
-
-  // Edit button
   const editBtn = e.target.closest(".edit-post-btn")
   if (editBtn) {
     if (!requireAuthAction(e, "editing a post")) return
@@ -299,8 +289,6 @@ document.addEventListener("click", async (e) => {
     if (textarea) textarea.focus()
     return
   }
-
-  // Save edit button
   const saveEditBtn = e.target.closest(".save-edit-post-btn")
   if (saveEditBtn) {
     if (!requireAuthAction(e, "saving post edits")) return
@@ -380,6 +368,7 @@ document.addEventListener("click", async (e) => {
 })
 
 let commentPopup = null
+
 
 function createCommentPopup() {
   if (commentPopup) return commentPopup
