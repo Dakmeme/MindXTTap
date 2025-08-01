@@ -227,24 +227,6 @@ function updatePostCounts(postId, { likeCount, commentCount, shareCount, isLiked
   }
 }
 
-// async function loadAllPosts() {
-//   const samplePost = document.querySelector(".sample-post")
-//   if (samplePost) samplePost.remove()
-//   feedContainer.innerHTML = ""
-//   const querySnapshot = await collection(db, "posts")
-//   for (const docSnap of querySnapshot.docs) {
-//     const data = docSnap.data()
-//     data.id = docSnap.id
-//     data.likeCounter = typeof data.likeCounter === "number" ? data.likeCounter : 0
-//     data.shareCounter = typeof data.shareCounter === "number" ? data.shareCounter : 0
-//     const commentsCol = collection(db, "posts", data.id, "comments")
-//     const commentsSnap = await getDocs(commentsCol)
-//     data.commentCounter = commentsSnap.size
-//     renderPost(data)
-//   }
-// }
-
-
 function requireAuthAction(e, actionName = "this action") {
   if (!userId || !currentUser.uid) {
     showNotification(`Please sign in to perform ${actionName}.`, "warning", 2000)
@@ -253,7 +235,7 @@ function requireAuthAction(e, actionName = "this action") {
   return true
 }
 
-// Post creation
+
 if (postButton) {
   postButton.addEventListener("click", async (e) => {
     e.preventDefault()
@@ -567,6 +549,7 @@ document.addEventListener("click", async (e) => {
 
 
 let commentPopup = null
+
 function createCommentPopup() {
   if (commentPopup) return commentPopup
   commentPopup = document.createElement("div")
