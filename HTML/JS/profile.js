@@ -9,60 +9,6 @@ const UserRelations = await getUserRelations(userId)
 const UserPostData = await getUserPosts(userId)
 const UserMedia = await getUserMedia(userId)
 
-// let allUsers = []
-// const userCardTemplate = document.querySelector("[data-user-template]")
-// const userCardContainer = document.querySelector("[data-user-cards-container]")
-// const searchInput = document.querySelector("[data-search]")
-// const initializeSearch = async () => {
-//   if (!userCardTemplate || !userCardContainer || !searchInput) {
-//     console.warn("Search elements not found");
-//     return;
-//   }
-
-//   allUsers = await getAllUsers();
-
-//   allUsers.forEach(user => {
-//     const card = userCardTemplate.content.cloneNode(true).children[0];
-//     const header = card.querySelector("[data-header]");
-//     const body = card.querySelector("[data-body]");
-
-//     header.textContent = user.username || user.name || "Unknown User";
-//     body.textContent = user.email || "No email";
-//     card.addEventListener('click', () => {
-//       console.log(`Navigating to user: ${user.username || user.name}`);
-//       // window.location.href = `profile.html?userId=${user.id}`;
-//     });
-
-//     userCardContainer.append(card);
-//     user.element = card;
-//   });
-
-
-//   searchInput.addEventListener("input", (e) => {
-//     const value = e.target.value.toLowerCase();
-//     allUsers.forEach(user => {
-//       const name = (user.username || user.name || "").toLowerCase();
-//       const email = (user.email || "").toLowerCase();
-//       const isVisible = name.includes(value) || email.includes(value);
-//       user.element.classList.toggle("hide", !isVisible);
-//     });
-//   });
-
-//   searchInput.addEventListener('focus', () => {
-//     userCardContainer.classList.remove('hide');
-//   });
-
-//   searchInput.addEventListener('blur', (e) => {
-//     setTimeout(() => {
-//       userCardContainer.classList.add('hide');
-//     }, 200);
-//   });
-// };
-
-
-
-
-
 getUserInfo(userId)
   .then(user => {
     if (!user) {
@@ -76,7 +22,8 @@ getUserInfo(userId)
     const coverEls = document.querySelectorAll(".cover-img");
     const FollowersEls = document.querySelectorAll(".usersFollowers");
     const FollowingsEls = document.querySelectorAll(".usersFollowing");
-
+    const PostsEls = document.querySelectorAll(".usersCPosts");
+    PostsEls.forEach(el => (el.textContent = UserPostData.length));
     usernameEls.forEach((el) => (el.textContent = user.username));
     emailEls.forEach((el) => (el.textContent = user.email));
     FollowersEls.forEach((el) => (el.textContent = user.followers));
@@ -98,40 +45,11 @@ getUserInfo(userId)
     loadPosts();
     loadPhotos();
     initScrollEffects();
-    // initializeSearch();
   })
   .catch(error => {
     console.error("Error loading user:", error);
     // initializeFallback();
   });
-
-
-const initializeFallback = () => {
-  const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
-  const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
-  const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
-  const coverEls = document.querySelectorAll(".cover-img");
-
-  usernameEls.forEach((el) => (el.textContent = mockUserData.username));
-  emailEls.forEach((el) => (el.textContent = mockUserData.email));
-  avatarEls.forEach((el) => {
-    el.style.backgroundImage = `url("${mockUserData.avatar}")`;
-    el.style.backgroundSize = "cover";
-    el.style.backgroundPosition = "center";
-  });
-  coverEls.forEach((el) => {
-    if (el.classList.contains("cover-section")) {
-      el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-    }
-  });
-
-  loadPosts();
-  loadFriends();
-  loadPhotos();
-  initScrollEffects();
-  initializeSearch();
-};
-
 
 function initScrollEffects() {
   const tabContent = document.querySelector(".tab-content");
@@ -361,3 +279,43 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+const userCardTemplate = document.querySelector("[data-user-template]")
+const userCardContainer = document.querySelector("[data-user-cards-container]")
+const searchInput = document.querySelector("[data-search]")
+const initializeSearch = async () => {
+  if (!userCardTemplate || !userCardContainer || !searchInput) {
+    console.warn("Search elements not found");
+    return;
+  }
+  UserRelations.forEach(user => {
+    const card = userCardTemplate.content.cloneNode(true).children[0];
+    const header = card.querySelector("[data-header]");
+    const body = card.querySelector("[data-body]");
+    header.textContent = user.username || "Unknown User";
+    body.textContent = user.email
+    card.addEventListener('click', () => {
+      // window.location.href = `profile.html?userId=${user.id}`;
+    });
+    userCardContainer.append(card);
+    user.element = card;
+  });
+
+
+  searchInput.addEventListener("input", (e) => {
+    const value = e.target.value.toLowerCase();
+    followsInfo.forEach(user => {
+      const name = (user.username).toLowerCase();
+      const email = (user.email).toLowerCase();
+      const isVisible = name.includes(value) || email.includes(value);
+      user.element.classList.toggle("hide", !isVisible);
+    });
+  });
+  searchInput.addEventListener('focus', () => {
+    userCardContainer.classList.remove('hide');
+  });
+  searchInput.addEventListener('blur', (e) => {
+    setTimeout(() => {
+      userCardContainer.classList.add('hide');
+    }, 200);
+  });
+};

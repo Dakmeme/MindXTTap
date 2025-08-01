@@ -18,17 +18,6 @@ function initializeSearchBar() {
 
   let searchUsers = [];
 
-  // Mock search data (replace this with your Firebase data)
-  const mockSearchUsers = [
-    { id: 1, username: "John Doe", email: "john.doe@example.com" },
-    { id: 2, username: "Alice Johnson", email: "alice.johnson@example.com" },
-    { id: 3, username: "Bob Smith", email: "bob.smith@example.com" },
-    { id: 4, username: "Carol Brown", email: "carol.brown@example.com" },
-    { id: 5, username: "David Wilson", email: "david.wilson@example.com" },
-    { id: 6, username: "Emma Davis", email: "emma.davis@example.com" },
-  ];
-
-  // Initialize search users
   searchUsers = mockSearchUsers.map(user => {
     const card = userCardTemplate.content.cloneNode(true).children[0];
     const header = card.querySelector("[data-header]");
@@ -36,14 +25,11 @@ function initializeSearchBar() {
     
     header.textContent = user.username;
     body.textContent = user.email;
-    
-    // Add click handler
     card.addEventListener('click', function(e) {
       e.preventDefault();
       console.log(`Selected user: ${user.username}`);
       searchInput.value = user.username;
       userCardContainer.classList.add('hide');
-      // You can add navigation logic here
       // window.location.href = `profile.html?userId=${user.id}`;
     });
     

@@ -186,8 +186,14 @@ body {
 .friends-list {
   flex: 1;
   overflow-y: auto;
+  -ms-overflow-style: none; 
+    scrollbar-width: none;
+
 }
 
+.friends-list ::-webkit-scrollbar {
+    display: none;
+}
 .content-section {
   margin-bottom: 2rem;
 }
@@ -248,7 +254,7 @@ body {
 .friends-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .friend-card {
@@ -261,7 +267,9 @@ body {
   position: relative;
   overflow: hidden;
 }
-
+.hide{
+  display:none !important
+}
 .friend-card::before {
   content: "";
   position: absolute;
@@ -300,17 +308,6 @@ body {
   z-index: 2;
 }
 
-.friend-avatar-large {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin: 0 auto 1rem auto;
-  background-size: cover;
-  background-position: center;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
 .friend-info {
   text-align: center;
 }
@@ -346,23 +343,6 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.friend-btn:hover {
-  background: var(--b-color);
-  border-color: var(--b-color);
-  color: white;
-}
-
-.friend-btn.message {
-  background: var(--tertiary-color);
-  border-color: var(--tertiary-color);
-  color: white;
-}
-
-.friend-btn.message:hover {
-  background: #26a269;
-  border-color: #26a269;
 }
 
 .online-indicator {

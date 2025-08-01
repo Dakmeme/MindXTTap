@@ -36,66 +36,8 @@
         <div class="h-100 w-100 d-flex flex-column friends-content" >
             <div class="friends-header" >
                 <div class="friends-header-content">
-                    <h1><i class="bi bi-people-fill me-3"></i>Friends</h1>
+                    <h1><i class="bi bi-people-fill me-3"></i>Followers</h1>
                     <p>Connect with your friends and discover new connections</p>
-                </div>
-                <div class="friend-requests-toggle">
-                    <button class="requests-toggle-btn" onclick="toggleRequests()">
-                        <i class="bi bi-person-plus"></i>
-                        Requests
-                        <span class="requests-count">3</span>
-                    </button>
-                    
-                    <div class="requests-dropdown" style="z-index: 10000;" id="requests-dropdown">
-                        <div class="requests-header">
-                            <h4>Friend Requests</h4>
-                            <button class="close-requests" onclick="toggleRequests()">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="request-item">
-                            <div class="request-content">
-                                <div class="request-avatar" style="background-image: url('https://images.unsplash.com/photo-1527980965255-d3b25b0236e3?w=150&h=150&fit=crop&crop=face')"></div>
-                                <div class="request-info">
-                                    <div class="request-name">Sarah Williams</div>
-                                    <div class="request-time">2 hours ago</div>
-                                </div>
-                            </div>
-                            <div class="request-actions">
-                                <button class="request-btn accept-btn" onclick="acceptRequest(1)">Accept</button>
-                                <button class="request-btn decline-btn" onclick="declineRequest(1)">Decline</button>
-                            </div>
-                        </div>
-                        
-                        <div class="request-item">
-                            <div class="request-content">
-                                <div class="request-avatar" style="background-image: url('https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=150&h=150&fit=crop&crop=face')"></div>
-                                <div class="request-info">
-                                    <div class="request-name">Michael Chen</div>
-                                    <div class="request-time">1 day ago</div>
-                                </div>
-                            </div>
-                            <div class="request-actions">
-                                <button class="request-btn accept-btn" onclick="acceptRequest(2)">Accept</button>
-                                <button class="request-btn decline-btn" onclick="declineRequest(2)">Decline</button>
-                            </div>
-                        </div>
-                        
-                        <div class="request-item">
-                            <div class="request-content">
-                                <div class="request-avatar" style="background-image: url('https://images.unsplash.com/photo-1614289371518-722f2615943d?w=150&h=150&fit=crop&crop=face')"></div>
-                                <div class="request-info">
-                                    <div class="request-name">Jessica Lee</div>
-                                    <div class="request-time">3 days ago</div>
-                                </div>
-                            </div>
-                            <div class="request-actions">
-                                <button class="request-btn accept-btn" onclick="acceptRequest(3)">Accept</button>
-                                <button class="request-btn decline-btn" onclick="declineRequest(3)">Decline</button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -116,12 +58,6 @@
                 <div class="content-section" id="friends-section">
                     <div class="section-header">
                         <h3><i class="bi bi-people-fill me-2"></i>Friends <span class="count-badge">127</span></h3>
-                        <div class="section-actions">
-                            <button class="action-btn" onclick="addFriend()">
-                                <i class="bi bi-person-plus"></i>
-                                Add Friend
-                            </button>
-                        </div>
                     </div>
                     <div class="friends-grid" id="friends-grid">
                     </div>

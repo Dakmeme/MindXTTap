@@ -1,122 +1,24 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
-import {
-  doc,
-  getDoc,
-  getDocs,
-  collection,
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+import { getUserInfo, getUserPosts, getUserRelations, updateUser, getUserMedia } from "./firebase-config.js"
+import { getCurrentUser, initAuth } from "./authState.js"
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
-  authDomain: "ttmindx.firebaseapp.com",
-  projectId: "ttmindx",
-  storageBucket: "ttmindx.firebasestorage.app",
-  messagingSenderId: "499689288083",
-  appId: "1:499689288083:web:394be22db426aa48b93866",
-  measurementId: "G-Y0NCNLB337",
-}
-const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
+await initAuth()
+const userId = getCurrentUser()
+await updateUser(userId)
 
-export const getUserInfo = async (userId) => {
-  try {
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return {
-        id: userSnap.id,
-        ...userSnap.data(),
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin người dùng:", error);
-    return null;
-  }
-};
-
-export const getFollowsInfo = async (userId) => {
-  try {
-    const followersCol = collection(db, "users", userId, "followers");
-    const followingCol = collection(db, "users", userId, "following");
-    const [followersSnap, followingSnap] = await Promise.all([
-      getDocs(followersCol),
-      getDocs(followingCol),
-    ]);
-    const followers = followersSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    const following = followingSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    return [...followers, ...following];
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin follows:", error);
-    return [];
-  }
-};
+const UserData = await getUserInfo(userId)
+const UserRelations = await getUserRelations(userId)
 
 
 
-// const userInfo = await getAllUsers(userId)
-// const followsInfo = await getFollowsInfo(userId)
-const userInfo = await getUserInfo( "random_1753897757130_q60r6")
-console.log(userInfo)
-const followsInfo = await getFollowsInfo("random_1753897757130_q60r6")
-console.log(followsInfo)
 
+document.getElementById('collapsed-avatar').style.backgroundImage = `url("${UserData.avatar}")`;
 
-document.getElementById('collapsed-avatar').style.backgroundImage = `url("${userInfo.avatar}")`;
-
-function toggleRequests() {
-    const dropdown = document.getElementById('requests-dropdown');
-    dropdown.classList.toggle('active');
-}
-document.addEventListener('click', function (event) {
-    const toggle = document.querySelector('.friend-requests-toggle');
-    const dropdown = document.getElementById('requests-dropdown');
-
-    if (!toggle.contains(event.target)) {
-        dropdown.classList.remove('active');
-    }
-});
-function acceptRequest(id) {
-    console.log(`Accepting friend request ${id}`);
-    const countElement = document.querySelector('.requests-count');
-    let currentCount = parseInt(countElement.textContent);
-    countElement.textContent = Math.max(0, currentCount - 1);
-    event.target.closest('.request-item').remove();
-}
-function declineRequest(id) {
-    console.log(`Declining friend request ${id}`);
-    const countElement = document.querySelector('.requests-count');
-    let currentCount = parseInt(countElement.textContent);
-    countElement.textContent = Math.max(0, currentCount - 1);
-    event.target.closest('.request-item').remove();
-}
-
-
-function loadFriends(filter = 'all') {
+function loadFriends() {
     const friendsGrid = document.getElementById('friends-grid');
-    let filteredFriends = followsInfo;
-
-    if (filter === 'online') {
-        filteredFriends = followsInfo.filter(f => f.online);
-    } else if (filter === 'recent') {
-        filteredFriends = followsInfo.filter(f =>
-            f.status.includes('minutes') || f.status.includes('hour')
-        );
-    } else if (filter === 'mutual') {
-        filteredFriends = followsInfo.filter(f => f.mutual > 10);
-    }
-
+    let filteredFriends = UserRelations;
     friendsGrid.innerHTML = filteredFriends.map(friend => `
-                <div class="friend-card" onclick="viewFriend(${friend.id})">
-                    <div class="online-indicator ${friend.online ? '' : 'offline'}"></div>
+                <div class="friend-card" onclick="viewFollowers(${friend.id})">
+                    <div class="online-indicator ${friend.status}"></div>
                     <div class="friend-card-content">
                         <div class="friend-avatar-large" style="background-image: url('${friend.avatar}')"></div>
                         <div class="friend-info">
@@ -138,34 +40,6 @@ function loadFriends(filter = 'all') {
             `).join('');
 }
 
-
-function loadGroups() {
-    const groupsGrid = document.getElementById('groups-grid');
-    groupsGrid.innerHTML = groupsData.map(group => `
-                <div class="group-card" onclick="viewGroup(${group.id})">
-                    <div class="group-header"></div>
-                    <div class="group-content">
-                        <div class="group-name">${group.name}</div>
-                        <div class="group-description">${group.description}</div>
-                        <div class="group-stats">
-                            <div class="group-members">
-                                <i class="bi bi-people-fill me-1"></i>
-                                ${group.members.toLocaleString()} members
-                            </div>
-                            <div class="group-activity">${group.lastActivity}</div>
-                        </div>
-                        <div class="group-avatar-stack">
-                            ${group.memberAvatars.map(avatar =>
-        `<div class="group-member-avatar" style="background-image: url('${avatar}')"></div>`
-    ).join('')}
-                            <div class="group-member-avatar" style="background: var(--p-color); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600;">
-                                +${Math.floor(Math.random() * 20) + 5}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-}
 
 
 

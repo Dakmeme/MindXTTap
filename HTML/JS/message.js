@@ -1,145 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"
-import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
-import {
-  doc,
-  getDoc,
-  getDocs,
-  collection,
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
+import { getUserInfo, getUserPosts, getUserRelations, updateUser, getUserMedia } from "./firebase-config.js"
+import { getCurrentUser, initAuth } from "./authState.js"
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
-  authDomain: "ttmindx.firebaseapp.com",
-  projectId: "ttmindx",
-  storageBucket: "ttmindx.firebasestorage.app",
-  messagingSenderId: "499689288083",
-  appId: "1:499689288083:web:394be22db426aa48b93866",
-  measurementId: "G-Y0NCNLB337",
-}
+await initAuth()
+const userId = getCurrentUser()
+await updateUser(userId)
 
-
-const app = initializeApp(firebaseConfig)
-export const db = getFirestore(app)
-
-export const getUserInfo = async (userId) => {
-  try {
-    const userRef = doc(db, "users", userId);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      return {
-        id: userSnap.id,
-        ...userSnap.data(),
-      };
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin người dùng:", error);
-    return null;
-  }
-};
-
-
-export const getFollowsInfo = async (userId) => {
-  try {
-    const followersCol = collection(db, "users", userId, "followers");
-    const followingCol = collection(db, "users", userId, "following");
-    const [followersSnap, followingSnap] = await Promise.all([
-      getDocs(followersCol),
-      getDocs(followingCol),
-    ]);
-    const followers = followersSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    const following = followingSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    return [...followers, ...following];
-  } catch (error) {
-    console.error("Lỗi khi lấy thông tin follows:", error);
-    return [];
-  }
-};
-
-// const userInfo = await getAllUsers(userId)
-// const followsInfo = await getFollowsInfo(userId)
-const userInfo = await getUserInfo( "random_1753897757130_q60r6")
-console.log(userInfo)
-const followsInfo = await getFollowsInfo("random_1753897757130_q60r6")
-console.log(followsInfo)
-
-
-const userCardTemplate = document.querySelector("[data-user-template]")
-const userCardContainer = document.querySelector("[data-user-cards-container]")
-const searchInput = document.querySelector("[data-search]")
-const initializeSearch = async () => {
-  if (!userCardTemplate || !userCardContainer || !searchInput) {
-    console.warn("Search elements not found");
-    return;
-  }
-  followsInfo.forEach(user => {
-    const card = userCardTemplate.content.cloneNode(true).children[0];
-    const header = card.querySelector("[data-header]");
-    const body = card.querySelector("[data-body]");
-    header.textContent = user.username || user.name || "Unknown User";
-    body.textContent = user.email
-    card.addEventListener('click', () => {
-
-      // window.location.href = `profile.html?userId=${user.id}`;
-    });
-    userCardContainer.append(card);
-    user.element = card;
-  });
-
-
-  searchInput.addEventListener("input", (e) => {
-    const value = e.target.value.toLowerCase();
-    followsInfo.forEach(user => {
-      const name = (user.username || user.name || "").toLowerCase();
-      const email = (user.userID || "").toLowerCase();
-      const isVisible = name.includes(value) || email.includes(value);
-      user.element.classList.toggle("hide", !isVisible);
-    });
-  });
-  searchInput.addEventListener('focus', () => {
-    userCardContainer.classList.remove('hide');
-  });
-  searchInput.addEventListener('blur', (e) => {
-    setTimeout(() => {
-      userCardContainer.classList.add('hide');
-    }, 200);
-  });
-};
+const UserData = await getUserInfo(userId)
+const UserRelations = await getUserRelations(userId)
 
 
 
-document.getElementById('collapsed-avatar').style.backgroundImage = `url("${userInfo.avatar}")`;
 
-const initializeFallback = () => {
-  const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
-  const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
-  const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
-  const coverEls = document.querySelectorAll(".cover-img");
-  
-  usernameEls.forEach((el) => (el.textContent = mockUserData.username));
-  emailEls.forEach((el) => (el.textContent = mockUserData.email));
-  avatarEls.forEach((el) => {
-    el.style.backgroundImage = `url("${mockUserData.avatar}")`;
-    el.style.backgroundSize = "cover";
-    el.style.backgroundPosition = "center";
-  });
-  coverEls.forEach((el) => {
-    if (el.classList.contains("cover-section")) {
-      el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-    }
-  });
-  
-  loadFriends();
-  loadPhotos();
-  initializeSearch();
-};
+
+document.getElementById('collapsed-avatar').style.backgroundImage = `url("${UserData.avatar}")`;
 
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -155,35 +28,23 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
   });
 });
 
-
 function loadFriends() {
   const friendsGrid = document.getElementById("friends-grid");
   if (!friendsGrid) return;
   
-  friendsGrid.innerHTML = followsInfo
+  friendsGrid.innerHTML = UserRelations
     .map(
       (user) => `
-        <div class="friend-card" onclick="navigateToFriend('${user.username}')">
-          <div class="friend-avatar" style="background-image: url('${user.avatar}')"></div>
-          <div class="friend-name">${user.username}</div>
+        <div class="d-flex gap-3 p-3 align-items-center friend-card" onclick="navigateToFriend('${user.username}')">
+          <div class="friend-avatar" style="background: url('${user.avatar}'); height:45px; width:45px; border-radius:50%"></div>
+          <div class="friend-name m-0">${user.username}</div>
         </div>
         `
         )
     .join("");
 }
 
-function loadPhotos() {
-  const photosGrid = document.getElementById("photos-grid");
-  if (!photosGrid) return;
-  
-  photosGrid.innerHTML = mockPhotos
-    .map(
-      (photo) => `
-        <div class="photo-item" style="background-image: url('${photo}')" onclick="openPhoto('${photo}')"></div>
-      `
-    )
-    .join("");
-}
+
 
 
 
@@ -252,4 +113,14 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }, 600);
+});
+loadFriends()
+
+
+document.getElementById('friends-search').addEventListener('input', e => {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll('.friend-card, .group-card').forEach(card => {
+        const text = (card.querySelector('.friend-name, .group-name')?.textContent || '').toLowerCase();
+        card.style.display = text.includes(term) ? 'block' : 'none';
+    });
 });
