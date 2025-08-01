@@ -1,5 +1,12 @@
-import { getUserInfo, getUserPosts, getAllUsers,createRandomStoriesWithInteractions, getUserRelations, createRandomUsers, assignFollowersAndFollowingWithSubcollections, createRandomPostsWithInteractions } from "./firebase-config.js"
-const userId = "1MJf8DXzCcbXw0uUSMuGpSBLE9o1"
+import { getUserInfo, getUserPosts, getUserRelations,updateUser, getUserMedia} from "./firebase-config.js"
+import {getCurrentUser, initAuth} from "./authState.js"
+await initAuth()
+const userId =  getCurrentUser()
+await updateUser(userId)
+const UserData = await getUserInfo(userId)
+const UserRelations = await getUserRelations(userId)
+const UserPostData = await getUserPosts(userId)
+const UserMedia = await getUserMedia(userId)
 
 // let allUsers = []
 // const userCardTemplate = document.querySelector("[data-user-template]")
@@ -52,14 +59,11 @@ const userId = "1MJf8DXzCcbXw0uUSMuGpSBLE9o1"
 // };
 
 
-const UserData = await getUserInfo(userId)
-const UserPostData = await getUserPosts(userId)
-const UserRelations = await getUserRelations(userId)
-console.log(UserPostData)
-console.log(UserData)
+
+
 
 getUserInfo(userId)
-  .then(user => {
+.then(user => {
     if (!user) {
       console.log("Sai userID r ba");
       return;
@@ -69,9 +73,14 @@ getUserInfo(userId)
     const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
     const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
     const coverEls = document.querySelectorAll(".cover-img");
-    
+const FollowersEls = document.querySelectorAll(".usersFollowers");
+const FollowingsEls = document.querySelectorAll(".usersFollowing");
+
     usernameEls.forEach((el) => (el.textContent = user.username));
     emailEls.forEach((el) => (el.textContent = user.email));
+    FollowersEls.forEach((el) => (el.textContent=user.followers));
+    FollowingsEls.forEach((el) => (el.textContent=user.following));
+
     avatarEls.forEach((el) => {
       el.style.backgroundImage = `url("${user.avatar}")`;
       el.style.backgroundSize = "cover";
@@ -79,13 +88,14 @@ getUserInfo(userId)
     });
     coverEls.forEach((el) => {
       if (el.classList.contains("cover-section")) {
-        el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
+        el.style.backgroundImage = `url("${user.coverImage}")`;
       }
     });
     
-    loadPosts();
+
     loadFriends();
-    // loadPhotos();
+    loadPosts();
+    loadPhotos();
     initScrollEffects();
     // initializeSearch();
   })
@@ -94,37 +104,38 @@ getUserInfo(userId)
     // initializeFallback();
   });
 
+
+const initializeFallback = () => {
+  const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
+  const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
+  const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
+  const coverEls = document.querySelectorAll(".cover-img");
   
-// const initializeFallback = () => {
-//   const usernameEls = document.querySelectorAll("#username, #main-username, #header-username");
-//   const emailEls = document.querySelectorAll("#useremail, #main-useremail, #header-useremail");
-//   const avatarEls = document.querySelectorAll(".profile-img, .avatar, .small-avatar");
-//   const coverEls = document.querySelectorAll(".cover-img");
+  usernameEls.forEach((el) => (el.textContent = mockUserData.username));
+  emailEls.forEach((el) => (el.textContent = mockUserData.email));
+  avatarEls.forEach((el) => {
+    el.style.backgroundImage = `url("${mockUserData.avatar}")`;
+    el.style.backgroundSize = "cover";
+    el.style.backgroundPosition = "center";
+  });
+  coverEls.forEach((el) => {
+    if (el.classList.contains("cover-section")) {
+      el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
+    }
+  });
   
-//   usernameEls.forEach((el) => (el.textContent = mockUserData.username));
-//   emailEls.forEach((el) => (el.textContent = mockUserData.email));
-//   avatarEls.forEach((el) => {
-//     el.style.backgroundImage = `url("${mockUserData.avatar}")`;
-//     el.style.backgroundSize = "cover";
-//     el.style.backgroundPosition = "center";
-//   });
-//   coverEls.forEach((el) => {
-//     if (el.classList.contains("cover-section")) {
-//       el.style.backgroundImage = `url("https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=400&fit=crop")`;
-//     }
-//   });
-  
-//   loadPosts();
-//   loadFriends();
-//   loadPhotos();
-//   initScrollEffects();
-//   initializeSearch();
-// };
+  loadPosts();
+  loadFriends();
+  loadPhotos();
+  initScrollEffects();
+  initializeSearch();
+};
+
 
 function initScrollEffects() {
   const tabContent = document.querySelector(".tab-content");
-  const coverSection = document.getElementById("cover-section");
   const coverOverlay = document.getElementById("cover-overlay");
+  const coverSection = document.getElementById("cover-section");
   const avatarContainer = document.getElementById("avatar-container");
   const profileInfo = document.getElementById("profile-info");
   const profileHeaderInfo = document.getElementById("profile-header-info");
@@ -132,42 +143,76 @@ function initScrollEffects() {
   const mainProfileInfo = document.getElementById("main-profile-info");
   const statsContainer = document.getElementById("stats-container");
   const actionButtons = document.getElementById("action-buttons");
-  
+
   if (!tabContent) return;
-  
-  tabContent.addEventListener("scroll", () => {
+
+  const toggledEls = [
+    coverSection,
+    avatarContainer,
+    profileInfo,
+    profileHeaderInfo,
+    headerStats,
+    mainProfileInfo,
+    statsContainer,
+    actionButtons,
+  ].filter(Boolean);
+  const ADD_ON_DOWN = 500;      
+  const REMOVE_ON_UP = 0;       
+  const OPACITY_START = 30;    
+  const OPACITY_END = 180;     
+  const BASE_OPACITY = 0.3;
+  const MAX_OPACITY = 0.7;
+
+  let lastScrollTop = tabContent.scrollTop;
+  let hasScrolledClass = false;
+  let ticking = false;
+  function clamp(value, min, max) {
+    return value < min ? min : value > max ? max : value;
+  }
+  function setScrolledState(active) {
+    if (active === hasScrolledClass) return;
+    toggledEls.forEach(el => {
+      if (active) el.classList.add("scrolled");
+      else el.classList.remove("scrolled");
+    });
+    hasScrolledClass = active;
+  }
+
+  function updateOverlayOpacity(scrollTop) {
+    const raw = (scrollTop - OPACITY_START) / (OPACITY_END - OPACITY_START);
+    const factor = clamp(raw, 0, 1);
+    const newOpacity = BASE_OPACITY + (MAX_OPACITY - BASE_OPACITY) * factor;
+    const secondStop = Math.min(newOpacity + 0.2, 1);
+    if (coverOverlay) {
+      coverOverlay.style.background = `linear-gradient(135deg, rgba(127,90,240,${newOpacity}) 0%, rgba(0,0,0,${secondStop}) 100%)`;
+    }
+  }
+
+  function onScroll() {
     const scrollTop = tabContent.scrollTop;
-    const threshold = 0;
-    
-    if (scrollTop > threshold) {
-      coverSection?.classList.add("scrolled");
-      avatarContainer?.classList.add("scrolled");
-      profileInfo?.classList.add("scrolled");
-      profileHeaderInfo?.classList.add("scrolled");
-      headerStats?.classList.add("scrolled");
-      mainProfileInfo?.classList.add("scrolled");
-      statsContainer?.classList.add("scrolled");
-      actionButtons?.classList.add("scrolled");
+    const isScrollingDown = scrollTop > lastScrollTop;
+
+    if (isScrollingDown) {
+      if (scrollTop >= ADD_ON_DOWN) {
+        setScrolledState(true);
+      }
     } else {
-      coverSection?.classList.remove("scrolled");
-      avatarContainer?.classList.remove("scrolled");
-      profileInfo?.classList.remove("scrolled");
-      profileHeaderInfo?.classList.remove("scrolled");
-      headerStats?.classList.remove("scrolled");
-      mainProfileInfo?.classList.remove("scrolled");
-      statsContainer?.classList.remove("scrolled");
-      actionButtons?.classList.remove("scrolled");
+      if (scrollTop <= REMOVE_ON_UP) {
+        setScrolledState(false);
+      }
     }
 
-    const opacityFactor = Math.min(scrollTop / threshold, 1);
-    const baseOpacity = 0.3;
-    const maxOpacity = 0.7;
-    const newOpacity = baseOpacity + (maxOpacity - baseOpacity) * opacityFactor;
-    
-    if (coverOverlay) {
-      coverOverlay.style.background = `linear-gradient(135deg, rgba(127, 90, 240, ${newOpacity}) 0%, rgba(0, 0, 0, ${newOpacity + 0.2}) 100%)`;
-    }
+    updateOverlayOpacity(scrollTop);
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+    ticking = false;
+  }
+
+  tabContent.addEventListener("scroll", () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(onScroll);
   });
+  updateOverlayOpacity(tabContent.scrollTop);
 }
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -183,7 +228,7 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
   });
 });
 
-function loadPosts() {
+ export function loadPosts() {
   const postsContainer = document.getElementById("posts-container");
   if (!postsContainer) return;
   
@@ -201,16 +246,16 @@ function loadPosts() {
           <div class="post-content">
             ${post.content}
           </div>
-          ${post.image ? `<div class="post-image" style="background-image: url('${post.image}')"></div>` : ""}
+          ${post.postImg ? `<div class="post-image" style="background-image: url('${post.postImg}')"></div>` : ""}
           <div class="post-actions">
             <button class="post-action" onclick="toggleLike(${post.id})">
-              <i class="bi bi-heart"></i> ${post.likeCount} Like
+              <i class="bi bi-heart"></i> ${post.likeCounter} Like
             </button>
             <button class="post-action">
-              <i class="bi bi-chat"></i> ${post.comments} Comment
+              <i class="bi bi-chat"></i> ${post.commentCounter} Comment
             </button>
             <button class="post-action">
-              <i class="bi bi-share"></i> ${post.shareCount} Share
+              <i class="bi bi-share"></i> ${post.shareCounter} Share
             </button>
           </div>
         </div>
@@ -235,74 +280,63 @@ function loadFriends() {
     .join("");
 }
 
-// function loadPhotos() {
-//   const photosGrid = document.getElementById("photos-grid");
-//   if (!photosGrid) return;
+function loadPhotos() {
+  const photosGrid = document.getElementById("photos-grid");
+  if (!photosGrid) return;
   
-//   photosGrid.innerHTML = mockPhotos
-//     .map(
-//       (photo) => `
-//         <div class="photo-item" style="background-image: url('${photo}')" onclick="openPhoto('${photo}')"></div>
-//       `
-//     )
-//     .join("");
-// }
+  photosGrid.innerHTML = UserMedia
+    .map(
+      (photo) => `
+        <div class="photo-item" style="background-image: url('${photo.link}')" onclick="openPhoto('${photo}')"></div>
+      `
+    )
+    .join("");
+}
 
 window.openPhoto = function(photoUrl) {
   console.log("Opening photo:", photoUrl);
-  // You can implement a modal or lightbox here
   alert(`Photo viewer would open for: ${photoUrl}`);
 };
 
 window.navigateToFriend = function(friendName) {
   console.log("Navigating to friend:", friendName);
-  // You can implement friend profile navigation here
   alert(`Would navigate to ${friendName}'s profile`);
 };
 
-function initPageNavigation() {
-  console.log('initPageNavigation invoked');
-
-  const navMap = {
-    'feed-nav': 'main.html',
-    'friends-nav': 'friends.html',
-    'messages-nav': 'messages.html',
-    'profile': 'profile.html',
-  };
-
-  // Sanity logging
-  console.log('found nav-items:', document.querySelectorAll('.nav-item').length);
-  console.log('profile element:', document.getElementById('profile'));
-
-  document.body.addEventListener('click', (e) => {
-    const item = e.target.closest('.nav-item, #profile');
-    if (!item) return;
-
+document.querySelectorAll(".nav-item").forEach((item) => {
+  item.addEventListener("click", () => {
     const id = item.id;
-    console.log('clicked:', id);
-
-    if (id === 'notif') {
-      console.log('Opening Notifications...');
-      alert('Would open Notifications');
-      return;
-    }
-    if (id === 'settings') {
-      console.log('Opening Settings...');
-      alert('Would open Settings');
-      return;
-    }
-
-    if (navMap[id]) {
-      console.log(`Navigating to ${navMap[id]}...`);
-      window.location.href = navMap[id];
-    } else {
-      console.log(`Unhandled click id: ${id}`);
+    switch(id) {
+      case "feed-nav":
+        console.log("Navigating to Feed...");
+        window.location.href = 'main.html';
+        break;
+      case "friends-nav":
+        console.log("Navigating to Friends page...");
+        window.location.href = 'friends.html';
+        break;
+      case "messages-nav":
+        console.log("Opening Messages...");
+        window.location.href = 'messages.html';
+        break;
+      case "notif":
+        console.log("Opening Notifications...");
+        // window.location.href = 'notifications.html';
+        break;
+      case "settings":
+        console.log("Opening Settings...");
+        // window.location.href = 'settings.html';
+        alert("Would open Settings");
+        break;
+      default:
+        console.log(`Clicked on: ${id}`);
+        break;
     }
   });
-}
-
-
-document.addEventListener('DOMContentLoaded', initPageNavigation);
+});
+document.getElementById('profile').addEventListener('click', () => {
+  window.location.href = 'profile.html';
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
@@ -325,9 +359,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// const RandomUser= await createRandomUsers(50)
-// console.log(RandomUser)
-// const users = await getAllUsers()
-// const test = await assignFollowersAndFollowingWithSubcollections(users)
-// const test2 = await createRandomPostsWithInteractions(50)
-// test3= await createRandomStoriesWithInteractions(20)

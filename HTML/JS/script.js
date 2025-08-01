@@ -1,6 +1,3 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js"
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js"
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js"
 import {
   getFirestore,
   addDoc,
@@ -15,7 +12,10 @@ import {
   deleteDoc,
   setDoc,
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js"
+import { app, db, auth} from "./firebase.js"
 import * as bootstrap from "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+import {getCurrentUser, initAuth} from "./authState.js"
+import { getUserInfo, getUserRelations,updateUser, getUserMedia, getAllPosts} from "./firebase-config.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0",
@@ -28,23 +28,21 @@ const firebaseConfig = {
 }
 
 
-const app = initializeApp(firebaseConfig)
-const analytics = getAnalytics(app)
-const auth = getAuth(app)
-const db = getFirestore(app)
 
-const createFeedModal = document.getElementById("createFeedModal")
+await initAuth()
+const userId =  getCurrentUser()
+await updateUser(userId)
+
+
 const postButton = document.getElementById("postButton")
 
-const currentUser = { displayName: "Demo User", email: "demo@example.com", uid: "demo-user-id" }
+let currentUser = null
 
-// Initialize UI
 function initializeUI() {
   const username = document.getElementById("username")
   const useremail = document.getElementById("useremail")
-
-  if (username) username.textContent = currentUser.displayName
-  if (useremail) useremail.textContent = currentUser.email
+  if (username) username.textContent = userId.displayName
+  if (useremail) useremail.textContent = userId.email
 
   // const loadingSpinner = document.getElementById("loading-spinner")
   // if (loadingSpinner) {
@@ -83,6 +81,7 @@ if (!feedContainer) {
   feedContainer.id = "feed"
   document.body.appendChild(feedContainer)
 }
+
 feedContainer.style.maxHeight = "80vh"
 feedContainer.style.minHeight = "200px"
 
@@ -99,9 +98,9 @@ function renderPost(data, prepend = false) {
     })
   }
 
-  const likeCount = data.likeCount || 0
-  const commentCount = data.commentCount || 0
-  const shareCount = data.shareCount || 0
+  const likeCount = data.likeCounter || 0
+  const commentCount = data.commentCounter || 0
+  const shareCount = data.shareCounter || 0
   const likedPosts = JSON.parse(localStorage.getItem("likedPosts") || "[]")
   const isLiked = likedPosts.includes(data.id)
 
@@ -127,8 +126,8 @@ function renderPost(data, prepend = false) {
   `
 
   let mediaHtml = ""
-  if (data.image) {
-    mediaHtml += `<div class="mb-3 media-btn-image"><img src="${data.image}" alt="Post image" style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);" loading="lazy"></div>`
+  if (data.PostImg) {
+    mediaHtml += `<div class="mb-3 media-btn-image"><img src="${data.PostImg}" alt="Post image" style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);" loading="lazy"></div>`
   }
   if (data.video) {
     mediaHtml += `<div class="mb-3 media-btn-video"><video src="${data.video}" controls style="max-width:100%; max-height:300px; border-radius:16px; display:block; margin:auto; box-shadow: var(--shadow-softer);"></video></div>`
@@ -149,7 +148,7 @@ function renderPost(data, prepend = false) {
           <i class="bi bi-person-fill"></i>
         </div>
         <div class="flex-grow-1">
-          <h6 class="mb-0 post-author">${data.user ? data.user : "Unknown User"}</h6>
+          <h6 class="mb-0 post-author">${data.username ? data.username : "Unknown User"}</h6>
           <div class="post-time">${dateStr}</div>
         </div>
         ${menuHtml}
@@ -175,7 +174,7 @@ function renderPost(data, prepend = false) {
             title="Share"
           >
             <i class="bi bi-share"></i>
-            <span class="share-count">${shareCount}</span>
+            <span class="share-count">${shareCounter}</span>
           </button>
         </div>
         
@@ -200,6 +199,7 @@ function renderPost(data, prepend = false) {
     feedContainer.appendChild(feed)
   }
 }
+
 
 function updatePostCounts(postId, { likeCount, commentCount, shareCount, isLiked }) {
   const postEl = document.querySelector(`.card-body[data-post-id="${postId}"]`)
@@ -227,26 +227,26 @@ function updatePostCounts(postId, { likeCount, commentCount, shareCount, isLiked
   }
 }
 
-async function loadAllPosts() {
-  const samplePost = document.querySelector(".sample-post")
-  if (samplePost) samplePost.remove()
+// async function loadAllPosts() {
+//   const samplePost = document.querySelector(".sample-post")
+//   if (samplePost) samplePost.remove()
+//   feedContainer.innerHTML = ""
+//   const querySnapshot = await collection(db, "posts")
+//   for (const docSnap of querySnapshot.docs) {
+//     const data = docSnap.data()
+//     data.id = docSnap.id
+//     data.likeCounter = typeof data.likeCounter === "number" ? data.likeCounter : 0
+//     data.shareCounter = typeof data.shareCounter === "number" ? data.shareCounter : 0
+//     const commentsCol = collection(db, "posts", data.id, "comments")
+//     const commentsSnap = await getDocs(commentsCol)
+//     data.commentCounter = commentsSnap.size
+//     renderPost(data)
+//   }
+// }
 
-  feedContainer.innerHTML = ""
-  const querySnapshot = await getDocs(collection(db, "posts"))
-  for (const docSnap of querySnapshot.docs) {
-    const data = docSnap.data()
-    data.id = docSnap.id
-    data.likeCount = typeof data.likeCount === "number" ? data.likeCount : 0
-    data.shareCount = typeof data.shareCount === "number" ? data.shareCount : 0
-    const commentsCol = collection(db, "posts", data.id, "comments")
-    const commentsSnap = await getDocs(commentsCol)
-    data.commentCount = commentsSnap.size
-    renderPost(data)
-  }
-}
 
 function requireAuthAction(e, actionName = "this action") {
-  if (!currentUser || !currentUser.uid) {
+  if (!userId || !currentUser.uid) {
     showNotification(`Please sign in to perform ${actionName}.`, "warning", 2000)
     return false
   }
@@ -372,7 +372,6 @@ if (postButton) {
 
 // Event delegation for post interactions
 document.addEventListener("click", async (e) => {
-  // Like button
   const likeBtn = e.target.closest(".like-btn")
   if (likeBtn) {
     if (!requireAuthAction(e, "liking a post")) return
@@ -566,7 +565,7 @@ document.addEventListener("click", async (e) => {
   }
 })
 
-// Comment Popup Logic
+
 let commentPopup = null
 function createCommentPopup() {
   if (commentPopup) return commentPopup
@@ -626,8 +625,8 @@ function renderPopupPost(postData) {
   }
 
   let mediaHtml = ""
-  if (postData.image) {
-    mediaHtml = `<div class="mb-2"><img src="${postData.image}" alt="Post image" class="popup-media-image" loading="lazy"></div>`
+  if (postData.postImg) {
+    mediaHtml = `<div class="mb-2"><img src="${postData.postImg}" alt="Post image" class="popup-media-image" loading="lazy"></div>`
   } else if (postData.video) {
     mediaHtml = `<div class="mb-2"><video src="${postData.video}" controls class="popup-media-video"></video></div>`
   } else if (postData.file) {
@@ -739,7 +738,7 @@ function hideCommentPopup() {
   }
 }
 
-// Comment popup event listeners
+
 document.addEventListener("click", async (e) => {
   const commentBtn = e.target.closest(".open-comment-popup")
   if (commentBtn) {
@@ -762,7 +761,6 @@ document.addEventListener("click", async (e) => {
   }
 })
 
-// Comment submission
 if (!window._commentPopupListenerAdded) {
   window._commentPopupListenerAdded = true
   document.addEventListener("click", async (e) => {
@@ -822,7 +820,6 @@ if (!window._commentPopupListenerAdded) {
   })
 }
 
-// Notification System
 function showNotification(message, type = "info", duration = 3000) {
   const existing = document.getElementById("custom-notification");
   if (existing) existing.remove();
@@ -886,9 +883,8 @@ function showNotification(message, type = "info", duration = 3000) {
     }, 350);
   }, duration);
 }
-// Notification Popup System (modal fade)
+
 let notificationList = [];
-// Use id="notif" for the notification button
 let notifBtn = document.getElementById("notif");
 if (!notifBtn) {
   notifBtn = document.createElement("button");
@@ -1108,4 +1104,3 @@ document.getElementById('profile').addEventListener('click', () => {
 // Initialize the application
 
 initializeUI()
-loadAllPosts()

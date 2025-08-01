@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login Page</title>
-  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="CSS/auth.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
   <style>
@@ -71,15 +71,17 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
 <script type="module">
-  import { auth } from "./firebase.js";
-  import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import { initAuth } from "./authState.js";
+  import { auth, signInWithEmailAndPassword  } from "./JS/firebase.js";
+  import { initAuth } from "./JS/authState.js";
 
-  // Khởi tạo auth listener
+
+  signInWithEmailAndPassword(auth, "hoàngvănphúc788@hotmail.com", "MockUser123!")
+  .then(u => console.log("OK", u))
+  .catch(e => console.error("ERR", e.code, e.message));
+
+
   initAuth();
-
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
 
@@ -119,7 +121,6 @@
     }
   }
 
-  // Real-time validation
   emailInput.addEventListener("blur", () => {
     const error = validateEmail(emailInput.value);
     showError("email", error);
@@ -136,7 +137,6 @@
     const email = emailInput.value.trim();
     const password = passwordInput.value;
 
-    // Validate fields
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
 
@@ -144,6 +144,9 @@
     showError("password", passwordError);
 
     if (emailError || passwordError) {
+      return;
+    }
+      if (emailError) {
       return;
     }
 

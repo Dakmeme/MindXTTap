@@ -11,10 +11,10 @@ import {
   orderBy,
   serverTimestamp,
   getDoc,
+  
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"
 
 import { db } from "./firebase.js"
-
 
 export const createUser = async (userId, data) => {
   try {
@@ -94,19 +94,6 @@ export const getUserInfo = async (userId) => {
   }
 };
 
-export const updateUser = async (userId, data) => {
-  try {
-    const userRef = doc(db, "users", userId)
-    await updateDoc(userRef, {
-      ...data,
-      updatedAt: serverTimestamp(),
-    })
-    return { success: true, message: "Cập nhật người dùng thành công!" }
-  } catch (error) {
-    console.error("Error updating user:", error)
-    return { success: false, message: "Lỗi khi cập nhật người dùng: " + error.message }
-  }
-}
 
 export const deleteUser = async (userId) => {
   try {
@@ -117,7 +104,6 @@ export const deleteUser = async (userId) => {
     return { success: false, message: "Lỗi khi xóa người dùng: " + error.message }
   }
 }
-
 
 
 export const createPost = async (postData) => {
@@ -152,9 +138,7 @@ export const getAllPosts = async () => {
     const postsSnapshot = await getDocs(q)
     const postsList = postsSnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate().toISOString().split("T")[0] || "",
-      updatedAt: doc.data().updatedAt?.toDate().toISOString().split("T")[0] || "",
+      ...doc.data()
     }))
     return postsList
   } catch (error) {
@@ -196,6 +180,41 @@ export const getUserPosts = async (userId) => {
     return []
   }
 }
+export const updateUser = async (userId) => {
+  try {
+    const userRef = doc(db, "users", userId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      return { success: false, message: `Không tìm thấy user ${userId}` };
+    }
+
+    const postsSnap = await getDocs(collection(userRef, "posts"));
+    const storiesSnap = await getDocs(collection(userRef, "stories"));
+    const followersSnap = await getDocs(collection(userRef, "followers"));
+    const followingSnap = await getDocs(collection(userRef, "following"));
+
+    const updates = {
+      posts: postsSnap.size,
+      stories: storiesSnap.size,
+      followers: followersSnap.size,
+      following: followingSnap.size,
+    };
+
+    await updateDoc(userRef, updates);
+
+    return {
+      success: true,
+      message: `Cập nhật user ${userId} thành công.`,
+      counts: updates,
+    };
+  } catch (error) {
+    console.error(`Lỗi khi cập nhật user ${userId}:`, error);
+    return { success: false, message: "Lỗi: " + error.message };
+  }
+};
+
+
+
 
 export const updatePost = async (postId, data) => {
   try {
@@ -278,6 +297,22 @@ export const getUserRelations = async (userId, type = "followers") => {
     return []
   }
 }
+export const getUserMedia = async (userId) => {
+  try {
+    const MediasRef = collection(db, "users", userId, "media")
+    const MediasSnapshot = await getDocs(MediasRef)
+    const MediasList = MediasSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      addedAt: doc.data().addedAt?.toDate().toISOString().split("T")[0] || "",
+    }))
+    return MediasList
+  } catch (error) {
+    console.error(`Error fetching ${type}:`, error)
+    return []
+  }
+}
+
 
 export const getFollowsInfo = async (userId) => {
   try {
@@ -361,6 +396,42 @@ export const addFollowerToUser = async (userId, followerData) => {
     console.error("Error adding follower:", error)
     return { success: false, message: "Lỗi khi thêm follower: " + error.message }
   }
+}
+
+export function loadPosts(PostData) {
+  const postsContainer = document.getElementById("feed");
+  if (!postsContainer) return;
+  
+  postsContainer.innerHTML = PostData
+    .map(
+      (post) => `
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-avatar" style="background-image: url('${post.avatar}')"></div>
+            <div class="post-info">
+              <h6>${post.username}</h6>
+              <div class="post-time">${post.timestamp}</div>
+            </div>
+          </div>
+          <div class="post-content">
+            ${post.content}
+          </div>
+          ${post.postImg ? `<div class="post-image" style="background-image: url('${post.postImg}')"></div>` : ""}
+          <div class="post-actions">
+            <button class="post-action" onclick="toggleLike(${post.id})">
+              <i class="bi bi-heart"></i> ${post.likeCounter} Like
+            </button>
+            <button class="post-action">
+              <i class="bi bi-chat"></i> ${post.commentCounter} Comment
+            </button>
+            <button class="post-action">
+              <i class="bi bi-share"></i> ${post.shareCounter} Share
+            </button>
+          </div>
+        </div>
+      `
+    )
+    .join("");
 }
 
 export const addFollowingToUser = async (userId, followingData) => {
@@ -471,6 +542,13 @@ export const getDashboardStats = async () => {
 }
 
 // ===== RANDOM DATA GENERATORS =====
+function stripDiacritics(str) {
+  return str
+    .normalize("NFD")     
+    .replace(/\p{M}/gu, "")  
+    .replace(/[^\w.-]/g, "") 
+    .toLowerCase();
+}
 export const generateRandomUserData = () => {
   const firstNames = [
     "Nguyễn ",
@@ -515,8 +593,11 @@ export const generateRandomUserData = () => {
 
   const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
   const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
-  const username = (firstName + lastName) + Math.floor(Math.random() * 1000)
-  const email = username.toLowerCase().replace(/\s+/g, "") + "@" + domains[Math.floor(Math.random() * domains.length)]
+  const displayName = (firstName + lastName).trim()
+  const base = stripDiacritics(displayName);
+  const uniqueSuffix = Math.floor(Math.random() * 1000);
+  const username = `${displayName}${uniqueSuffix}`;
+  const email = `${base}${uniqueSuffix}@${domains[Math.floor(Math.random() * domains.length)]}`;
 
   return {
     username: username,
@@ -542,7 +623,7 @@ export const createRandomUsers = async (count) => {
 
     for (let i = 0; i < count; i++) {
       const userData = generateRandomUserData()
-      const userId = `J31-${crypto.randomUUID()}`;
+      const userId = `A1-${crypto.randomUUID()}`;
       const result = await createUser(userId, userData)
       results.push({ userId, success: result.success, data: userData })
       await new Promise((resolve) => setTimeout(resolve, 100))
@@ -553,78 +634,56 @@ export const createRandomUsers = async (count) => {
     return { success: false, message: "Lỗi khi tạo users random: " + error.message }
   }
 }
-export const addRandomPostToUser = async (userId, storyData) => {
-  try {
-    const storiesRef = collection(db, "users", userId, "stories")
-    await addDoc(storiesRef, {
-      bg: storyData.bg || "",
-      bgMusic: storyData.bgMusic || "",
-      caption: storyData.caption || "",
-      duration: storyData.duration || 60,
-      postTime: serverTimestamp(),
-      expTime: new Date(Date.now() + 86400000),
-      reactions: {},
-      viewState: {
-        friendsOnly: storyData.friendsOnly || true,
-        hidden: storyData.hidden || false,
-        public: storyData.public || true,
-        restricted: storyData.restricted || false,
-      },
-    })
-    return { success: true, message: "Thêm story thành công!" }
-  } catch (error) {
-    console.error("Error adding story:", error)
-    return { success: false, message: "Lỗi khi thêm story: " + error.message }
-  }
-}
-export const addRandomGroupToUser = async (userId, storyData) => {
-  try {
-    const storiesRef = collection(db, "users", userId, "stories")
-    await addDoc(storiesRef, {
-      bg: storyData.bg || "",
-      bgMusic: storyData.bgMusic || "",
-      caption: storyData.caption || "",
-      duration: storyData.duration || 60,
-      postTime: serverTimestamp(),
-      expTime: new Date(Date.now() + 86400000),
-      reactions: {},
-      viewState: {
-        friendsOnly: storyData.friendsOnly || true,
-        hidden: storyData.hidden || false,
-        public: storyData.public || true,
-        restricted: storyData.restricted || false,
-      },
-    })
-    return { success: true, message: "Thêm story thành công!" }
-  } catch (error) {
-    console.error("Error adding story:", error)
-    return { success: false, message: "Lỗi khi thêm story: " + error.message }
-  }
-}
-export const addRandomVideoToUser = async (userId, storyData) => {
-  try {
-    const storiesRef = collection(db, "users", userId, "stories")
-    await addDoc(storiesRef, {
-      bg: storyData.bg || "",
-      bgMusic: storyData.bgMusic || "",
-      caption: storyData.caption || "",
-      duration: storyData.duration || 60,
-      postTime: serverTimestamp(),
-      expTime: new Date(Date.now() + 86400000),
-      reactions: {},
-      viewState: {
-        friendsOnly: storyData.friendsOnly || true,
-        hidden: storyData.hidden || false,
-        public: storyData.public || true,
-        restricted: storyData.restricted || false,
-      },
-    })
-    return { success: true, message: "Thêm story thành công!" }
-  } catch (error) {
-    console.error("Error adding story:", error)
-    return { success: false, message: "Lỗi khi thêm story: " + error.message }
-  }
-}
+
+
+// export const addRandomGroupToUser = async (userId, storyData) => {
+//   try {
+//     const storiesRef = collection(db, "users", userId, "stories")
+//     await addDoc(storiesRef, {
+//       bg: storyData.bg || "",
+//       bgMusic: storyData.bgMusic || "",
+//       caption: storyData.caption || "",
+//       duration: storyData.duration || 60,
+//       postTime: serverTimestamp(),
+//       expTime: new Date(Date.now() + 86400000),
+//       reactions: {},
+//       viewState: {
+//         friendsOnly: storyData.friendsOnly || true,
+//         hidden: storyData.hidden || false,
+//         public: storyData.public || true,
+//         restricted: storyData.restricted || false,
+//       },
+//     })
+//     return { success: true, message: "Thêm story thành công!" }
+//   } catch (error) {
+//     console.error("Error adding story:", error)
+//     return { success: false, message: "Lỗi khi thêm story: " + error.message }
+//   }
+// }
+// export const addRandomVideoToUser = async (userId, storyData) => {
+//   try {
+//     const storiesRef = collection(db, "users", userId, "stories")
+//     await addDoc(storiesRef, {
+//       bg: storyData.bg || "",
+//       bgMusic: storyData.bgMusic || "",
+//       caption: storyData.caption || "",
+//       duration: storyData.duration || 60,
+//       postTime: serverTimestamp(),
+//       expTime: new Date(Date.now() + 86400000),
+//       reactions: {},
+//       viewState: {
+//         friendsOnly: storyData.friendsOnly || true,
+//         hidden: storyData.hidden || false,
+//         public: storyData.public || true,
+//         restricted: storyData.restricted || false,
+//       },
+//     })
+//     return { success: true, message: "Thêm story thành công!" }
+//   } catch (error) {
+//     console.error("Error adding story:", error)
+//     return { success: false, message: "Lỗi khi thêm story: " + error.message }
+//   }
+// }
 
 
 function getRandomInt(min, max) {
@@ -900,8 +959,6 @@ export const createRandomPostsWithInteractions = async (count) => {
     };
   }
 };
-
-
 const sampleStoryContents = [
   "Nắng hôm nay đẹp quá!",
   "Đang trên đường đi chơi, ai đoán được đích đến không?",
