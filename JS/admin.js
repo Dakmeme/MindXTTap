@@ -11,6 +11,7 @@ import {
   getUserFollowing,
   createRandomUsers,
 } from "./firebase-config.js"
+import { auth, onAuthStateChanged } from "./firebase.js";
 
 let filteredUsers = []
 let filteredPosts = []
@@ -21,88 +22,86 @@ let currentPostsSort = { field: null, direction: "asc" }
 let currentUser = null // Declare currentUser globally
 
 const bootstrap = window.bootstrap
+const adminEmail = "admin@gmail.com";
 
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("DOM Content Loaded - Starting app...")
-  if (!checkAuthentication()) {
-    return
-  }
-  showLoadingState()
-  await initializeApp()
-  setupEventListeners()
-  showTab("posts")
-})
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM Content Loaded - Checking authentication...");
 
-function checkAuthentication() {
-  const userData = localStorage.getItem("currentUser")
-  if (!userData) {
-    console.log("No user data found, redirecting to login...")
-    window.location.href = "login.html"
-    return false
-  }
-  try {
-    currentUser = JSON.parse(userData)
-    console.log("Current user authenticated:", currentUser.uid || currentUser.email)
-    updateUserHeader()
-    return true
-  } catch (error) {
-    console.error("Error parsing user data:", error)
-    localStorage.removeItem("currentUser")
-    window.location.href = "login.html"
-    return false
-  }
-}
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      console.log("No user logged in, redirecting to login...");
+      window.location.href = "login.html";
+      return;
+    }
+
+    if (user.email.toLowerCase() !== adminEmail.toLowerCase()) {
+      console.log("Not an admin:", user.email);
+      alert("Bạn không có quyền truy cập trang quản trị.");
+      window.location.href = "profile.html";
+      return;
+    }
+
+    // Nếu đúng admin
+    currentUser = { email: user.email, uid: user.uid };
+    updateUserHeader();
+    showLoadingState();
+    await initializeApp();
+    setupEventListeners();
+    showTab("posts");
+  });
+});
 
 function updateUserHeader() {
-  const brandText = document.querySelector(".brand-text")
+  const brandText = document.querySelector(".brand-text");
   if (brandText && currentUser) {
     brandText.innerHTML = `
       <h5>Firebase Admin</h5>
-      <small>Xin chào, ${currentUser.username || currentUser.email}</small>
-    `
+      <small>Xin chào, ${currentUser.email}</small>
+    `;
   }
 }
 
 async function initializeApp() {
   try {
-    console.log("Initializing app...")
-    await loadInitialData()
-    await updateDashboardStats()
-    hideLoadingState()
-    showNotification(`Chào mừng ${currentUser.username || currentUser.email}! User ID: ${currentUser.uid}`, "success")
-    console.log("App initialized successfully!")
+    console.log("Initializing app...");
+    await loadInitialData();
+    await updateDashboardStats();
+    hideLoadingState();
+    showNotification(`Chào mừng ${currentUser.email}! User ID: ${currentUser.uid}`, "success");
+    console.log("App initialized successfully!");
   } catch (error) {
-    console.error("Error initializing app:", error)
-    hideLoadingState()
-    showNotification("Lỗi khi tải dữ liệu: " + error.message, "danger")
+    console.error("Error initializing app:", error);
+    hideLoadingState();
+    showNotification("Lỗi khi tải dữ liệu: " + error.message, "danger");
   }
 }
 
 async function loadInitialData() {
   try {
-    console.log("Loading initial data...")
+    console.log("Loading initial data...");
 
-    const users = await getAllUsers()
-    console.log("Users loaded:", users)
+    const users = await getAllUsers();
+    console.log("Users loaded:", users);
 
-    const posts = await getAllPosts()
-    console.log("Posts loaded:", posts)
+    const posts = await getAllPosts();
+    console.log("Posts loaded:", posts);
 
-    allUsers = users || []
-    allPosts = posts || []
-    filteredUsers = [...allUsers]
-    filteredPosts = [...allPosts]
+    allUsers = users || [];
+    allPosts = posts || [];
+    filteredUsers = [...allUsers];
+    filteredPosts = [...allPosts];
 
-    renderUsersTable()
-    renderPostsTable()
-    updatePostsStats()
+    renderUsersTable();
+    renderPostsTable();
+    updatePostsStats();
 
-    console.log("Initial data loaded successfully")
+    console.log("Initial data loaded successfully");
   } catch (error) {
-    console.error("Error in loadInitialData:", error)
-    throw error
+    console.error("Error in loadInitialData:", error);
+    throw error;
   }
 }
+
 
 async function updateDashboardStats() {
   try {
