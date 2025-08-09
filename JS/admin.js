@@ -1084,7 +1084,7 @@ function exitAdminPage() {
       console.log("Cannot close window, redirecting instead...")
     }
 
-    window.location.href = "./index.html"
+    window.location.href = "./profile.html"
   }
 }
 
