@@ -58,9 +58,7 @@ export const getAllUsers = async () => {
         const userData = doc.data()
         const processedUser = {
           id: doc.id,
-          ...userData,
-          joinDate: userData.createdAt?.toDate().toISOString().split("T")[0] || "",
-          lastActive: formatLastActive(userData.lastActive?.toDate()),
+          ...userData
         }
         usersList.push(processedUser)
       } catch (error) {
