@@ -106,9 +106,9 @@ document.getElementById('media-btn-image').addEventListener('click', () => {
 })
 
 const currentUser = {
-  displayName: 'Demo User',
-  email: 'demo@example.com',
-  uid: 'demo-user-id',
+  displayName: UserData?.username,
+  email: UserData?.email,
+  uid: UserData?.uid,
 }
 
 // Initialize UI
