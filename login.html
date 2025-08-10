@@ -76,14 +76,22 @@
 
   function validateEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email.trim()) return "Email is required";
-    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    if (!email.trim()) {
+      return "Email is required";
+    }
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
     return null;
   }
 
   function validatePassword(password) {
-    if (!password) return "Password is required";
-    if (password.length < 6) return "Password must be at least 6 characters";
+    if (!password) {
+      return "Password is required";
+    }
+    if (password.length < 6) {
+      return "Password must be at least 6 characters";
+    }
     return null;
   }
 
@@ -104,11 +112,13 @@
 
   // Real-time validation
   emailInput.addEventListener("blur", () => {
-    showError("email", validateEmail(emailInput.value));
+    const error = validateEmail(emailInput.value);
+    showError("email", error);
   });
 
   passwordInput.addEventListener("blur", () => {
-    showError("password", validatePassword(passwordInput.value));
+    const error = validatePassword(passwordInput.value);
+    showError("password", error);
   });
 
   document.getElementById("login-form").addEventListener("submit", async function(e) {
@@ -117,12 +127,16 @@
     const email = emailInput.value.trim();
     const password = passwordInput.value;
 
-    // Validate
+    // Validate fields
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
+
     showError("email", emailError);
     showError("password", passwordError);
-    if (emailError || passwordError) return;
+
+    if (emailError || passwordError) {
+      return;
+    }
 
     const submitButton = document.querySelector('.signin-btn');
     submitButton.classList.add("loading");
@@ -134,17 +148,11 @@
       
       console.log("Login successful:", user.uid);
       alert("Login successful!");
-
-      const adminEmail = "admin@gmail.com";
-      if (user.email.toLowerCase() === adminEmail.toLowerCase()) {
-        window.location.href = "admin.html";
-      } else {
-        window.location.href = "profile.html";
-      }
-
+      window.location.href = "profile.html";
     } catch (error) {
       console.error("Login error:", error);
       let errorMessage = "Login failed";
+      
       switch (error.code) {
         case "auth/user-not-found":
           errorMessage = "No account found with this email";
@@ -168,6 +176,7 @@
         default:
           errorMessage = `Error: ${error.message}`;
       }
+      
       if (!["auth/user-not-found", "auth/wrong-password", "auth/invalid-email", "auth/user-disabled"].includes(error.code)) {
         alert(errorMessage);
       }
@@ -179,4 +188,3 @@
 </script>
 </body>
 </html>
-

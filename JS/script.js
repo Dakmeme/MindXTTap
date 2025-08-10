@@ -15,7 +15,6 @@ import {
   deleteDoc,
   setDoc,
 } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js'
-// import * as bootstrap from 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js'
 import {
   getUserInfo,
   getUserPosts,
@@ -25,6 +24,7 @@ import {
 } from './firebase-config.js'
 await initAuth()
 import { getCurrentUser, initAuth } from './authState.js'
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCi2NKH7Dzf6sLZdvuCQW18hxbsF4cVYB0',
@@ -46,6 +46,64 @@ const postButton = document.getElementById('postButton')
 
 const userId = getCurrentUser()
 const UserData = await getUserInfo(userId)
+
+const supabaseUrl = 'https://cxetoatkpxdfebkfuooc.supabase.co'
+const supabaseKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4ZXRvYXRrcHhkZmVia2Z1b29jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQyNzcwMDIsImV4cCI6MjA1OTg1MzAwMn0.cy6mHRkldSrePKKSjLD8Vu35e5HjAIE8xDLdHVIs0Nw'
+
+const supabase = createClient(supabaseUrl, supabaseKey)
+
+async function uploadFileToSupabase(file, bucketName = 'my-images') {
+  if (!file) return null
+
+  const fileName = `${Date.now()}_${file.name}`
+  const { data, error } = await supabase.storage
+    .from(bucketName)
+    .upload(fileName, file)
+  if (error) {
+    console.error('Upload error:', error.message)
+    showNotification('Upload failed: ' + error.message, 'error', 2000)
+    return null
+  }
+  const { data: publicUrlData } = supabase.storage
+    .from(bucketName)
+    .getPublicUrl(fileName)
+  return publicUrlData.publicUrl
+}
+
+document.getElementById('media-btn-image').addEventListener('click', () => {
+  const inputFile = document.getElementById('imageInput')
+  if (!inputFile) {
+    console.error('Image input (#imageInput) not found')
+    showNotification('Image input not found.', 'error', 2000)
+    return
+  }
+
+  inputFile.addEventListener(
+    'change',
+    async (event) => {
+      const file = event.target.files[0]
+      if (!file) return
+
+      const uploadedUrl = await uploadFileToSupabase(file)
+      if (uploadedUrl) {
+        showNotification('Image uploaded successfully!', 'success', 1500)
+        // Gán URL ảnh vào input ẩn #image để dùng trong post
+        const imageInput = document.getElementById('post-image-preview')
+        if (imageInput) {
+          imageInput.src = uploadedUrl
+          imageInput.classList.add('d-block')
+          imageInput.classList.remove('d-none')
+        } else {
+          console.warn('Hidden image input (#image) not found')
+        }
+      }
+    },
+    { once: true }
+  ) // Use { once: true } to prevent multiple change listeners
+
+  inputFile.click()
+})
 
 const currentUser = {
   displayName: 'Demo User',
@@ -280,17 +338,18 @@ if (postButton) {
     if (!requireAuthAction(e, 'creating a post')) return
 
     const contentInput = document.getElementById('content')
-    const imageInput = document.getElementById('image')
+    const imageInput = document.getElementById('post-image-preview')
     const videoInput = document.getElementById('video')
     const fileInput = document.getElementById('file')
 
-    let imageUrl = ''
+    let postImg = ''
     let videoUrl = ''
     let fileUrl = ''
     let fileName = ''
 
     if (!contentInput) {
       console.error('Content input not found')
+      showNotification('Content input not found.', 'error', 2000)
       return
     }
 
@@ -309,8 +368,11 @@ if (postButton) {
       return
     }
 
-    if (imageInput && imageInput.value.trim()) {
-      imageUrl = imageInput.value.trim()
+    // Handle image URL from imageInput (set by uploadFileToSupabase)
+    if (imageInput && imageInput.src.trim()) {
+      postImg = imageInput.src.trim()
+    } else if (imageInput && !imageInput.value.trim()) {
+      console.warn('Image input (#imageInput) found but no value set')
     }
     if (videoInput && videoInput.value.trim()) {
       videoUrl = videoInput.value.trim()
@@ -326,12 +388,13 @@ if (postButton) {
 
     try {
       const docRef = await addDoc(collection(db, 'posts'), {
+        userId: userId,
         username: userName,
         content: contentValue,
         date: new Date().toISOString(),
         likeCount: 0,
         shareCount: 0,
-        ...(imageUrl && { image: imageUrl }),
+        ...(postImg && { postImg: postImg }),
         ...(videoUrl && { video: videoUrl }),
         ...(fileUrl && { file: fileUrl, fileName: fileName }),
       })
@@ -346,15 +409,19 @@ if (postButton) {
           likeCount: 0,
           commentCount: 0,
           shareCount: 0,
-          ...(imageUrl && { image: imageUrl }),
+          ...(postImg && { postImg: postImg }),
           ...(videoUrl && { video: videoUrl }),
           ...(fileUrl && { file: fileUrl, fileName: fileName }),
         },
         true
       )
 
+      // Reset inputs after successful post
       contentInput.value = ''
-      if (imageInput) imageInput.value = ''
+      if (imageInput) {
+        imageInput.src = ''
+        imageInput.classList.add('d-none')
+      }
       if (videoInput) videoInput.value = ''
       if (fileInput) {
         fileInput.value = ''
@@ -391,7 +458,7 @@ if (postButton) {
       showNotification('Post created successfully!', 'success', 1500)
     } catch (e) {
       console.error('Error adding document: ', e)
-      showNotification('Failed to create post.', 'error', 2000)
+      showNotification('Failed to create post: ' + e.message, 'error', 2000)
     }
   })
 }
@@ -604,6 +671,165 @@ document.addEventListener('click', async (e) => {
       })
     return
   }
+
+  const currentUserId = getCurrentUser()
+
+  const editCmtBtn = e.target.closest('.edit-comment-btn')
+  if (editCmtBtn) {
+    if (!requireAuthAction(e, 'editing a comment')) return
+
+    const commentDiv = editCmtBtn.closest('.comment')
+    if (!commentDiv) return
+    const postId = commentPopup.getAttribute('data-post-id') // giả sử có lưu postId ở popup
+    if (!postId) return
+    const commentContentDiv = commentDiv.querySelector(
+      'div:nth-child(2) > div:nth-child(2)'
+    ) // phần chứa nội dung comment (có thể bạn cần điều chỉnh selector cho chuẩn)
+    if (!commentContentDiv) return
+
+    // Lấy commentId (bạn cần gắn data-comment-id vào mỗi comment khi render)
+    const commentId = commentDiv.getAttribute('data-comment-id')
+    if (!commentId) return
+
+    const commentDoc = await getDoc(
+      doc(db, 'posts', postId, 'comments', commentId)
+    )
+    if (!commentDoc.exists() || commentDoc.data().userId !== currentUserId) {
+      showNotification('You can only edit your own comments.', 'error', 2000)
+      return
+    }
+
+    // Tránh trường hợp đang edit rồi
+    if (commentContentDiv.querySelector('textarea')) return
+
+    const oldCmtContent = commentContentDiv.textContent
+    commentContentDiv.innerHTML = `
+      <textarea class="form-control edit-comment-textarea" style="width:100%; min-height:60px; margin-bottom:8px;">${oldCmtContent.replace(
+        /"/g,
+        '&quot;'
+      )}</textarea>
+      <div>
+        <button class="btn btn-sm btn-primary save-edit-comment-btn" style="border-radius:20px; margin-right:8px;">
+          <i class="bi bi-check-circle me-1"></i>Save
+        </button>
+        <button class="btn btn-sm btn-secondary cancel-edit-comment-btn" style="border-radius:20px;">
+          <i class="bi bi-x-circle me-1"></i>Cancel
+        </button>
+      </div>
+    `
+    const textarea = commentContentDiv.querySelector('textarea')
+    if (textarea) textarea.focus()
+    return
+  }
+
+  // Save edit comment button
+  const saveEditCmtBtn = e.target.closest('.save-edit-comment-btn')
+  if (saveEditCmtBtn) {
+    if (!requireAuthAction(e, 'saving comment edits')) return
+
+    const commentDiv = saveEditCmtBtn.closest('.comment')
+    if (!commentDiv) return
+    const postId = commentPopup.getAttribute('data-post-id')
+    if (!postId) return
+    const commentContentDiv = commentDiv.querySelector(
+      'div:nth-child(2) > div:nth-child(2)'
+    )
+    const textarea = commentContentDiv.querySelector('textarea')
+    if (!textarea) return
+    const newCmtContent = textarea.value.trim()
+    if (!newCmtContent) {
+      showNotification('Comment content cannot be empty.', 'warning', 1500)
+      return
+    }
+    if (newCmtContent.length > 300) {
+      showNotification(
+        'Comment content is too long. Maximum 300 characters.',
+        'warning',
+        2000
+      )
+      return
+    }
+    const commentId = commentDiv.getAttribute('data-comment-id')
+    if (!commentId) return
+
+    updateDoc(doc(db, 'posts', postId, 'comments', commentId), {
+      content: newCmtContent,
+    })
+      .then(() => {
+        commentContentDiv.innerHTML = newCmtContent
+        showNotification('Comment updated!', 'success', 1200)
+      })
+      .catch(() => {
+        showNotification('Failed to update comment.', 'error')
+      })
+    return
+  }
+
+  // Cancel edit comment button
+  const cancelEditCmtBtn = e.target.closest('.cancel-edit-comment-btn')
+  if (cancelEditCmtBtn) {
+    const commentDiv = cancelEditCmtBtn.closest('.comment')
+    if (!commentDiv) return
+    const postId = commentPopup.getAttribute('data-post-id')
+    if (!postId) return
+    const commentId = commentDiv.getAttribute('data-comment-id')
+    if (!commentId) return
+
+    getDoc(doc(db, 'posts', postId, 'comments', commentId)).then(
+      (commentDoc) => {
+        const commentContentDiv = commentDiv.querySelector(
+          'div:nth-child(2) > div:nth-child(2)'
+        )
+        if (commentContentDiv) {
+          commentContentDiv.innerHTML = commentDoc.exists()
+            ? commentDoc.data().content || ''
+            : ''
+        }
+      }
+    )
+    return
+  }
+
+  // Delete comment button
+  const deleteCmtBtn = e.target.closest('.delete-comment-btn')
+  if (deleteCmtBtn) {
+    if (!requireAuthAction(e, 'deleting a comment')) return
+
+    const commentDiv = deleteCmtBtn.closest('.comment')
+    if (!commentDiv) return
+    const postId = commentPopup.getAttribute('data-post-id')
+    if (!postId) return
+    const commentId = commentDiv.getAttribute('data-comment-id')
+    if (!commentId) return
+
+    const commentDoc = await getDoc(
+      doc(db, 'posts', postId, 'comments', commentId)
+    )
+    if (!commentDoc.exists() || commentDoc.data().userId !== currentUserId) {
+      showNotification('You can only delete your own comments.', 'error', 2000)
+      return
+    }
+
+    if (
+      !confirm(
+        'Are you sure you want to delete this comment? This cannot be undone.'
+      )
+    )
+      return
+
+    deleteDoc(doc(db, 'posts', postId, 'comments', commentId))
+      .then(() => {
+        commentDiv.remove()
+        // Cập nhật lại số comment nếu cần
+        // Bạn có thể gọi lại renderPopupComments(postId) hoặc updatePostCounts
+        updatePostCounts(postId, { commentCount: -1 }) // hoặc tính lại count cho chính xác
+        showNotification('Comment deleted.', 'success', 1200)
+      })
+      .catch(() => {
+        showNotification('Failed to delete comment.', 'error')
+      })
+    return
+  }
 })
 
 // Comment Popup Logic
@@ -731,8 +957,28 @@ async function renderPopupComments(postId) {
           minute: '2-digit',
         })
       }
+      const menuHtml = `
+    <div class="dropdown post-menu" style="margin-left:auto; position:relative;">
+      <button class="btn btn-sm post-menu-btn" style="border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; background: var(--secondary-color); border: none;" data-bs-toggle="dropdown" aria-expanded="false" title="More options">
+        <i class="bi bi-three-dots-vertical"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end" style="border-radius:12px; min-width:120px; font-size:0.98em; background: var(--main-color); border: 1px solid var(--border-color);">
+        <li>
+          <button class="dropdown-item edit-comment-btn" type="button" style="color:var(--headline-color);">
+            <i class="bi bi-pencil me-2"></i>Edit
+          </button>
+        </li>
+        <li>
+          <button class="dropdown-item delete-comment-btn" type="button" style="color:var(--error-color);">
+            <i class="bi bi-trash me-2"></i>Delete
+          </button>
+        </li>
+      </ul>
+    </div>
+  `
       const commentEl = document.createElement('div')
       commentEl.className = 'comment mb-2'
+      commentEl.setAttribute('data-comment-id', docSnap.id)
       commentEl.innerHTML = `
         <div class="d-flex align-items-center">
           <div class="profile-img-tiny me-2">
@@ -743,6 +989,7 @@ async function renderPopupComments(postId) {
             <div>${c.content}</div>
             <div>${dateStr}</div>
           </div>
+          ${menuHtml}
         </div>
       `
       commentsDiv.appendChild(commentEl)
